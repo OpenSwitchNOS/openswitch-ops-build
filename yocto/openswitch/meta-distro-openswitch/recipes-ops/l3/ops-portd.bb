@@ -4,7 +4,7 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/Apache-2.0;md5=89aea4e17d99a7ca
 
 DEPENDS = "ops-utils ops-ovsdb"
 
-SRC_URI = "git://git.openswitch.net/openswitch/ops-portd;protocol=http\
+SRC_URI = "git://git.openswitch.net/openswitch/ops-portd;protocol=http;branch=feature/intervlan \
            file://portd.service"
 
 SRCREV = "${AUTOREV}"
