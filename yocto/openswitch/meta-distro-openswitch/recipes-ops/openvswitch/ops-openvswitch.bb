@@ -7,7 +7,8 @@ DEPENDS = "openssl python perl systemd ops-utils libtool"
 SRC_URI = "git://git.openswitch.net/openswitch/ops-openvswitch;protocol=http \
    file://ovsdb-server.service \
    file://switchd_bcm.service \
-   file://switchd_sim.service \
+   file://switchd_sim.service; \
+   branch=feature/fastrouting \
 "
 
 SRCREV="${AUTOREV}"
