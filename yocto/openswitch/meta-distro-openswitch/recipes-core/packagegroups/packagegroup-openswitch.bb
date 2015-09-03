@@ -55,6 +55,7 @@ RDEPENDS_packagegroup-ops-base = "\
     ops-bufmond \
     ops-mgmt-intf \
     dnsmasq \
+    python-pyOpenSSL \
 "
 
 RDEPENDS_packagegroup-ops-base_append_arm = "\
