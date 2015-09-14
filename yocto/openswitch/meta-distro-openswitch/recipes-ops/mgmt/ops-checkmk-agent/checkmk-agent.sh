@@ -248,10 +248,10 @@ for i in $(ovs-vsctl list Interface | grep name | cut -c 24- | sed 's/"$//') ; d
 done
 
 # Current state of bonding interfaces
-if [ -e /proc/net/bonding ] ; then
-    echo '<<<lnx_bonding:sep(58)>>>'
-    pushd /proc/net/bonding > /dev/null ; head -v -n 1000 * ; popd
-fi
+#if [ -e /proc/net/bonding ] ; then
+#    echo '<<<lnx_bonding:sep(58)>>>'
+#    pushd /proc/net/bonding > /dev/null ; head -v -n 1000 * ; popd
+#fi
 
 # Same for Open vSwitch bonding
 if type ovs-appctl > /dev/null ; then
