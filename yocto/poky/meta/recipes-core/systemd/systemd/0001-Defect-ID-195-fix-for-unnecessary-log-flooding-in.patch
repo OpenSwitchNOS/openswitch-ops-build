@@ -1,0 +1,20 @@
+commit 08efddfd280d229d141adc16916bc9019698ffc1
+Author: LDAP ISSUES Mithun Halder HP <haldermi@hpnsw3805.rose.hp.com>
+Date:   Tue Sep 15 05:13:50 2015 -0700
+
+    defect 195: fix for flooding syslog with dns change msg.
+
+diff --git a/configure.ac b/configure.ac
+index 9c75ef6..b89df45 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -1140,7 +1140,8 @@ AC_ARG_WITH(dns-servers,
+         AS_HELP_STRING([--with-dns-servers=DNSSERVERS],
+                 [Space-separated list of default DNS servers]),
+         [DNS_SERVERS="$withval"],
+-        [DNS_SERVERS="8.8.8.8 8.8.4.4 2001:4860:4860::8888 2001:4860:4860::8844"])
++#        [DNS_SERVERS="8.8.8.8 8.8.4.4 2001:4860:4860::8888 2001:4860:4860::8844"])
++        [DNS_SERVERS=""])
+ 
+ AC_DEFINE_UNQUOTED(DNS_SERVERS, ["$DNS_SERVERS"], [Default DNS Servers])
+ AC_SUBST(DNS_SERVERS)
