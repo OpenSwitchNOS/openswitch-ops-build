@@ -46,7 +46,7 @@ inherit python-dir useradd
 FILES_python-ops-ovsdb = "${PYTHON_SITEPACKAGES_DIR}/ovs"
 
 FILES_${PN} = "${bindir}/ovs-appctl ${bindir}/ovs-pki ${bindir}/ovs-vsctl \
- /var/local/openvswitch ${sbindir}/ovs-vswitchd \
+ ${sbindir}/ovs-vswitchd \
  ${libdir}/libofproto.so.1* ${libdir}/libopenvswitch.so.1* ${libdir}/libsflow.so.1*"
 
 USERADD_PACKAGES = "${PN}"
@@ -78,7 +78,6 @@ do_install_append() {
     install -m 0644 ofproto/libofproto.pc ${D}/${libdir}/pkgconfig/
     install -m 0644 ovsdb/libovsdb.pc ${D}/${libdir}/pkgconfig/
     install -d ${D}${systemd_unitdir}/system
-    install -d ${D}/var/local/openvswitch
     install -m 0644 ${WORKDIR}/ovsdb-server.service ${D}${systemd_unitdir}/system/
     if ${@bb.utils.contains('MACHINE_FEATURES','broadcom','true','false',d)}; then
         install -m 0644 ${WORKDIR}/switchd_bcm.service ${D}${systemd_unitdir}/system/switchd.service
@@ -88,6 +87,7 @@ do_install_append() {
     fi
     install -d ${D}${sysconfdir}/tmpfiles.d
     echo "d /run/openvswitch/ 0770 - ovsdb_users -" > ${D}${sysconfdir}/tmpfiles.d/openswitch.conf
+    echo "d /var/local/openvswitch/ 0770 - ovsdb_users -" >> ${D}${sysconfdir}/tmpfiles.d/openswitch.conf
     install -d ${D}${PYTHON_SITEPACKAGES_DIR}
     mv ${D}/${prefix}/share/openvswitch/python/ovs ${D}${PYTHON_SITEPACKAGES_DIR}
     install -m 0644 ${S}/vswitchd/vswitch.extschema ${D}/${prefix}/share/openvswitch/vswitch.extschema
