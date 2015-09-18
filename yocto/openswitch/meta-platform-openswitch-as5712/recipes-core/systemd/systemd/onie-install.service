@@ -7,7 +7,7 @@ After=shutdown.target umount.target final.target
 
 [Service]
 Type=oneshot
-ExecStart=/usr/sbin/grub-reboot ONIE
+ExecStart=/usr/sbin/grub-reboot --boot-directory=/var/local/boot ONIE
 ExecStart=/bin/mkdir -p /mnt/onie-boot
 ExecStart=/bin/mount /dev/sda2 /mnt/onie-boot/
 ExecStart=/mnt/onie-boot/onie/tools/bin/onie-boot-mode -o install
@@ -15,4 +15,3 @@ ExecStart=/bin/systemctl --force reboot
 
 [Install]
 WantedBy=onie-install.target
-
