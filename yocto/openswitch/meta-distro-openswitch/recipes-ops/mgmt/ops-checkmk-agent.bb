@@ -21,10 +21,17 @@ S = "${WORKDIR}/git"
 do_install_prepend () {
     install -d ${D}${systemd_unitdir}/system
     install -m 644 ${WORKDIR}/checkmk-agent\@.service ${D}${systemd_unitdir}/system
+    ln -s ${D}${systemd_unitdir}/system/checkmk-agent\@.service ~/goo
     install -m 644 ${WORKDIR}/checkmk-agent.socket ${D}${systemd_unitdir}/system
     install -d ${D}${sysconfdir}/checkmk
     install -d ${D}${bindir}
     install -m 755 ${WORKDIR}/checkmk-agent.sh ${D}${bindir}/check_mk_agent
+}
+
+pkg_postinst_${PN} () {
+    #!/bin/sh
+    # post installation script
+    ln -s /lib/systemd/system/checkmk-agent\@.service /etc/systemd/system/sockets.target.wants/checkmk-agent\@.service
 }
 
 SYSTEMD_PACKAGES = "${PN}"
