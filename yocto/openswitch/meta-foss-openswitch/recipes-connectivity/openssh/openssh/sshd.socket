@@ -5,7 +5,7 @@ Conflicts=sshd.service
 ExecStartPre=@BASE_BINDIR@/mkdir -p /var/run/sshd
 ListenStream=22
 Accept=yes
-MaxConnections=64
+MaxConnections=16
 
 [Install]
 WantedBy=sockets.target
