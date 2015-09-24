@@ -25,7 +25,7 @@ RPROVIDES_${PN} = "virtual/switchd"
 
 RDEPENDS_${PN} = "openssl procps util-linux-uuidgen util-linux-libuuid coreutils \
   python perl perl-module-strict sed gawk grep ops-ovsdb \
-  ${@bb.utils.contains('MACHINE_FEATURES', 'ops-sim', 'openvswitch-sim-switch', '',d)} \
+  ${@bb.utils.contains('MACHINE_FEATURES', 'ops-container', 'openvswitch-sim-switch', '',d)} \
 "
 
 RDEPENDS_python-ops-ovsdb = "python-io python-netclient python-datetime \
@@ -34,12 +34,12 @@ RDEPENDS_python-ops-ovsdb = "python-io python-netclient python-datetime \
 EXTRA_OECONF += "TARGET_PYTHON=${bindir}/python \
                  TARGET_PERL=${bindir}/perl \
                  --disable-static --enable-shared\
-                 ${@bb.utils.contains('MACHINE_FEATURES', 'ops-sim', '--enable-simulator-provider', '',d)} \
+                 ${@bb.utils.contains('MACHINE_FEATURES', 'ops-container', '--enable-simulator-provider', '',d)} \
                  "
 FILES_ops-ovsdb = "/run /var/run /var/log /var/volatile ${bindir}/ovsdb* \
   ${sbindir}/ovsdb-server ${datadir}/ovsdbmonitor ${sysconfdir}/openvswitch/ \
   ${libdir}/libovscommon.so.1* ${libdir}/libovsdb.so.1* \
-  ${sysconfdir}/tmpfiles.d/openswitch.conf /usr/share/openvswitch/*.ovsschema /usr/share/openvswitch/vswitch.extschema /usr/share/openvswitch/dhcp_leases.extschema"
+  ${sysconfdir}/tmpfiles.d/openswitch.conf /usr/share/openvswitch/*.ovsschema /usr/share/openvswitch/vswitch.extschema /usr/share/openvswitch/vswitch.xml /usr/share/openvswitch/dhcp_leases.extschema"
 
 inherit python-dir useradd
 
@@ -83,7 +83,7 @@ do_install_append() {
     if ${@bb.utils.contains('MACHINE_FEATURES','broadcom','true','false',d)}; then
         install -m 0644 ${WORKDIR}/switchd_bcm.service ${D}${systemd_unitdir}/system/switchd.service
     fi
-    if ${@bb.utils.contains('MACHINE_FEATURES','ops-sim','true','false',d)}; then
+    if ${@bb.utils.contains('MACHINE_FEATURES','ops-container','true','false',d)}; then
         install -m 0644 ${WORKDIR}/switchd_sim.service ${D}${systemd_unitdir}/system/switchd.service
     fi
     install -d ${D}${sysconfdir}/tmpfiles.d
@@ -91,6 +91,7 @@ do_install_append() {
     install -d ${D}${PYTHON_SITEPACKAGES_DIR}
     mv ${D}/${prefix}/share/openvswitch/python/ovs ${D}${PYTHON_SITEPACKAGES_DIR}
     install -m 0644 ${S}/vswitchd/vswitch.extschema ${D}/${prefix}/share/openvswitch/vswitch.extschema
+    install -m 0644 ${S}/vswitchd/vswitch.xml ${D}/${prefix}/share/openvswitch/vswitch.xml
     install -m 0644 ${S}/vswitchd/dhcp_leases.extschema ${D}/${prefix}/share/openvswitch/dhcp_leases.extschema
 }
 

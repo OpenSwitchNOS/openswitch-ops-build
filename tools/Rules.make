@@ -423,7 +423,7 @@ devenv_clean: dev_header
 DEVENV_BRANCH?=master
 
 define DEVENV_ADD
-	if ! grep -q $(1) .devenv 2>/dev/null ; then \
+	if ! grep -q '^$(1)$$' .devenv 2>/dev/null ; then \
 	  $(call DEVTOOL, modify --extract $(1) $(BUILD_ROOT)/src/$(1)) ; \
 	  pushd . > /dev/null ; \
 	  cd $(BUILD_ROOT)/src/$(1) ; \
@@ -474,7 +474,7 @@ ifneq ($(findstring devenv_rm,$(MAKECMDGOALS)),)
   endif
 endif
 devenv_rm: dev_header
-	$(V)$(V)sed -i -e "/#$(PACKAGE)/,/#END_$(PACKAGE)/d" src/Rules.make
+	$(V)$(V)sed -i -e "/#$(PACKAGE)$$/,/#END_$(PACKAGE)$$/d" src/Rules.make
 	$(V)sed -i -e "/$(PACKAGE)/d" .devenv
 	$(V)$(call DEVTOOL,reset $(PACKAGE))
 	$(V)rm -Rf src/$(PACKAGE)
@@ -539,7 +539,7 @@ trim: header
 .PHONY: changelog_manifest
 changelog_manifest: header
 	$(V) $(ECHO) "$(YELLOW)Generating Change Log Manifest ...$(GRAY)\n"
-	$(V) cd $(BUILDDIR) ; $(BUILD_ROOT)/tools/bin/changelog_projects.py
+	$(V) $(BUILD_ROOT)/tools/bin/generate_changelog_manifest.py
 
 # Git support
 .PHONY: git_pull
@@ -563,7 +563,7 @@ git_pull: header
 .PHONY: devenv_ct_init devenv_ct_test
 
 devenv_ct_init: dev_header
-	$(V)$(call BITBAKE,ops-vsi-native)
+	$(V)$(call BITBAKE,ops-ft-framework-native)
 	$(V) /bin/mkdir -p src
 	$(V) /bin/cp tools/pytest.ini src/pytest.ini
 	$(V) if [ ! -f .sandbox_uuid ] ; then \
