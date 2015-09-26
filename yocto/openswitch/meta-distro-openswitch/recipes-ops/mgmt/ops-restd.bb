@@ -26,8 +26,8 @@ do_install_prepend() {
 do_install_append() {
       # Generating REST API file for use by ops-restapi module
       install -d ${STAGING_DIR_TARGET}/srv/www/api
-      cd ${S}/opslib
-      PYTHONPATH=${STAGING_DIR_TARGET}/${PYTHON_SITEPACKAGES_DIR}:${PYTHONPATH} python apidocgen.py ${STAGING_DIR_TARGET}/${prefix}/share/openvswitch/vswitch.extschema ${STAGING_DIR_TARGET}/${prefix}/share/openvswitch/vswitch.xml > ${STAGING_DIR_TARGET}/srv/www/api/ops-restapi.json
+      # cd ${S}/opslib
+      # PYTHONPATH=${STAGING_DIR_TARGET}/${PYTHON_SITEPACKAGES_DIR}:${PYTHONPATH} python apidocgen.py ${STAGING_DIR_TARGET}/${prefix}/share/openvswitch/vswitch.extschema ${STAGING_DIR_TARGET}/${prefix}/share/openvswitch/vswitch.xml > ${STAGING_DIR_TARGET}/srv/www/api/ops-restapi.json
 }
 
 SYSTEMD_PACKAGES = "${PN}"
