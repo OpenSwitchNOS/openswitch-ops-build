@@ -1,6 +1,6 @@
 SUMMARY = "OpenNSL CDP Release"
 LICENSE = "Proprietary & Apache-2.0 & GPLv2"
-LIC_FILES_CHKSUM = "file://bin/LICENSE;md5=77e9225d45f6d0bf956a506126c6fd4d"
+LIC_FILES_CHKSUM = "file://bin/LICENSE;md5=97cc5e596a4b958d6e1767e75ea007ce"
 
 DEPENDS_${PN} += "ops-utils systemd"
 
