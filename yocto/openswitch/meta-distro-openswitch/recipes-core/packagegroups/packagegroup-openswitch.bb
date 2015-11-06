@@ -37,6 +37,7 @@ RDEPENDS_packagegroup-ops-base = "\
     pwauth \
     shadow \
     cronie \
+    audit \
     inetutils-ping inetutils-ping6 inetutils-hostname inetutils-ifconfig \
     inetutils-tftp inetutils-traceroute inetutils-ftp inetutils-telnet \
     wget curl \
