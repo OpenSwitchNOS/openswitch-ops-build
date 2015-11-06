@@ -10,3 +10,6 @@ SRC_URI += "file://cron.hourly/ops-log-rotate \
 do_install_append () {
     install -m 0755 ${WORKDIR}/cron.hourly/ops-log-rotate ${D}${sysconfdir}/cron.hourly/
 }
+
+# Enable Audit framework on OpenSwitch
+PACKAGECONFIG += "audit"
