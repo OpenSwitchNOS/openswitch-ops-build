@@ -1,0 +1,17 @@
+# Copyright (C) 2015 Hewlett Packard Enterprise Development LP
+
+[Unit]
+Description=OpenSwitch STP Daemon
+After=ovsdb-server.service ops-init.service
+
+[Service]
+Type=forking
+CPUSchedulingPolicy=rr
+CPUSchedulingPriority=3
+ExecStartPre=/bin/rm -f /var/run/openvswitch/ops-stpd.pid
+ExecStart=/sbin/ip netns exec swns /usr/bin/ops-stpd --detach --pidfile -vSYSLOG:INFO
+PIDFile=/var/run/openvswitch/ops-stpd.pid
+Restart=on-abort
+
+[Install]
+WantedBy=multi-user.target
