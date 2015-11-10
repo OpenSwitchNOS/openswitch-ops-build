@@ -391,6 +391,9 @@ if __name__ == "__main__":
     m.addPackage( "${PN}-argparse", "Python command line argument parser", "${PN}-core ${PN}-codecs ${PN}-textutils",
     "argparse.*" )
 
+    m.addPackage( "${PN}-ast", "Python Abstruct Syntax Trees", "${PN}-core",
+    "ast.*" )
+
     m.addPackage( "${PN}-contextlib", "Python utilities for with-statement" +
     "contexts.", "${PN}-core",
     "${libdir}/python${PYTHON_MAJMIN}/contextlib.*" )
