@@ -65,6 +65,9 @@ RDEPENDS_packagegroup-ops-base = "\
     ops-chef \
     ops-ntpd \
     strongswan \
+    ops-kdump \
+    makedumpfile \
+    vmcore-dmesg \
 "
 
 RDEPENDS_packagegroup-ops-base_append_arm = "\
