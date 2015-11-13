@@ -69,6 +69,9 @@ RDEPENDS_packagegroup-ops-base = "\
     strongswan \
     firejail \
     ops-ipapps \
+    ops-kdump \
+    makedumpfile \
+    vmcore-dmesg \
 "
 
 RDEPENDS_packagegroup-ops-base_append_arm = "\
