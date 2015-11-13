@@ -1,0 +1,408 @@
+#! /bin/sh
+#  Copyright (C) 2015 Hewlett Packard Enterprise Development LP
+#  Copyright 2005 Red Hat, Inc.
+#
+#  Author:  Jeff Moyer <jmoyer@redhat.com>
+
+#        boot with  "crashkernel=128M@0M"
+#        and check below files
+#        grep "Crash kernel" /proc/iomem
+#        cat /sys/kernel/kexec_crash_size
+#        cat /sys/kernel/kexec_crash_loaded
+
+
+MAKEDUMPFILE=$(which makedumpfile)
+KEXEC=$(which kexec);
+VMCORE_DMESG=/usr/sbin/vmcore-dmesg
+
+# Will be different for ia64, for example.  For now, that architecture isn't
+# supported.  Code needs to be added here when we do.
+BOOTDIR="/boot"
+
+KDUMP_KERNELVER=""
+KDUMP_COMMANDLINE=""
+KDUMP_IDE_NOPROBE_COMMANDLINE=""
+KEXEC_ARGS=""
+KDUMP_CONFIG_FILE="/etc/kdump.conf"
+MEM_RESERVED=""
+MKDUMPRD_ARGS=""
+CLUSTER_CONFIG_FILE="/etc/cluster/cluster.conf"
+FENCE_KDUMP_CONFIG="/etc/sysconfig/fence_kdump"
+SSH_KEY_LOCATION="/root/.ssh/kdump_id_rsa"
+
+LOGGER="$(which logger) -p info -t kdump"
+
+standard_kexec_args="-p"
+LIBRARY="/sbin/functions"
+
+if [ -f /etc/sysconfig/kdump ]; then
+        . /etc/sysconfig/kdump
+fi
+
+# Source function library.
+if [[ -x "$LIBRARY" ]]
+then
+    . $LIBRARY
+else
+    echo "File $LIBRARY is not executable or found"
+fi
+
+function copy_to_tmp()
+{
+    cp -f /etc/os-release        /tmp
+    cp -f /sbin/ops_cdm.sh       /tmp
+    cp -f /etc/ops_corefile.conf /tmp
+}
+
+function single_instance_lock()
+{
+        exec 9>/var/lock/kdump
+        flock 9
+}
+
+# remove_cmdline_param <kernel cmdline> <param1> [<param2>] ... [<paramN>]
+# Remove a list of kernel parameters from a given kernel cmdline and print the result.
+# For each "arg" in the removing params list, "arg" and "arg=xxx" will be removed if exists.
+function remove_cmdline_param()
+{
+        local cmdline=$1
+        shift
+
+        for arg in $@; do
+                cmdline=`echo $cmdline | \
+                         sed -e "s/\b$arg=[^ ]*\b//g" \
+                             -e "s/\b$arg\b//g"`
+        done
+        echo $cmdline
+}
+
+function save_kernel_logs()
+{
+        local _path=$1
+
+        mkdir -p $_path
+
+        if [ ! -f ${VMCORE_DMESG} ];then
+                $LOGGER "Skipping saving vmcore-dmesg.txt. File ${VMCORE_DMESG}  is not present"
+                return;
+        fi
+
+        echo "kdump: saving vmcore-dmesg.txt to $_path"
+        $LOGGER "saving vmcore-dmesg.txt to $_path"
+        ${VMCORE_DMESG}  /proc/vmcore > $_path/vmcore-dmesg-incomplete.txt
+        if [ $? == 0 ]; then
+                mv $_path/vmcore-dmesg-incomplete.txt $_path/vmcore-dmesg.txt
+                echo "kdump: saved vmcore-dmesg.txt to $_path"
+                $LOGGER "saved vmcore-dmesg.txt to $_path"
+        else
+                echo "kdump: failed to save vmcore-dmesg.txt to $_path"
+                $LOGGER "failed to save vmcore-dmesg.txt to $_path"
+        fi
+
+}
+
+#
+# This function returns the "initial apicid" of the
+# boot cpu (cpu 0) if present.
+#
+function get_bootcpu_initial_apicid()
+{
+    awk '                                                       \
+        BEGIN { CPU = "-1"; }                                   \
+        $1=="processor" && $2==":"      { CPU = $NF; }          \
+        CPU=="0" && /initial apicid/    { print $NF; }          \
+        '                                                       \
+        /proc/cpuinfo
+}
+
+#
+# This function appends argument "$2=$3" to string ($1) if not already present.
+#
+function append_cmdline()
+{
+    local cmdline=$1
+    local newstr=${cmdline/$2/""}
+
+    # unchanged str implies argument wasn't there
+    if [ "$cmdline" == "$newstr" ]; then
+        cmdline="${cmdline} ${2}=${3}"
+    fi
+
+    echo $cmdline
+}
+
+# This function performs a series of edits on the command line
+function prepare_cmdline()
+{
+        local cmdline;
+        if [ -z "$KDUMP_COMMANDLINE" ]; then
+                cmdline=`cat /proc/cmdline`
+        else
+                cmdline=${KDUMP_COMMANDLINE}
+        fi
+        cmdline=`remove_cmdline_param "$cmdline" crashkernel mem hugepages hugepagesz`
+        cmdline="${cmdline} ${KDUMP_COMMANDLINE_APPEND}"
+        avoid_cdrom_drive
+        KDUMP_COMMANDLINE="${KDUMP_COMMANDLINE} ${KDUMP_IDE_NOPROBE_COMMANDLINE}"
+
+        local id=`get_bootcpu_initial_apicid`
+        if [ ! -z ${id} ] ; then
+                cmdline=`append_cmdline "${cmdline}" disable_cpu_apicid ${id}`
+        fi
+
+        echo $cmdline
+}
+
+
+function save_core()
+{
+        local kdump_path=`grep ^path $KDUMP_CONFIG_FILE | cut -d' '  -f2-`
+        local kdump_conf_option=$(grep core_collector $KDUMP_CONFIG_FILE | sed "s/core_collector//g; s/makedumpfile//g")
+        local time_stamp_fmt=$(date +"%Y%m%d.%H%M%S")
+        if [ -z "$kdump_path" ]; then
+                coredir="/var/crash/kernel-core"
+        else
+                coredir="${kdump_path}/kernel-core"
+        fi
+
+        mkdir -p $coredir
+        save_kernel_logs "${coredir}"
+        $MAKEDUMPFILE $kdump_conf_option /proc/vmcore ${coredir}/vmcore-incomplete
+        if [ $? == 0 ]; then
+                mv ${coredir}/vmcore-incomplete ${coredir}/vmcore
+                $LOGGER "saved a vmcore to $coredir"
+                rm -f  ${coredir}/vmcore.*
+                local files="${coredir}/vmcore /etc/os-release  /var/log/messages";
+
+
+                if [ -f  $coredir/vmcore-dmesg.txt ] ;then
+                    files="${files}  ${coredir}/vmcore-dmesg.txt"
+                fi
+
+                tar -czf ${coredir}/vmcore.${time_stamp_fmt}.tar.gz ${files}
+                if [ $? == 0 ]; then
+                    rm -f ${coredir}/vmcore  ${coredir}/vmcore-dmesg.txt
+                    $LOGGER "archived and compressed vmcore to ${coredir}"
+                else
+                    $LOGGER "failed to compress vmcore to $coredir"
+                fi
+        else
+                $LOGGER "failed to save a vmcore to $coredir"
+        fi
+}
+
+function check_config()
+{
+        if [ -z "$KDUMP_KERNELVER" ]; then
+                local running_kernel=`uname -r`
+
+                kdump_kver=`echo $running_kernel | sed 's/smp//g'`
+        else
+                kdump_kver=$KDUMP_KERNELVER
+        fi
+        kdump_kernel="${KDUMP_BOOTDIR}/${KDUMP_IMG}-${kdump_kver}${KDUMP_IMG_EXT}"
+        kdump_initrd=$kdump_kernel
+
+        if [ ! -f $kdump_kernel ]; then
+                echo -n "No kdump kernel image found."; warning; echo
+                echo "Tried to locate ${kdump_kernel}"
+                return 0
+        fi
+
+        if [ ! -f $kdump_initrd ]; then
+                echo  -n "No kdump initial ramdisk found."; warning; echo
+                echo "Tried to locate ${kdump_initrd}"
+                return 0
+        fi
+        return 0
+}
+
+
+function avoid_cdrom_drive()
+{
+        local DRIVE=""
+        local MEDIA=""
+        local IDE_DRIVES=(`echo hd{a,b,c,d}`)
+        local COUNTER="0"
+
+        for DRIVE in ${IDE_DRIVES[@]}
+        do
+                if ! $(echo "$KDUMP_COMMANDLINE" |grep -q "$DRIVE=");then
+                        if [ -f /proc/ide/$DRIVE/media ];then
+                                MEDIA=$(cat /proc/ide/$DRIVE/media)
+                                if [ x"$MEDIA" == x"cdrom" ]; then
+                                        KDUMP_IDE_NOPROBE_COMMANDLINE="$KDUMP_IDE_NOPROBE_COMMANDLINE $DRIVE=cdrom"
+                                        COUNTER=$(($COUNTER+1))
+                                fi
+                        fi
+                else
+                        KDUMP_IDE_NOPROBE_COMMANDLINE="$KDUMP_IDE_NOPROBE_COMMANDLINE $DRIVE=noprobe"
+                fi
+        done
+        # We don't find cdrom drive.
+        if [ $COUNTER -eq 0 ]; then
+                KDUMP_IDE_NOPROBE_COMMANDLINE=""
+        fi
+}
+
+function check_kernel_parameter()
+{
+        if [ -z "$KDUMP_COMMANDLINE" ]
+        then
+                KDUMP_COMMANDLINE=`cat /proc/cmdline`
+        fi
+
+        MEM_RESERVED=`cat /sys/kernel/kexec_crash_size`
+
+        if [ $MEM_RESERVED -eq 0 ]
+        then
+                return 1
+        else
+                return 0
+        fi
+}
+
+# Load the kdump kerel specified in /etc/sysconfig/kdump
+# If none is specified, try to load a kdump kernel with the same version
+# as the currently running kernel.
+function load_kdump()
+{
+        KDUMP_COMMANDLINE=`prepare_cmdline`
+
+        if ! grep -q /sys/kernel/debug /proc/mounts;
+        then
+                mount -t debugfs debug /sys/kernel/debug
+                MNTDEBUG=/sys/kernel/debug
+        fi
+
+        $KEXEC $KEXEC_ARGS $standard_kexec_args \
+                --command-line="$KDUMP_COMMANDLINE" \
+                --initrd=$kdump_initrd $kdump_kernel 2>/dev/null
+        if [ $? == 0 ]; then
+                umount $MNTDEBUG 2>/dev/null
+                $LOGGER "kexec: loaded kdump kernel"
+                return 0
+        else
+                umount $MNTDEBUG 2>/dev/null
+                $LOGGER "kexec: failed to load kdump kernel"
+                return 1
+        fi
+}
+
+
+
+function status()
+{
+        if [ ! -e /sys/kernel/kexec_crash_loaded ]
+        then
+                return 2
+        fi
+
+        rc=`cat /sys/kernel/kexec_crash_loaded`
+        if [ $rc == 1 ]; then
+                return 0
+        else
+                return 1
+        fi
+}
+
+
+function start()
+{
+        copy_to_tmp
+        status
+        rc=$?
+        if [ $rc == 2 ]; then
+                echo -n "Kdump is not supported on this kernel"; failure; echo
+                return 1;
+        else
+                if [ $rc == 0 ]; then
+                        echo -n "Kdump already running"; success; echo
+                        return 0
+                fi
+        fi
+
+        check_kernel_parameter
+        if [ $? != 0 ]; then
+                echo -n "Starting kdump:"; failure; echo
+                $LOGGER "No crashkernel parameter specified for running kernel"
+                return 1
+        fi
+
+        check_config
+        if [ $? != 0 ]; then
+                echo -n "Starting kdump:"; failure; echo
+                $LOGGER "failed to start up, config file incorrect"
+                return 1
+        fi
+        load_kdump
+        if [ $? != 0 ]; then
+                echo -n "Starting kdump:"; failure; echo
+                $LOGGER "failed to start up"
+                return 1
+        fi
+
+        echo -n "Starting kdump:"; success; echo
+        $LOGGER "started up"
+}
+
+function stop()
+{
+        $KEXEC -p -u 2>/dev/null
+        if [ $? == 0 ]; then
+                $LOGGER "kexec: unloaded kdump kernel"
+                echo -n "Stopping kdump:"; success; echo
+                $LOGGER "stopped"
+                return 0
+        else
+                $LOGGER "kexec: failed to unload kdump kernel"
+                echo -n "Stopping kdump:"; failure; echo
+                $LOGGER "failed to stop"
+                return 1
+        fi
+}
+
+# Other kdump init instances will block in queue, until this one exits.
+single_instance_lock
+
+case "$1" in
+  start)
+        if [ -s /proc/vmcore ]; then
+                save_core
+                reboot
+        else
+                start
+        fi
+        ;;
+  stop)
+        stop
+        ;;
+  status)
+        EXIT_CODE=0
+        status
+        case "$?" in
+        0)
+                echo "Kdump is operational"
+                EXIT_CODE=0
+                ;;
+        1)
+                echo "Kdump is not operational"
+                EXIT_CODE=3
+                ;;
+        2)
+                echo "Kdump is unsupported on this kernel"
+                EXIT_CODE=3
+                ;;
+        esac
+        exit $EXIT_CODE
+        ;;
+  restart)
+        stop
+        start
+        ;;
+  *)
+        echo $"Usage: $0 {start|stop|status|restart}"
+        exit 1
+esac
+
+exit $?
