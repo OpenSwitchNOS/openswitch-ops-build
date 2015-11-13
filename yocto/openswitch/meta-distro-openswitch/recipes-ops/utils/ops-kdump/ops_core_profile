@@ -1,0 +1,2 @@
+ulimit -c unlimited
+echo 0x7f > /proc/self/coredump_filter
