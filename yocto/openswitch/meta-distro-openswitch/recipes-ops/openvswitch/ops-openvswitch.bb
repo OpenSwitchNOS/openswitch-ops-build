@@ -8,6 +8,7 @@ SRC_URI = "git://git.openswitch.net/openswitch/ops-openvswitch;protocol=http \
    file://ovsdb-server.service \
    file://switchd_bcm.service \
    file://switchd_sim.service \
+   ;branch=feature/l3_ecmp
 "
 
 SRCREV = "fcf96dfdc888f1c554e1ea987e46c8dd42b3e341"
