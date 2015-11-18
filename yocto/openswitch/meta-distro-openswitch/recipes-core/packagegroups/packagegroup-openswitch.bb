@@ -41,6 +41,7 @@ RDEPENDS_packagegroup-ops-base = "\
     inetutils-tftp inetutils-traceroute inetutils-ftp inetutils-telnet \
     wget curl \
     xinetd \
+    ruby \
     ops-init \
     virtual/switchd \
     ${@bb.utils.contains('MACHINE_FEATURES', 'ops-container', 'ops-switchd-container-plugin', '',d)} \
