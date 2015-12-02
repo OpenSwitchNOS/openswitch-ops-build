@@ -30,6 +30,10 @@ do_install_append () {
       # We do not have a native ovsdb-python package, so we use the one
       # from the target by hacking the PYTHONPATH
       PYTHONPATH=${STAGING_DIR_TARGET}/${PYTHON_SITEPACKAGES_DIR}:${PYTHONPATH} ${PYTHON} apidocgen.py ${STAGING_DIR_TARGET}/${prefix}/share/openvswitch/vswitch.extschema ${STAGING_DIR_TARGET}/${prefix}/share/openvswitch/vswitch.xml > ${D}/srv/www/api/ops-restapi.json
+
+      # Generating REST SALT file for use by ops-restd module
+      install -d ${D}/etc/passgen
+      echo "ab" > ${D}/etc/passgen/salt
 }
 
 
@@ -38,4 +42,4 @@ SYSTEMD_SERVICE_${PN} = "restd.service"
 
 inherit openswitch setuptools systemd pythonnative
 
-FILES_${PN} += "/srv/www/api/ops-restapi.json"
+FILES_${PN} += "/etc/passgen/salt /srv/www/api/ops-restapi.json"
