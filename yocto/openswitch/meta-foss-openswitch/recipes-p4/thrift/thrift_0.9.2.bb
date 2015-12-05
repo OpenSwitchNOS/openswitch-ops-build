@@ -64,6 +64,10 @@ EXTRA_OECONF = " \
 
 BBCLASSEXTEND = "native"
 
+FILES_${PN} += "\
+	${libdir}/libthrift-${PV}.so \
+"
+
 do_configure() {
 	export ac_cv_func_malloc_0_nonnull=yes
 	export ac_cv_func_realloc_0_nonnull=yes
@@ -81,3 +85,16 @@ do_install_append() {
 	find "${D}" -name libthrift.la -print0 |
 	xargs -r0 sed -r -i 's:\S*/\S+/libstdc\+\+\.la::'
 }
+
+package_move_shlib_back_to_main_pkg() {
+	# The standard do_package magic sees this libfoo-1.2.3.so file
+	# and goes like "oh, development file! move!" and ignores the
+	# fact that FILES_${PN} above says that this file should go in
+	# the main package instead of the -dev one.
+	#
+	# Move back.
+
+	mv ${PKGDEST}/${PN}-dev/${libdir}/lib${PN}-${PV}.so ${PKGDEST}/${PN}/${libdir}/lib${PN}-${PV}.so
+}
+
+PACKAGESPLITFUNCS += "package_move_shlib_back_to_main_pkg"
