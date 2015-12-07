@@ -1,0 +1,11 @@
+# Copyright (C) 2015 Hewlett Packard Enterprise Development LP
+
+[Unit]
+Description=Setup P4 bmv2 networking
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStartPre=/usr/sbin/ops-init-bmv2-p4 start
+ExecStart=/bin/true
+ExecStop=/usr/sbin/ops-init-bmv2-p4 stop

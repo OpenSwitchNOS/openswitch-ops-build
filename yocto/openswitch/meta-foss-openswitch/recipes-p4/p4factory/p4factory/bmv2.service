@@ -1,0 +1,19 @@
+# Copyright (C) 2015 Hewlett Packard Enterprise Development LP
+
+[Unit]
+Description=P4 behavioral model daemon
+After=ops-init.service openvswitch-sim.service
+
+[Service]
+Type=simple
+Requires=emul_netns.service
+After=emul_netns.service
+CPUSchedulingPolicy=rr
+CPUSchedulingPriority=3
+ExecStartPre=/bin/rm -f /var/run/bmv2.pid
+ExecStart=/sbin/ip netns exec emulns /usr/sbin/bmv2
+PIDFile=/var/run/bmv2.pid
+Restart=on-abort
+
+[Install]
+WantedBy=multi-user.target
