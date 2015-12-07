@@ -1,0 +1,19 @@
+# Copyright (C) 2015 Hewlett Packard Enterprise Development LP
+
+[Unit]
+Description=p4 behavioral model unet daemon
+After=ops-init.service openvswitch-sim.service
+
+[Service]
+Type=simple
+Requires=ops-init.service
+After=ops-init.service
+CPUSchedulingPolicy=rr
+CPUSchedulingPriority=3
+ExecStartPre=/bin/rm -f /var/run/bmv2_unet.pid
+ExecStart=/sbin/ip netns exec emulns /usr/sbin/bmv2_unet unet_tap
+PIDFile=/var/run/bmv2_unet.pid
+Restart=on-abort
+
+[Install]
+WantedBy=multi-user.target
