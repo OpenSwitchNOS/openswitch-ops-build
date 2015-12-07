@@ -20,6 +20,8 @@ DEPENDS = "\
 	python-tenjin \
 	thrift \
 	thrift-native \
+	ops-openvswitch \
+	gmp \
 "
 
 RDEPENDS_${PN} = "\
@@ -30,11 +32,23 @@ RDEPENDS_${PN} = "\
 	thrift \
 "
 
+SYSTEMD_PACKAGES = "${PN}"
+SYSTEMD_SERVICE_${PN} = "bmv2.service"
+SYSTEMD_SERVICE_${PN} += "bmv2_unet.service"
+SYSTEMD_SERVICE_${PN} += "ops-init-bmv2-p4.service"
+
 inherit pythonnative
 inherit autotools-brokensep
+inherit openswitch
+inherit systemd
 
 LIBTOOL = "${B}/${HOST_SYS}-libtool"
 EXTRA_OEMAKE = "'LIBTOOL=${LIBTOOL}'"
 
-do_install() {
-}
+FILES_${PN} += "\
+	${libdir}/openvswitch/plugins/libovs_p4_plugin.so \
+"
+
+FILES_${PN}-dbg += "\
+	${libdir}/openvswitch/plugins/.debug/libovs_p4_plugin.so \
+"
