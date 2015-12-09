@@ -61,6 +61,7 @@ RDEPENDS_packagegroup-ops-base = "\
     dnsmasq \
     ops-checkmk-agent \
     ops-ansible \
+    strongswan \
 "
 
 RDEPENDS_packagegroup-ops-base_append_arm = "\

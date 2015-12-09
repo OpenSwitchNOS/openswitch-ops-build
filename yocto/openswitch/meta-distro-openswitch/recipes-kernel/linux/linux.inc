@@ -111,6 +111,30 @@ do_configure_prepend() {
         kernel_conf_variable CMDLINE \"${CMDLINE_NFSROOT_USB} ${CMDLINE_DEBUG}\"
     fi
 
+    #
+    # IPsec with strongSWAN
+    #
+    kernel_conf_variable XFRM_USER y
+    kernel_conf_variable NET_KEY y
+    kernel_conf_variable INET y
+    kernel_conf_variable IP_MULTIPLE_TABLES y
+    kernel_conf_variable INET_AH y
+    kernel_conf_variable INET_ESP y
+    kernel_conf_variable INET_IPCOMP y
+    kernel_conf_variable INET_XFRM_MODE_TRANSPORT y
+    kernel_conf_variable INET_XFRM_MODE_TUNNEL y
+    kernel_conf_variable INET_XFRM_MODE_BEET y
+    kernel_conf_variable INET6_AH y
+    kernel_conf_variable INET6_ESP y
+    kernel_conf_variable INET6_IPCOMP y
+    kernel_conf_variable INET6_XFRM_MODE_TRANSPORT y
+    kernel_conf_variable INET6_XFRM_MODE_TUNNEL y
+    kernel_conf_variable INET6_XFRM_MODE_BEET y
+    kernel_conf_variable IP6_MULTIPLE_TABLES y
+    kernel_conf_variable NETFILTER y
+    kernel_conf_variable NETFILTER_XTABLES y
+    kernel_conf_variable NETFILTER_XT_MATCH_POLICY y
+
     sed -e "${CONF_SED_SCRIPT}" \
     < '${WORKDIR}/defconfig' >>'${B}/.config'
 
