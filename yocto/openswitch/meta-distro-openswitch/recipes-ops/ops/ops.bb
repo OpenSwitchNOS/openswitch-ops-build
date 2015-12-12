@@ -4,7 +4,11 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/Apache-2.0;md5=89aea4e17d99a7ca
 
 SRC_URI = "git://git.openswitch.net/openswitch/ops;protocol=https"
 
+<<<<<<< HEAD
 SRCREV = "94ef70c7cae761181159a44dfbc8de13ca8a1100"
+=======
+SRCREV = "ed92b3cc3477f3846b3e7d33d9b4ec5eb0ed4150"
+>>>>>>> Moving the SRCREV commit ID ed92b3cc3477f3846b3e7d33d9b4ec5eb0ed4150
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.
