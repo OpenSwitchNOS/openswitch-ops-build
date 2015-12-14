@@ -28,6 +28,8 @@ EXTRA_OECONF = "--disable-doc --disable-ripd \
  --enable-ovsdb \
 "
 
+inherit opsplugins
+
 do_install_append() {
      install -d ${D}${systemd_unitdir}/system
      install -m 0644 ${WORKDIR}/ops-zebra.service ${D}${systemd_unitdir}/system/
@@ -35,6 +37,8 @@ do_install_append() {
      # Remove non-ovs configuration files
      rm -Rf ${D}${sysconfdir}*
      rm -Rf ${D}/usr/include/quagga/*
+
+     copy_ops_plugins
 }
 
 SYSTEMD_PACKAGES = "${PN}"
