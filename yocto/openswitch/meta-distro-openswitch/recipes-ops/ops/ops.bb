@@ -17,18 +17,18 @@ FILES_${PN} = "/usr/share/openvswitch/ /usr/share/openvswitch/*.extschema /usr/s
 OPS_SCHEMA_PATH="${S}/schema"
 
 do_compile() {
-  ${PYTHON} ${OPS_SCHEMA_PATH}/sanitize.py ${OPS_SCHEMA_PATH}/vswitch.extschema ${OPS_SCHEMA_PATH}/vswitch.ovsschema
-  ${PYTHON} ${OPS_SCHEMA_PATH}/sanitize.py ${OPS_SCHEMA_PATH}/dhcp_leases.extschema ${OPS_SCHEMA_PATH}/dhcp_leases.ovsschema
+  ${PYTHON} ${OPS_SCHEMA_PATH}/sanitize.py ${OPS_SCHEMA_PATH}/vswitch.extschema ${T}/vswitch.ovsschema
+  ${PYTHON} ${OPS_SCHEMA_PATH}/sanitize.py ${OPS_SCHEMA_PATH}/dhcp_leases.extschema ${T}/dhcp_leases.ovsschema
   touch ${OPS_SCHEMA_PATH}/vswitch.xml
 }
 
 do_install() {
   install -d ${D}/${prefix}/share/openvswitch
 	install -m 0644 ${OPS_SCHEMA_PATH}/vswitch.extschema ${D}/${prefix}/share/openvswitch/vswitch.extschema
-	install -m 0644 ${OPS_SCHEMA_PATH}/vswitch.ovsschema ${D}/${prefix}/share/openvswitch/vswitch.ovsschema
+	install -m 0644 ${T}/vswitch.ovsschema ${D}/${prefix}/share/openvswitch/vswitch.ovsschema
 	install -m 0644 ${OPS_SCHEMA_PATH}/vswitch.xml ${D}/${prefix}/share/openvswitch/vswitch.xml
 	install -m 0644 ${OPS_SCHEMA_PATH}/dhcp_leases.extschema ${D}/${prefix}/share/openvswitch/dhcp_leases.extschema
-	install -m 0644 ${OPS_SCHEMA_PATH}/dhcp_leases.ovsschema ${D}/${prefix}/share/openvswitch/dhcp_leases.ovsschema
+	install -m 0644 ${T}/dhcp_leases.ovsschema ${D}/${prefix}/share/openvswitch/dhcp_leases.ovsschema
 	install -m 0644 ${OPS_SCHEMA_PATH}/dhcp_leases.xml ${D}/${prefix}/share/openvswitch/dhcp_leases.xml
 	install -m 0644 ${OPS_SCHEMA_PATH}/configdb.ovsschema ${D}/${prefix}/share/openvswitch/configdb.ovsschema
 }
