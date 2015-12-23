@@ -3,7 +3,7 @@ LICENSE = "Apache-2.0"
 
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/Apache-2.0;md5=89aea4e17d99a7cacdbeed46a0096b10"
 
-DEPENDS = "ops-utils ops-ovsdb"
+DEPENDS = "ops-utils ops-ovsdb ops-cli"
 
 RDEPENDS_${PN} = "python-argparse python-json python-ops-ovsdb python-distribute"
 
@@ -18,13 +18,25 @@ SRCREV = "06b9fd7f3127d6f80a623dc8e0c48b40cc06687c"
 PV = "git${SRCPV}"
 
 S = "${WORKDIR}/git"
+EXTRA_OECMAKE += "-B${S}/build"
+
+do_compile_append() {
+        cd ${S}/build
+        oe_runmake
+}
+
 
 do_install_prepend() {
      install -d ${D}${systemd_unitdir}/system
+     install -d ${D}/usr/lib/cli
+     install -d ${D}/usr/lib/cli/plugins
      install -m 0644 ${WORKDIR}/mgmt-intf.service ${D}${systemd_unitdir}/system/
+     install -m 0644 ${S}/build/libmgmt_intf_cli.so ${D}/usr/lib/cli/plugins
+
 }
 
+FILES_${PN} = "/usr/lib/cli/plugins/"
 SYSTEMD_PACKAGES = "${PN}"
 SYSTEMD_SERVICE_${PN} = "mgmt-intf.service"
 
-inherit openswitch setuptools systemd
+inherit openswitch cmake setuptools systemd
