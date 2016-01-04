@@ -1,0 +1,24 @@
+#!/bin/bash
+# script to set up OpenSwitch environment to use bitbake/etc.
+
+if [ $0 = "$BASH_SOURCE" ]; then
+    echo "this script must be sourced from the base directory";  exit 2
+fi
+
+if [ ! -d .git -o ! -d tools -o ! -d yocto ]; then
+    echo "this script must be sourced from the base directory";  return
+fi
+
+if [ ! -f .platform ]; then
+    echo "The platform must be configured (make configure ...)"; return
+fi
+
+if [ ! -f .devenv ]; then
+    echo "making development environment ..."
+    make devenv_init
+fi
+
+if [ "`type -p bitbake`" != "$(pwd)/yocto/poky/bitbake/bin/bitbake" ]; then
+	export PATH=$(pwd)/yocto/poky/bitbake/bin:$PATH
+fi
+export BBPATH=$(pwd)/build
