@@ -1,0 +1,39 @@
+#!/bin/bash
+# script to set up OpenSwitch environment to use bitbake/etc.
+
+remove_from_path() {
+# Some horribleness to handle PATHs with spaces :(
+	local OIFS t n a i p
+	OIFS=$IFS
+	IFS=:
+	t=($PATH)
+	n=${#t[*]}
+	a=()
+	for ((i=0;i<n;i++)); do
+		p="${t[i]%%*$1*}"
+		[ "${p}" ] && a[i]="${p}"
+	done
+	PATH=${a[*]}
+	IFS=$OIFS
+}
+
+if [ $0 == "$BASH_SOURCE" ]; then
+    echo "this script must be sourced from the base directory";  exit 2
+fi
+
+if [ ! -d .git -o ! -d tools -o ! -d yocto ]; then
+    echo "this script must be sourced from the base directory";  return
+fi
+
+if [ ! -f .platform ]; then
+    echo "The platform must be configured (make configure ...)"; return
+fi
+
+if [ ! -f .devenv ]; then
+    echo "making development environment ..."
+    make devenv_init
+fi
+
+remove_from_path bitbake
+export PATH=$(pwd)/yocto/poky/bitbake/bin:$PATH
+export BBPATH=$(pwd)/build
