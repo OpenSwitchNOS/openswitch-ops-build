@@ -1,0 +1,13 @@
+[Unit]
+Description=Network Time Service
+After=network.target nss-lookup.target
+
+[Service]
+Type=simple
+PrivateTmp=true
+ExecStart=/usr/sbin/ntpd -d -c /etc/ntp.conf
+Restart=always
+RestartSec=30
+
+[Install]
+WantedBy=multi-user.target
