@@ -4,6 +4,7 @@
 Description=OVSDB Server Daemon
 
 [Service]
+Environment="LD_PRELOAD=/lib/libjemalloc.so.2"
 Type=forking
 CPUSchedulingPolicy=rr
 CPUSchedulingPriority=7

@@ -23,7 +23,7 @@ PROVIDES = "${PACKAGES}"
 
 RPROVIDES_${PN} = "virtual/switchd"
 
-RDEPENDS_${PN} = "openssl procps util-linux-uuidgen util-linux-libuuid coreutils \
+RDEPENDS_${PN} = "jemalloc openssl procps util-linux-uuidgen util-linux-libuuid coreutils \
   python perl perl-module-strict sed gawk grep ops-ovsdb \
   ${@bb.utils.contains('MACHINE_FEATURES', 'ops-container', 'openvswitch-sim-switch', '',d)} \
 "
