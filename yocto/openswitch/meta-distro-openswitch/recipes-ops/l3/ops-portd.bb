@@ -4,10 +4,10 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/Apache-2.0;md5=89aea4e17d99a7ca
 
 DEPENDS = "ops-utils ops-ovsdb"
 
-SRC_URI = "git://git.openswitch.net/openswitch/ops-portd;protocol=http\
+SRC_URI = "git://git.openswitch.net/openswitch/ops-portd;protocol=http;branch=feature/l3_subif_lpbk\
            file://ops-portd.service"
 
-SRCREV = "7e7223c1c92faeda4bbf73032b4be11d43a9d9b4"
+SRCREV = "${AUTOREV}"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.
