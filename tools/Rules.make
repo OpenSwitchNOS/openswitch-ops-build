@@ -58,8 +58,12 @@ BASE_ONIE_INSTALLER_FILE = $(BUILDDIR)/tmp/deploy/images/$(CONFIGURED_PLATFORM)/
 BASE_DOCKER_IMAGE = openswitch/${CONFIGURED_PLATFORM}
 HOST_INTERPRETER := $(shell readelf -a /bin/sh | grep interpreter | awk '{ print substr($$4, 0, length($$4)-1)}')
 
-UUIDGEN_NATIVE=$(STAGING_DIR_NATIVE)/usr/bin/uuidgen
-PYTEST_NATIVE=$(STAGING_DIR_NATIVE)/usr/bin/py.test
+# Avoid expanding the STAGING_DIR_NATIVE variable when we are not configured yet
+ifneq ($(CONFIGURED_PLATFORM),undefined)
+ UUIDGEN_NATIVE:=$(STAGING_DIR_NATIVE)/usr/bin/uuidgen
+ PYTEST_NATIVE:=$(STAGING_DIR_NATIVE)/usr/bin/py.test
+ KCONFIG_MCONF_NATIVE:=$(STAGING_DIR_NATIVE)/usr/bin/kconfig-mconf
+endif
 
 # Leave blank to use default location
 SSTATE_DIR?=""
@@ -607,6 +611,20 @@ devenv_ct_clean:
 	  docker rm -f $$name >/dev/null ; \
 	done
 	$(V) rm -rf .sandbox_uuid
+
+## Modular config commands
+
+$(BUILDDIR)/config:
+	$(V) ln -sf config-$(CONFIGURED_PLATFORM) $@
+
+KCONFIG_CONFIG ?= $(BUILDDIR)/config
+KCONFIG_OVERWRITECONFIG = yes
+export KCONFIG_CONFIG
+export KCONFIG_OVERWRITECONFIG
+
+menuconfig: header $(KCONFIG_MCONF_NATIVE) $(BUILDDIR)/config
+	$(V)$(call BITBAKE,kconfig-frontends-native)
+	$(V) $(KCONFIG_MCONF_NATIVE) Kconfig
 
 ## Support commands
 ## Use with caution!!!!
