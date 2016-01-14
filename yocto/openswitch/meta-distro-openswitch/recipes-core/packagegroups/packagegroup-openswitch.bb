@@ -63,7 +63,7 @@ RDEPENDS_packagegroup-ops-base = "\
     ops-checkmk-agent \
     ops-ansible \
     ops-chef \
-    ops-ntpd \
+    ntp ops-ntpd \
 "
 
 RDEPENDS_packagegroup-ops-base_append_arm = "\
