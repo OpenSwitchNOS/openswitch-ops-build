@@ -2,7 +2,7 @@ SUMMARY = "OpenSwitch"
 LICENSE = "Apache-2.0"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/Apache-2.0;md5=89aea4e17d99a7cacdbeed46a0096b10"
 
-SRC_URI = "git://git.openswitch.net/openswitch/ops;protocol=https"
+SRC_URI = "git://git.openswitch.net/openswitch/ops;protocol=https;branch=feature/benchmark"
 
 SRCREV = "87eab408ea44a03dcd8e7a0e3228fc02d79d26c6"
 
