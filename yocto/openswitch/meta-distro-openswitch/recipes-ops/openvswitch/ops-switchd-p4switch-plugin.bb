@@ -24,4 +24,40 @@ PV = "git${SRCPV}"
 
 S = "${WORKDIR}/git"
 
-inherit openswitch cmake
+DEPENDS = "\
+        judy \
+        libedit \
+        nanomsg \
+        p4-hlir \
+        python-native \
+        python-pyyaml-native \
+        python-tenjin \
+        thrift \
+        thrift-native \
+        ops-p4c \
+"
+
+RDEPENDS_${PN} = "\
+        judy \
+        libedit \
+        libpcap \
+        nanomsg \
+        thrift \
+        libcrypto \
+        gmp \
+        libssl \
+        ops-ovsdb \
+"
+
+FILES_${PN} += "/usr/share/ovs_p4_plugin/switch_bmv2.json"
+
+inherit openswitch autotools-brokensep
+
+EXTRA_OECONF = "--enable-bmv2 --disable-static"
+EXTRA_OEMAKE = "PFX=${PKG_CONFIG_SYSROOT_DIR}/"
+
+do_install_append() {
+	install -d ${D}${libdir}/openvswitch/plugins
+	mv ${D}${libdir}/libovs_p4_sim_plugin.so.0.0.0 ${D}${libdir}/openvswitch/plugins/libovs_p4_sim_plugin.so
+	rm -f ${D}${libdir}/libovs_p4_sim_plugin*
+}
