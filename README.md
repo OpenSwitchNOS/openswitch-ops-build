@@ -1,1 +1,1 @@
-# OpenHalon Build System
+# OpenSwitch Build System

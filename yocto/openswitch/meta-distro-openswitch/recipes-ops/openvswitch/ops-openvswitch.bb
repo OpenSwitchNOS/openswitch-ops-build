@@ -4,13 +4,13 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda
 
 DEPENDS = "openssl python perl systemd ops-utils libtool ops"
 
-SRC_URI = "git://git.openswitch.net/openswitch/ops-openvswitch;protocol=http \
+SRC_URI = "git://git.openswitch.net/openswitch/ops-openvswitch;branch=feature/sflow;protocol=http \
    file://ovsdb-server.service \
    file://switchd_bcm.service \
    file://switchd_sim.service \
 "
 
-SRCREV = "4512ed65cfeaaee3ced8fc9bf79e35d49f44215f"
+SRCREV = "${AUTOREV}"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.
