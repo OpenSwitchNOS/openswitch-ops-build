@@ -8,6 +8,7 @@ SRC_URI = "git://git.openswitch.net/openswitch/ops-openvswitch;protocol=http \
    file://ovsdb-server.service \
    file://switchd_bcm.service \
    file://switchd_sim.service \
+   file://switchd_p4sim.service \
 "
 
 SRCREV = "1dbd0f969803e794ae8d13d18e328c42bc4fb7a4"
@@ -96,7 +97,9 @@ do_install_append() {
     if ${@bb.utils.contains('MACHINE_FEATURES','broadcom','true','false',d)}; then
         install -m 0644 ${WORKDIR}/switchd_bcm.service ${D}${systemd_unitdir}/system/switchd.service
     fi
-    if ${@bb.utils.contains('MACHINE_FEATURES','ops-container','true','false',d)}; then
+    if ${@bb.utils.contains('IMAGE_FEATURES','ops-p4','true','false',d)}; then
+        install -m 0644 ${WORKDIR}/switchd_p4sim.service ${D}${systemd_unitdir}/system/switchd.service
+    elif ${@bb.utils.contains('MACHINE_FEATURES','ops-container','true','false',d)}; then
         install -m 0644 ${WORKDIR}/switchd_sim.service ${D}${systemd_unitdir}/system/switchd.service
     fi
     install -d ${D}${sysconfdir}/tmpfiles.d
