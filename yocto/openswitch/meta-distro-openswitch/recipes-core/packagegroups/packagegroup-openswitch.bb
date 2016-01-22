@@ -16,6 +16,7 @@ PACKAGES = ' \
             packagegroup-ops-min \
             packagegroup-ops-min-debug \
             packagegroup-ops-core \
+            packagegroup-ops-p4 \
             '
 
 RDEPENDS_packagegroup-ops-base = "\
@@ -87,4 +88,9 @@ RDEPENDS_packagegroup-ops-min-debug = "\
     "
 
 RDEPENDS_packagegroup-ops-core = "\
+    "
+
+RDEPENDS_packagegroup-ops-p4 = "\
+    ops-switchd-p4switch-plugin \
+    ops-p4dp \
     "
