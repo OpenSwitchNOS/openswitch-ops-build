@@ -64,6 +64,14 @@ RDEPENDS_packagegroup-ops-base = "\
     ops-ntpd \
     ops-supportability \
     strongswan \
+    net-snmp-client \
+    net-snmp-server \
+    net-snmp-mibs \
+    net-snmp-server-snmpd \
+    net-snmp-server-snmptrapd \
+    net-snmp-dbg \
+    net-snmp-dev \
+    net-snmp-libs \
 "
 
 RDEPENDS_packagegroup-ops-base_append_arm = "\
