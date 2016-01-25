@@ -37,15 +37,16 @@ RDEPENDS_packagegroup-ops-base = "\
     pwauth \
     shadow \
     cronie \
+    auditd audispd-plugins audit-python \
     inetutils-ping inetutils-ping6 inetutils-hostname inetutils-ifconfig \
     inetutils-tftp inetutils-traceroute inetutils-ftp inetutils-telnet \
     iputils-traceroute6 \
     wget curl \
     xinetd \
+    libcap-bin \
     ops-init \
     virtual/switchd \
-    ${@bb.utils.contains('MACHINE_FEATURES', 'ops-container', 'ops-switchd-container-plugin', '',d)} \
-    ${@bb.utils.contains('MACHINE_FEATURES', 'broadcom', 'ops-switchd-opennsl-plugin', '',d)} \
+    virtual/ops-switchd-switch-api-plugin \
     ops-ovsdb \
     ops-hw-config \
     ops-cfgd ops-fand ops-ledd ops-pmd ops-powerd ops-sysd ops-tempd \
@@ -61,7 +62,9 @@ RDEPENDS_packagegroup-ops-base = "\
     dnsmasq \
     ops-checkmk-agent \
     ops-ansible \
-    ops-chef \
+    ops-ntpd \
+    ops-supportability \
+    strongswan \
 "
 
 RDEPENDS_packagegroup-ops-base_append_arm = "\

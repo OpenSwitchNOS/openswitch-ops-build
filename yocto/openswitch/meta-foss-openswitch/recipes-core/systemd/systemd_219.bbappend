@@ -25,12 +25,16 @@ FILES_${PN} += "${sysconfdir}/profile.d/"
 do_install_append() {
     install -d ${D}${sysconfdir}/profile.d
     install -m 755 ${WORKDIR}/systemctl-alias.sh ${D}${sysconfdir}/profile.d/systemctl-alias.sh
+    ln -s /dev/null ${D}/etc/udev/rules.d/80-net-setup-link.rules
 }
 
 # We use systemd core dump
 EXTRA_OECONF_remove = "--disable-coredump"
 EXTRA_OECONF += "--with-dns-servers=" ""
 FILES_${PN} += "${bindir}/coredumpctl"
+
+# Enable Audit framework on OpenSwitch
+PACKAGECONFIG += "audit"
 
 #pkg_postinst_udev-hwdb_prepend() {
 #	# Abort script since causes problems for read-only fs
