@@ -230,12 +230,6 @@ deploy_container:
 	$(V) if ! which lxc-create > /dev/null ; then \
 	  $(call FATAL_ERROR,LXC does not seems installed, could not find lxc-create) ; \
 	fi
-	$(V) if ! lsmod | grep -q openvswitch ; then \
-	  $(call FATAL_ERROR,OpenVswitch module not running on the host machine... please load the openvswitch kernel module) ; \
-	fi
-	$(V) if ! which ovs-vsctl > /dev/null ; then \
-	  $(call FATAL_ERROR,ovs-vsctl tool not available, please install the openvswitch tools) ; \
-	fi
 	$(V) if ! test -f images/`basename $(BASE_TARGZ_FS_FILE)` ; then \
 	  $(call FATAL_ERROR,Your platform has not generated a .tar.gz file that can be used to create the container) ; \
 	fi
