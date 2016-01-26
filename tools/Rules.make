@@ -110,6 +110,61 @@ define EXECUTE_UT_TEST_HARNESS_ON_VALGRIND
 LD_LIBRARY_PATH=$(STAGING_DIR_TARGET)/usr/lib $(VALGRIND) $(VALGRIND_OPTIONS) $(HOST_INTERPRETER) $(1) $(UT_PARAMS)
 endef
 
+#lcov based coverage support for C/C++ code
+COVERAGE_EXCLUDE_PATTERN=c++* gmock* gtest* tests*
+LCOV=lcov --rc lcov_branch_coverage=1
+MODULE_TEST_TARGET ?=
+.PHONY: coverage-preconditions-check coverage-setup coverage-report coverage-help
+
+define COVERAGE_HELP
+These are the required steps in order to run coverage for a module:
+
+1. $(BLUE)make coverage-init$(GRAY)              : Enable coverage on the workspace
+2. $(BLUE)make <module-name>-clean$(GRAY)        : Clean the module
+3. $(BLUE)make <module-name>-build$(GRAY)        : Build the module
+4. $(BLUE)make <module-name>-coverage$(GRAY)     : Get coverage stats for the module
+
+$(CYAN)Note:$(GRAY) In order for the last step to be successful, the module must define
+the $(BLUE)MODULE_TEST_TARGET$(GRAY) variable on its Rules-ops-build.make file
+
+endef
+
+export COVERAGE_HELP
+
+coverage-preconditions-check:
+	$(V) if [ ! -e $(BUILDDIR)/devenv-coverage-enabled ]; then \
+		$(call FATAL_ERROR, Coverage is not enabled. Run 'make coverage-init' to enable it) ; \
+	fi
+
+	$(V) if [ -z "$(COVERAGE_REPORT_DIR)" ]; then \
+		$(call FATAL_ERROR, COVERAGE_REPORT_DIR is not set or empty. Override from your module Rules-ops-build.make file) ; \
+	fi
+	$(V) if [ -z "$(COVERAGE_BASE_DIR)" ]; then \
+		$(call FATAL_ERROR, COVERAGE_BASE_DIR is not set or empty. Override from your module Rules-ops-build.make file) ; \
+	fi
+	$(V) if [ -z "$(MODULE_TEST_TARGET)" ]; then \
+		$(call FATAL_ERROR, MODULE_TEST_TARGET is not set or empty. Override from your module Rules-ops-build.make file) ; \
+	fi
+
+coverage-setup: coverage-preconditions-check
+	$(V) mkdir -p $(COVERAGE_REPORT_DIR)
+	$(V) $(LCOV) --zerocounters --directory $(COVERAGE_REPORT_DIR)
+
+coverage-report:
+	$(V) echo "Exclude pattern: $(COVERAGE_EXCLUDE_PATTERN)"
+	$(V) $(LCOV) --directory $(COVERAGE_BASE_DIR) --capture --output-file $(COVERAGE_REPORT_DIR)/$(MODULE_NAME).info
+	$(V) $(LCOV) --remove $(COVERAGE_REPORT_DIR)/$(MODULE_NAME).info $(COVERAGE_EXCLUDE_PATTERN) --output-file $(COVERAGE_REPORT_DIR)/$(MODULE_NAME)
+	$(V) mkdir -p $(COVERAGE_REPORT_DIR)/html
+	$(V) genhtml $(COVERAGE_REPORT_DIR)/$(MODULE_NAME) -o $(COVERAGE_REPORT_DIR)/html --demangle-cpp --branch-coverage
+	$(V) echo "Coverage report is at $(COVERAGE_REPORT_DIR)/html/index.html"
+	$(V) echo "module name: $(MODULE_NAME)"
+
+coverage-init:
+	$(V) touch $(BUILDDIR)/devenv-coverage-enabled
+
+coverage-help:
+	$(V) $(ECHO) "$$COVERAGE_HELP"
+
 # Rule to regenerate the site.conf file if proxies changed
 include tools/config/proxy.conf
 

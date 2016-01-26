@@ -1,6 +1,6 @@
 
 ###RECIPE##
-.PHONY: ##RECIPE##-build ##RECIPE##-clean ##RECIPE##-deploy ##RECIPE##-undeploy
+.PHONY: ##RECIPE##-build ##RECIPE##-clean ##RECIPE##-coverage ##RECIPE##-deploy ##RECIPE##-undeploy
 
 ##RECIPE##-build:
 	$(V)$(call DEVTOOL, build ##RECIPE##)
@@ -37,5 +37,13 @@ endif
 ##RECIPE##-nfs-undeploy:
 	$(V)$(call DEVTOOL, undeploy-target -s ##RECIPE## localhost:$(NFSROOTPATH))
 
+#Coverage options. Can be overwritten at src/##RECIPE##/Rules-ops-build.make
+MODULE_NAME=##RECIPE##
+COVERAGE_BASE_DIR=$(BUILD_ROOT)/src/##RECIPE##/build/
+COVERAGE_REPORT_DIR=$(COVERAGE_BASE_DIR)/coverage
+
 -include src/##RECIPE##/Rules-ops-build.make
+
+#MODULE_TEST_TARGET should be defined at src/##RECIPE##/Rules-ops-build.make
+##RECIPE##-coverage: coverage-setup $(MODULE_TEST_TARGET) coverage-report
 #END_##RECIPE##
