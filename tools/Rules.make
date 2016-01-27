@@ -30,6 +30,7 @@ ifneq ($(VERBOSE),)
 endif
 export BUILDDIR=$(BUILD_ROOT)/build
 export BB_ENV_EXTRAWHITE=MACHINE DISTRO TCMODE TCLIBC HTTP_PROXY http_proxy HTTPS_PROXY https_proxy FTP_PROXY ftp_proxy ALL_PROXY all_proxy NO_PROXY no_proxy SSH_AGENT_PID SSH_AUTH_SOCK BB_SRCREV_POLICY SDKMACHINE BB_NUMBER_THREADS BB_NO_NETWORK PARALLEL_MAKE GIT_PROXY_COMMAND SOCKS5_PASSWD SOCKS5_USER SCREENDIR STAMPS_DIR PLATFORM_DTS_FILE BUILD_ROOT NFSROOTPATH NFSROOTIP
+ORIG_PATH:=$(PATH)
 export PATH:=$(BUILD_ROOT)/yocto/poky/scripts:$(BUILD_ROOT)/yocto/poky/bitbake/bin:$(BUILD_ROOT)/tools/bin:$(PATH)
 export LD_LIBRARY_PATH:=$(BUILD_ROOT)/tools/lib:$(LD_LIBRARY_PATH)
 
@@ -112,6 +113,14 @@ endef
 
 # Rule to regenerate the site.conf file if proxies changed
 include tools/config/proxy.conf
+
+# set up bitbake env vars, for advanced Yocto users
+# note that this needs to be sourced by using `make bbenv` or $(make bbenv)
+bbenv:
+	@echo "export BBPATH=$(BUILDDIR)"
+	@if [ "`PATH=$(ORIG_PATH);type -p bitbake`" != "$(BUILD_ROOT)/yocto/poky/bitbake/bin/bitbake" ]; then \
+		echo "export PATH=$(BUILD_ROOT)/yocto/poky/bitbake/bin:$(ORIG_PATH)" ; \
+	fi
 
 build/conf/site.conf: tools/config/site.conf.in tools/config/proxy.conf
 	$(V)mkdir -p $(dir $@)
