@@ -1,0 +1,18 @@
+mainmenu "Modular Configuration"
+
+config CLI
+	bool "Select to enable CLI feature"
+	help
+	  Command line support
+
+config VLAN
+	bool "Select to enable VLAN feature"
+	depends on CLI
+	help
+	  VLAN support
+
+config ANSIBLE
+	bool "Select to enable ANSIBLE feature"
+	depends on CLI
+	help
+	  ANSIBLE support
