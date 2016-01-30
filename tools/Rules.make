@@ -58,8 +58,13 @@ BASE_ONIE_INSTALLER_FILE = $(BUILDDIR)/tmp/deploy/images/$(CONFIGURED_PLATFORM)/
 BASE_DOCKER_IMAGE = openswitch/${CONFIGURED_PLATFORM}
 HOST_INTERPRETER := $(shell readelf -a /bin/sh | grep interpreter | awk '{ print substr($$4, 0, length($$4)-1)}')
 
-UUIDGEN_NATIVE=$(STAGING_DIR_NATIVE)/usr/bin/uuidgen
-PYTEST_NATIVE=$(STAGING_DIR_NATIVE)/usr/bin/py.test
+# Avoid expanding the STAGING_DIR_NATIVE variable when we are not configured yet
+ifneq ($(CONFIGURED_PLATFORM),undefined)
+ UUIDGEN_NATIVE:=$(STAGING_DIR_NATIVE)/usr/bin/uuidgen
+ PYTEST_NATIVE:=$(STAGING_DIR_NATIVE)/usr/bin/py.test
+ KCONFIG_MCONF_NATIVE:=$(STAGING_DIR_NATIVE)/usr/bin/kconfig-mconf
+ KCONFIG_CONF_NATIVE:=$(STAGING_DIR_NATIVE)/usr/bin/kconfig-conf
+endif
 
 # Leave blank to use default location
 SSTATE_DIR?=""
@@ -619,6 +624,32 @@ devenv_ct_clean:
 	  docker rm -f $$name >/dev/null ; \
 	done
 	$(V) rm -rf .sandbox_uuid
+
+## Modular config commands
+
+$(BUILDDIR)/.ops-config:
+	$(V) ln -sf .ops-config-$(CONFIGURED_PLATFORM) $@
+
+KCONFIG_CONFIG ?= $(BUILDDIR)/.ops-config
+KCONFIG_OVERWRITECONFIG = yes
+CONFIG_ = OPS_CONFIG_
+KCONFIG_AUTOCONFIG ?= $(BUILDDIR)/ops-auto.conf
+KCONFIG_TRISTATE ?= $(BUILDDIR)/ops-tristate.conf
+KCONFIG_AUTOHEADER ?= $(BUILDDIR)/ops-autoconf.h
+KCONFIG_INC = $(BUILD_ROOT)/include
+export KCONFIG_CONFIG
+export KCONFIG_OVERWRITECONFIG
+export CONFIG_
+export KCONFIG_AUTOCONFIG
+export KCONFIG_TRISTATE
+export KCONFIG_AUTOHEADER
+
+menuconfig: header $(KCONFIG_MCONF_NATIVE) $(KCONFIG_CONF_NATIVE) $(BUILDDIR)/.ops-config
+	$(V) $(call BITBAKE,kconfig-frontends-native)
+	$(V) $(SUDO) $(KCONFIG_MCONF_NATIVE) Kconfig
+	$(V) $(SUDO) mkdir -p $(KCONFIG_INC)/config
+	$(V) $(SUDO) $(KCONFIG_CONF_NATIVE) --silentoldconfig Kconfig
+	$(V) $(SUDO) rm -rf $(KCONFIG_INC)
 
 ## Support commands
 ## Use with caution!!!!

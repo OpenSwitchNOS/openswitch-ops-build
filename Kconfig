@@ -1,0 +1,94 @@
+#
+# For a description of the syntax of this configuration file,
+# see https://www.kernel.org/doc/Documentation/kbuild/kconfig-language.txt
+#
+mainmenu "OpenSwitch Configuration"
+
+#option env="CONFIGURED_PLATFORM"
+
+#config PLATFORM
+#
+#	if CONFIGURED_PLATFORM = "as5712"
+#		prompt "Trident II as5712"
+#	endif
+#
+#	if CONFIGURED_PLATFORM = "as6712"
+#		prompt "Trident II as6712"
+#	endif
+#
+#	if CONFIGURED_PLATFORM = "as5712"
+#	endif
+
+choice
+	prompt "Platform"
+	help
+	  Select the target platform.
+
+	config AS5712
+		bool "Trident II as5712"
+		help
+		  Select this option to run OpenSwitch on Accton's as5712 platform
+		  with Broadcom's Trident II chipset.
+
+	config AS6712
+		bool "Trident II as6712"
+		help
+		  Select this option to run OpenSwitch on Accton's as6712 platform
+		  with Broadcom's Trident II chipset.
+
+	config P4_SIM
+		bool "P4 Simulator"
+		help
+		  Select this option to run OpenSwitch on P4 Switch Simulator.
+
+	config OVS_SIM
+		bool "OVS Simulator"
+		help
+		  Select this option to run OpenSwitch on Open vSwitch Switch Simulator.
+endchoice
+
+menuconfig BUFMON
+	bool "Buffer Monitor"
+	depends on AS5712 || AS6712
+	help
+	  Select this option to enable Buffer Monitor.
+
+config BROADVIEW
+	bool "Broadview"
+	depends on BUFMON
+	help
+	  Select this option to enable Broadview.
+
+choice
+	prompt "Simulation Environment"
+	depends on P4_SIM || OVS_SIM
+	default DOCKER
+	help
+	  Select a simulation environment.
+
+	config DOCKER
+		bool "Docker"
+		help
+		  Select this option to run OpenSwitch inside a Docker container.
+
+	config OVA
+		bool "OVA Virtual Machine"
+		help
+		  Select this option to run OpenSwitch as a native Virtual Machine. Image
+		  created is compliant with Open Virtualization Format.
+endchoice
+
+#config ROUTE_TABLE_DEPTH
+#	depends on AS5712 || AS6712
+#	int "Routing Table depth, range 1 to 100000"
+#	default 50000 if AS5712
+#	if AS5712
+#	#int "Routing Table depth, range 1 to 100000"
+#	#range 1 100000
+#		source "/home/vagrant/ops-build-kconfig/build/Kconfig"
+#	endif
+#	if AS6712
+#	#int "Routing Table depth, range 1 to 500000"
+#	#range 1 500000
+#	#default "250000"
+#	endif
