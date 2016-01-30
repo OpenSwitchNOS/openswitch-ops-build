@@ -112,6 +112,7 @@ Additional development/maintenance targets:
     $(BLUE)distclean$(GRAY)           : removes generated files, and returns to a configurable state
     $(BLUE)devshell RECIPE= $(GRAY)   : start a devshell for RECIPE
     $(BLUE)help$(GRAY)                : this, see also $(BLUE)$(DISTRO_HELP_LINK)$(GRAY)
+    $(BLUE)menuconfig$(GRAY)          : opens the ncurses based modular configuration menu
     $(BLUE)switch-platform$(GRAY)     : change to a different platform
     $(BLUE)show-platform$(GRAY)       : show current platform
     $(BLUE)show-platforms$(GRAY)      : show available platforms for the current distribution
@@ -167,11 +168,13 @@ _configure:
 	 for repo in yocto/*/meta-platform-$(DISTRO)-* ; do \
 	    [[ "$$repo" =~ "^yocto/poky" ]] && continue ; \
 	    cp build/conf/bblayers.conf build/conf/bblayers.conf-$${repo##*platform-} ; \
+	    ln -sf $(BUILD_ROOT)/$$repo/.ops-config build/.ops-config-$${repo##*platform-$(DISTRO)-} ; \
 	    layer_dep=`cat $(BUILD_ROOT)/$$repo/.layer_dep 2>/dev/null` ; \
 	    test -z "$$layer_dep" || echo "  $(BUILD_ROOT)/$$layer_dep \\" >> build/conf/bblayers.conf-$${repo##*platform-} ; \
 	    echo -e "  $(BUILD_ROOT)/$$repo \\ \n\"" >> build/conf/bblayers.conf-$${repo##*platform-} ; \
 	 done ; \
-	 ln -sf bblayers.conf-$(DISTRO)-$(PLATFORM) build/conf/bblayers.conf
+	 ln -sf bblayers.conf-$(DISTRO)-$(PLATFORM) build/conf/bblayers.conf ; \
+	 ln -sf .ops-config-$(PLATFORM) build/.ops-config
 	$(V) mkdir -p images
 	$(V) tools/bin/bootstrap.sh
 	$(V) echo $(PLATFORM) > .platform
@@ -191,6 +194,7 @@ _switch-platform:
      fi ; \
 	 $(ECHO) -n Switching to platform $(PLATFORM)... ; \
 	 ln -sf bblayers.conf-$(DISTRO)-$(PLATFORM) build/conf/bblayers.conf ; \
+	 ln -sf .ops-config-$(PLATFORM) build/.ops-config ; \
 	 if [ -f .devenv ] ; then \
 		if ! grep -q "$(BUILD_ROOT)/build/workspace" build/conf/bblayers.conf ; then \
 			sed --follow-symlinks -i 's|\(.*$(BUILD_ROOT)/yocto/.*/meta-platform-$(DISTRO)-$(PLATFORM) \\\)|\1\n  $(BUILD_ROOT)/build/workspace \\|' build/conf/bblayers.conf ; \

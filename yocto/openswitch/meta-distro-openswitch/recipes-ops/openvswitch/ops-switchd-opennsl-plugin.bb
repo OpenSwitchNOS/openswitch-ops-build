@@ -19,4 +19,9 @@ PV = "git${SRCPV}"
 
 S = "${WORKDIR}/git"
 
+# Pass required feature configuration flags to make process.
+# Syntax: -DENABLE_<Kconfig symbol>=1
+EXTRA_OECMAKE += "${@bb.utils.contains('IMAGE_FEATURES','BUFMON','-DENABLE_BUFMON=1','',d)}"
+EXTRA_OECMAKE += "${@bb.utils.contains('IMAGE_FEATURES','BROADVIEW','-DENABLE_BROADVIEW=1','',d)}"
+
 inherit openswitch cmake
