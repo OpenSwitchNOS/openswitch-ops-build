@@ -58,8 +58,6 @@ RDEPENDS_packagegroup-ops-base = "\
     ops-cli ops-restd lighttpd \
     ops-portd ops-quagga \
     ops-aaa-utils \
-    ops-bufmond \
-    ops-broadview \
     ops-mgmt-intf \
     dnsmasq \
     ops-checkmk-agent \

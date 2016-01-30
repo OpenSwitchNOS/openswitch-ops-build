@@ -1,0 +1,10 @@
+#
+# Automatically generated file; DO NOT EDIT.
+# OpenSwitch Configuration
+#
+# OPS_CONFIG_AS5712 is not set
+# OPS_CONFIG_AS6712 is not set
+# OPS_CONFIG_P4_SIM is not set
+OPS_CONFIG_OVS_SIM=y
+OPS_CONFIG_DOCKER=y
+# OPS_CONFIG_OVA is not set
