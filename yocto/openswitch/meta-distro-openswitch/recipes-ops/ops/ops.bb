@@ -4,7 +4,7 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/Apache-2.0;md5=89aea4e17d99a7ca
 
 SRC_URI = "git://git.openswitch.net/openswitch/ops;protocol=https"
 
-SRCREV = "6a3698d5e83f20f71e1e7c5fc8eae69ff95a8f9f"
+SRCREV = "140885b6876c22a27e23dd8ba76fd4fb1d75941b"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.
