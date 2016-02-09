@@ -73,7 +73,7 @@ def _get_git_uri(rd):
             if 'protocol' in extras:
                 base = re.sub(r'^git', extras['protocol'], base)
             return base, extras
-    return None
+    return None, None
 
 
 def _getvar(rd, var):
