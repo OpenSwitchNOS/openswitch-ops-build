@@ -2,7 +2,7 @@ SUMMARY = "OpenVSwitch for OpenSwitch"
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
 
-DEPENDS = "openssl python perl systemd libtool ops"
+DEPENDS = "openssl python perl systemd libtool libyaml ops"
 
 SRC_URI = "git://git.openswitch.net/openswitch/ops-openvswitch;protocol=http \
    file://ovsdb-server.service \
@@ -10,7 +10,7 @@ SRC_URI = "git://git.openswitch.net/openswitch/ops-openvswitch;protocol=http \
    file://switchd_sim.service \
 "
 
-SRCREV = "18cd63f9a5e725e98cdd104d9233b030da07c246"
+SRCREV = "24f24bb73da413ba322b0bab1419fc6c9846ba94"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.
@@ -49,12 +49,11 @@ FILES_python-ops-ovsdb = "${PYTHON_SITEPACKAGES_DIR}/ovs"
 FILES_${PN} = "${bindir}/ovs-appctl ${bindir}/ovs-pki ${bindir}/ovs-vsctl \
  /var/local/openvswitch ${sbindir}/ops-switchd \
  ${libdir}/libofproto.so.1* ${libdir}/libopenvswitch.so.1* ${libdir}/libsflow.so.1* \
- ${libdir}/libopsyaml.so.1* \
 "
 
 USERADD_PACKAGES = "${PN}"
 
-GROUPADD_PARAM_${PN} ="-g 1020 ovsdb_users"
+GROUPADD_PARAM_${PN} ="-g 1020 ovsdb_users;-o -g 1020 ovsdb-client;ops_netop;ops_admin"
 
 do_configure_prepend() {
     export OPEN_HALON_BUILD=1
