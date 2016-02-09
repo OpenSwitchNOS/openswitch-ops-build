@@ -113,7 +113,7 @@ def main():
                         dest='var',
                         const='*gitbranch*',
                         help='Extract the git branch from SRC_URI. (default: "master" if SRC_URI is git, but no branch specified)')
-    parser.add_argument('package',
+    parser.add_argument('package', nargs='+',
                         help='Name of package to query')
 
     global args
@@ -145,15 +145,20 @@ def main():
     sys.stderr = old_stderr
 
     # parse the recipe file and print the requested variables
-    rd = _parse_recipe(workspace_path, tinfoil, args.package)
-    if len(args.var) == 1:
-        val = _getvar(rd, args.var[0])
-        if not val is None:
-            print("{}".format(val))
-    else:
-        for var in args.var:
-            val = _getvar(rd, var)
-            print("{}={}".format(var, '' if val is None else val))
+    for pkg in args.package:
+        rd = _parse_recipe(workspace_path, tinfoil, pkg)
+        if len(args.package) == 1:
+            prefix = ''
+        else:
+            prefix = '{}: '.format(pkg)
+        if len(args.var) == 1:
+            val = _getvar(rd, args.var[0])
+            if not val is None:
+                print("{}{}".format(prefix, val))
+        else:
+            for var in args.var:
+                val = _getvar(rd, var)
+                print("{}{}={}".format(prefix, var, '' if val is None else val))
 
 
 if __name__ == "__main__":
