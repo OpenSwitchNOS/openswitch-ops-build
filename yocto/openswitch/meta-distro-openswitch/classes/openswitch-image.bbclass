@@ -1,5 +1,6 @@
 inherit core-image extrausers
 EXTRA_USERS_PARAMS = "\
+         usermod -L root;\
          useradd -N -P netop netop; \
          useradd -N -P admin admin; \
          usermod -g ops_admin admin;\
