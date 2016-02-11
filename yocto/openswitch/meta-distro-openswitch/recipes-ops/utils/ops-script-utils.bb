@@ -5,6 +5,7 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/Apache-2.0;md5=89aea4e17d99a7ca
 RDEPENDS_${PN} = "bash"
 
 SRC_URI = "file://ps_threads.sh \
+           file://nscmdexec.sh \
 "
 
 S = "${WORKDIR}"
@@ -12,4 +13,5 @@ S = "${WORKDIR}"
 do_install () {
     install -d ${D}${bindir}
     install -m 0755 ${WORKDIR}/ps_threads.sh ${D}${bindir}/ps_threads
+    install -m 4755 ${WORKDIR}/nscmdexec.sh ${D}${bindir}/nscmdexec
 }
