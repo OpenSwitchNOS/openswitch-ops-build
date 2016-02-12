@@ -32,6 +32,8 @@ export BUILDDIR=$(BUILD_ROOT)/build
 export BB_ENV_EXTRAWHITE=MACHINE DISTRO TCMODE TCLIBC HTTP_PROXY http_proxy HTTPS_PROXY https_proxy FTP_PROXY ftp_proxy ALL_PROXY all_proxy NO_PROXY no_proxy SSH_AGENT_PID SSH_AUTH_SOCK BB_SRCREV_POLICY SDKMACHINE BB_NUMBER_THREADS BB_NO_NETWORK PARALLEL_MAKE GIT_PROXY_COMMAND SOCKS5_PASSWD SOCKS5_USER SCREENDIR STAMPS_DIR PLATFORM_DTS_FILE BUILD_ROOT NFSROOTPATH NFSROOTIP
 export PATH:=$(BUILD_ROOT)/yocto/poky/scripts:$(BUILD_ROOT)/yocto/poky/bitbake/bin:$(BUILD_ROOT)/tools/bin:$(PATH)
 export LD_LIBRARY_PATH:=$(BUILD_ROOT)/tools/lib:$(LD_LIBRARY_PATH)
+export http_proxy
+export https_proxy
 
 # Some well known locations
 KERNEL_STAGING_DIR=$(shell cd $(BUILDDIR) ; $(BUILD_ROOT)/yocto/poky/bitbake/bin/bitbake -e | awk -F= '/^STAGING_KERNEL_DIR=/ { gsub(/"/, "", $$2); print $$2 }')
@@ -96,6 +98,16 @@ endef
 define DEVTOOL
 	 cd $(BUILDDIR) ; umask 002 ; \
 	 $(BUILD_ROOT)/yocto/poky/scripts/devtool $(1) || exit 1
+endef
+
+define PARSE_TWO_ARGUMENTS
+ifeq ($(1),$(firstword $(MAKECMDGOALS)))
+  # use the rest as arguments for "$(1)"
+  EXTRA_ARGS_1 := $(wordlist 2, 2,$(MAKECMDGOALS))
+  EXTRA_ARGS_2 := $(wordlist 3, 3,$(MAKECMDGOALS))
+  # ...and turn them into do-nothing targets
+  $(eval $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))::;@:)
+endif
 endef
 
 UT_PARAMS ?= --gtest_shuffle
@@ -265,8 +277,9 @@ export_docker_image:
 	    $(call FATAL_ERROR, Unable to find $(BASE_TARGZ_FS_FILE)\n \
 	                       \tRun 'make' at the top level to create root-fs.) ; \
 	fi
-	$(V) $(ECHO) "Exporting '$(BASE_TARGZ_FS_FILE)' as a Docker Container Image '$(DOCKER_IMAGE)'"
-	$(V) /bin/cat $(BASE_TARGZ_FS_FILE) | docker import - $(DOCKER_IMAGE)
+	$(V) $(ECHO) "$(BLUE)Exporting '$(BASE_TARGZ_FS_FILE)' as image '$(DOCKER_IMAGE)'...$(GRAY)\n"
+	$(V) /bin/zcat $(BASE_TARGZ_FS_FILE) | docker import - $(DOCKER_IMAGE)
+	$(V) $(ECHO)
 
 .PHONY: deploy_nfsroot
 NFSROOTPATH?=$(BUILD_ROOT)/nfsroot-${CONFIGURED_PLATFORM}
@@ -473,10 +486,10 @@ endif
 devenv_add: dev_header
 	$(V)$(foreach P, $(PACKAGE), $(call DEVENV_ADD,$(P)))
 
+$(eval $(call PARSE_TWO_ARGUMENTS,devenv_import))
 ifeq (devenv_import,$(firstword $(MAKECMDGOALS)))
-  PACKAGE := $(wordlist 2, 2,$(MAKECMDGOALS))
-  IMPORTED_SRC := $(wordlist 3, 3,$(MAKECMDGOALS))
-  $(eval $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))::;@:)
+  PACKAGE?=$(EXTRA_ARGS_1)
+  IMPORTED_SRC?=$(EXTRA_ARGS_2)
   ifeq ($(PACKAGE),)
    $(error ====== PACKAGE variable is empty, please specify which package you want  =====)
   endif
@@ -539,6 +552,161 @@ _devenv_refresh:
 	  popd >/dev/null ; \
 	done < .devenv
 	$(V) $(ECHO) "\n$(PURPLE)Update completed$(GRAY)"
+
+# Test environment
+
+.PHONY: _testenv_header testenv_init testenv_clean testenv_run testenv_rerun
+.PHONY: _testenv_rerun _testenv_rerun_suite testenv_runsuite testenv_rerun_suite
+.PHONY: _testenv_prepare_env
+
+_testenv_header: header
+	$(V) flock -n $(BUILDDIR)/bitbake.lock echo -n || \
+	   { echo "Bitbake is currently running... can't proceed further, aborting" ; \
+             exit 255 ; }
+	$(V) if ! [ -f .testenv ] ; then \
+	  $(call FATAL_ERROR, testenv is not initialized, use 'testenv_init') ; \
+	fi
+
+testenv_init:
+	$(V) if ! which tox > /dev/null ; then \
+		$(call FATAL_ERROR,Python's tox is not installed. Please use your package manager to install it:\n\n  Hint: on Debian/Ubuntu systems you can install it with: 'sudo apt-get install python-tox') ; \
+	 fi
+	$(V) touch .testenv
+
+
+TOPOLOGY_TEST_IMAGE?=ops_$(USER)$(subst /,_,$(BUILD_ROOT))
+
+$(eval $(call PARSE_TWO_ARGUMENTS,testenv_run))
+COMPONENT?=$(EXTRA_ARGS_1)
+TESTSUITE?=$(EXTRA_ARGS_2)
+ifneq ($(findstring testenv_run,$(MAKECMDGOALS)),)
+  ifeq ($(COMPONENT),)
+   $(error ====== COMPONENT variable is empty, please specify which component you want =====)
+  endif
+  ifeq ($(TESTSUITE),)
+   $(error ====== TESTSUITE variable is empty, please specify which test suite you want =====)
+  endif
+endif
+testenv_run: _testenv_header
+	$(V) $(MAKE) _fs
+	$(V) docker rmi $(TOPOLOGY_TEST_IMAGE) > /dev/null 2>&1 || true
+	$(V) $(MAKE) export_docker_image $(TOPOLOGY_TEST_IMAGE)
+	$(V) $(SUDO) rm -Rf $(BUILDDIR)/test/$(COMPONENT)/$(TESTSUITE)
+	$(V) $(MAKE) _testenv_rerun COMPONENT=$(COMPONENT) TESTSUITE=$(TESTSUITE)
+
+$(eval $(call PARSE_TWO_ARGUMENTS,testenv_rerun))
+COMPONENT?=$(EXTRA_ARGS_1)
+TESTSUITE?=$(EXTRA_ARGS_2)
+ifneq ($(findstring testenv_rerun,$(MAKECMDGOALS)),)
+  ifeq ($(COMPONENT),)
+   $(error ====== COMPONENT variable is empty, please specify which component you want =====)
+  endif
+  ifeq ($(TESTSUITE),)
+   $(error ====== TESTSUITE variable is empty, please specify which test suite you want =====)
+  endif
+endif
+testenv_rerun: _testenv_header
+	$(V) $(MAKE) _testenv_rerun COMPONENT=$(COMPONENT) TESTSUITE=$(TESTSUITE)
+
+_testenv_rerun:
+	$(V) $(SUDO) rm -Rf $(BUILDDIR)/test/$(COMPONENT)/$(TESTSUITE)/code_under_test
+	$(V) mkdir -p $(BUILDDIR)/test/$(COMPONENT)/$(TESTSUITE)
+	$(V) # Find if the component is on the devenv
+	$(V) if [ -f .devenv ] && [ -d src/$(COMPONENT) ] ; then \
+	   $(ECHO) "Running $(TESTSUITE) tests from the devenv (src/$(COMPONENT))...\n" ; \
+	   if ! [ -d src/$(COMPONENT)/tests/$(TESTSUITE) ] ; then \
+	     $(call FATAL_ERROR, No testsuite found at src/$(COMPONENT)/tests/$(TESTSUITE)); \
+	   fi ; \
+	   ln -sf $(BUILD_ROOT)/src/$(COMPONENT)/tests/$(TESTSUITE) $(BUILDDIR)/test/$(COMPONENT)/$(TESTSUITE)/code_under_test ; \
+	 else \
+	   $(ECHO) "Running $(TESTSUITE) tests by fetching the code from git...\n" ; \
+	   $$(query-recipe.py -s -v SRCREV --gitrepo --gitbranch $(COMPONENT)) ; \
+	   rm -Rf $(BUILDDIR)/test/$(COMPONENT)/$(TESTSUITE)/git ; \
+	   git clone -q --single-branch -b $$gitbranch $$gitrepo $(BUILDDIR)/test/$(COMPONENT)/$(TESTSUITE)/git ; \
+	   pushd . >/dev/null ; \
+       cd $(BUILDDIR)/test/$(COMPONENT)/$(TESTSUITE)/git ; \
+	   git reset $$SRCREV --hard ; \
+	   popd > /dev/null ; \
+	   if ! [ -d $(BUILDDIR)/test/$(COMPONENT)/$(TESTSUITE)/git/tests/$(TESTSUITE) ] ; then \
+	     $(call FATAL_ERROR, No testsuite found at the git repo $$gitrepo/test/$(TESTSUITE)); \
+	   fi ; \
+	   ln -sf $(BUILDDIR)/test/$(COMPONENT)/$(TESTSUITE)/git/tests/$(TESTSUITE) \
+	     $(BUILDDIR)/test/$(COMPONENT)/$(TESTSUITE)/code_under_test ; \
+	 fi
+	 $(V) $(MAKE) _testenv_prepare_bed
+	 $(V) cd $(BUILDDIR)/test/$(COMPONENT)/$(TESTSUITE) ; unset CURL_CA_BUNDLE; tox
+
+# Prepare the test bed
+_testenv_prepare_bed:
+	$(V) if [ -f $(BUILDDIR)/test/$(COMPONENT)/$(TESTSUITE)/code_under_test/requirements.txt ] ; then \
+	   cp $(BUILDDIR)/test/$(COMPONENT)/$(TESTSUITE)/code_under_test/requirements.txt \
+	     $(BUILDDIR)/test/$(COMPONENT)/$(TESTSUITE)/ ; \
+	 else \
+	   cp tools/topology/requirements.txt $(BUILDDIR)/test/$(COMPONENT)/$(TESTSUITE)/ ; \
+	 fi
+	 $(V) if [ -f $(BUILDDIR)/test/$(COMPONENT)/$(TESTSUITE)/code_under_test/tox.ini ] ; then \
+	   cp $(BUILDDIR)/test/$(COMPONENT)/$(TESTSUITE)/code_under_test/tox.ini \
+	     $(BUILDDIR)/test/$(COMPONENT)/$(TESTSUITE)/ ; \
+	 else \
+	   cp tools/topology/tox.ini $(BUILDDIR)/test/$(COMPONENT)/$(TESTSUITE)/ ; \
+	 fi
+	 $(V) if [ -f $(BUILDDIR)/test/$(COMPONENT)/$(TESTSUITE)/code_under_test/attributes.json.in ] ; then \
+	   sed -e 's?@TEST_IMAGE@?$(TOPOLOGY_TEST_IMAGE):latest?' \
+	     $(BUILDDIR)/test/$(COMPONENT)/$(TESTSUITE)/code_under_test/attributes.json.in \
+	     > $(BUILDDIR)/test/$(COMPONENT)/$(TESTSUITE)/attributes.json ; \
+	 else \
+	   sed -e 's?@TEST_IMAGE@?$(TOPOLOGY_TEST_IMAGE):latest?' \
+	     tools/topology/attributes.json.in \
+	     > $(BUILDDIR)/test/$(COMPONENT)/$(TESTSUITE)/attributes.json ; \
+	 fi
+
+# We try to export this symbol only when the target is invoked, since the expansion
+# can cause to trigger bitbake before is configured in other cases
+ifneq ($(findstring testenv,$(MAKECMDGOALS)),)
+  export YOCTO_LAYERS
+endif
+
+testenv_list_testsuites: _testenv_header
+	$(V) for layer in $$YOCTO_LAYERS ; do \
+	   test -d $$layer || continue ; \
+	   TESTSUITES="$$TESTSUITES `find $$layer -name testsuites.conf`" ; \
+	 done ; \
+	 for testsuiteconf in $$TESTSUITES ; do \
+	   while read suite ; do \
+	     [[ $$suite == \#* ]] && continue ; \
+	     $(ECHO) "  * $$suite" ; \
+	   done < $$testsuiteconf ; \
+	done
+
+$(eval $(call PARSE_ARGUMENTS,testenv_run_suite))
+TESTSUITE?=$(EXTRA_ARGS)
+ifneq ($(findstring testenv_run_suite,$(MAKECMDGOALS)),)
+  ifeq ($(TESTSUITE),)
+   $(error ====== TESTSUITE variable is empty, please specify which test suite you want =====)
+  endif
+endif
+testenv_run_suite: _testenv_header
+	$(V) $(MAKE) _fs
+	$(V) docker rmi $(TOPOLOGY_TEST_IMAGE) > /dev/null 2>&1 || true
+	$(V) $(MAKE) export_docker_image $(TOPOLOGY_TEST_IMAGE)
+	$(V) $(SUDO) rm -Rf $(BUILDDIR)/test/$(COMPONENT)/$(TESTSUITE)
+	$(V) $(MAKE) _testenv_rerun_suite TESTSUITE=$(TESTSUITE)
+
+$(eval $(call PARSE_ARGUMENTS,testenv_rerun_suite))
+TESTSUITE?=$(EXTRA_ARGS)
+ifneq ($(findstring testenv_rerun,$(MAKECMDGOALS)),)
+  ifeq ($(TESTSUITE),)
+   $(error ====== TESTSUITE variable is empty, please specify which test suite you want =====)
+  endif
+endif
+testenv_rerun_suite: _testenv_header
+	$(V) $(MAKE) _testenv_rerun_suite TESTSUITE=$(TESTSUITE)
+
+_testenv_rerun_suite:
+	$(V) # Find if we are dealing with a test suite or a component test
+
+testenv_clean:
+	$(V) rm -Rf .testenv
 
 # Trim Support
 .PHONY: trim
