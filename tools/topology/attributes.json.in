@@ -1,0 +1,13 @@
+[
+    {
+        "files": ["*"],
+        "modifiers": [
+            {
+                "nodes": ["sw1", "sw2"],
+                "attributes": {
+                    "image": "@TEST_IMAGE@"
+                }
+            }
+        ]
+    }
+]
