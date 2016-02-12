@@ -132,10 +132,22 @@ build/conf/local.conf: .platform
            -e "s|##DISTRO_SSTATE_ADDRESS##|$(DISTRO_SSTATE_ADDRESS)|" \
 	   -e "s|##DISTRO_ARCHIVE_ADDRESS##|$(DISTRO_ARCHIVE_ADDRESS)|" \
 	   tools/config/local.conf.in > $@
-	$(V)if [ -n "$(SSTATE_DIR)" ] && [ -d $(SSTATE_DIR) ] && [ -w $(SSTATE_DIR) ] ; then \
+	$(V)if [ -n "$(SSTATE_DIR)" ] ; then \
+      if [ -d $(SSTATE_DIR) ] && [ -w $(SSTATE_DIR) ] ; then \
 	      $(ECHO) "$(BLUE)Using shared state cache from $(SSTATE_DIR)...$(GRAY)\n" ; \
 	      sed -i -e "s|^#SSTATE_DIR.*|SSTATE_DIR = \"$(SSTATE_DIR)\"|" $@ ; \
-	 fi
+      else \
+	      $(ECHO) "$(RED)IGNORING shared state cache $(SSTATE_DIR): not a writable directory$(GRAY)\n" ; \
+      fi \
+    fi
+	$(V)if [ -n "$(DL_DIR)" ] ; then \
+      if [ -d $(DL_DIR) ] && [ -w $(DL_DIR) ] ; then \
+	      $(ECHO) "$(BLUE)Using shared download directory from $(DL_DIR)...$(GRAY)\n" ; \
+	      sed -i -e "s|^#DL_DIR.*|DL_DIR = \"$(DL_DIR)\"|" $@ ; \
+      else \
+	      $(ECHO) "$(RED)IGNORING shared download directory $(DL_DIR): not a writable directory$(GRAY)\n" ; \
+      fi \
+    fi
 
 header:: build/conf/site.conf build/conf/local.conf
 
@@ -213,25 +225,19 @@ _cleansstate:
 	$(V)$(call BITBAKE,-c cleansstate $(RECIPE))
 
 CONTAINER_NAME?=openswitch
-.PHONY: deploy_container
-deploy_container:
+.PHONY: deploy_lxc
+deploy_lxc:
 	$(V) if ! which lxc-create > /dev/null ; then \
 	  $(call FATAL_ERROR,LXC does not seems installed, could not find lxc-create) ; \
 	fi
-	$(V) if ! lsmod | grep -q openvswitch ; then \
-	  $(call FATAL_ERROR,OpenVswitch module not running on the host machine... please load the openvswitch kernel module) ; \
-	fi
-	$(V) if ! which ovs-vsctl > /dev/null ; then \
-	  $(call FATAL_ERROR,ovs-vsctl tool not available, please install the openvswitch tools) ; \
-	fi
 	$(V) if ! test -f images/`basename $(BASE_TARGZ_FS_FILE)` ; then \
-	  $(call FATAL_ERROR,Your platform has not generated a .tar.gz file that can be used to create the container) ; \
+	  $(call FATAL_ERROR,Your platform has not generated a .tar.gz file that can be used to create the LXC container) ; \
 	fi
-	$(V) $(ECHO) "Exporting an lxc-container with name '$(CONTAINER_NAME)' may ask for admin password..."
-	$(V) $(ECHO) -n "Checking that no container with the same name already exists..."
+	$(V) $(ECHO) "Exporting an LXC container with name '$(CONTAINER_NAME)' may ask for admin password..."
+	$(V) $(ECHO) -n "Checking that no LXC container with the same name already exists..."
 	$(V) if $(SUDO) lxc-info -n $(CONTAINER_NAME) >/dev/null 2>&1 ; then \
 	  echo ; \
-	  $(call FATAL_ERROR, A container '$(CONTAINER_NAME)' already exists... aborting.\nYou may remove it with 'sudo lxc-destroy -n $(CONTAINER_NAME)') ; \
+	  $(call FATAL_ERROR, A LXC container '$(CONTAINER_NAME)' already exists... aborting.\nYou may remove it with 'sudo lxc-destroy -n $(CONTAINER_NAME)') ; \
 	else \
 	  echo done ; \
 	fi
@@ -433,7 +439,7 @@ devenv_clean: dev_header
 	$(V)$(call DEVTOOL, reset -a)
 	$(V)rm -Rf src .devenv
 
-DEVENV_BRANCH?=master
+DEVENV_BRANCH?=*auto*
 
 define DEVENV_ADD
 	if ! grep -q '^$(1)$$' .devenv 2>/dev/null ; then \
@@ -443,7 +449,12 @@ define DEVENV_ADD
 	  if [ -f .gitreview ] ; then \
 	    gitdir=$$(git rev-parse --git-dir); cp -f $(BUILD_ROOT)/tools/bin/hooks/* $${gitdir}/hooks/ ; \
 	  fi ; \
-	  git checkout $(DEVENV_BRANCH) || { $(call FATAL_ERROR, Unable to checkout the request branch '$(DEVENV_BRANCH)') ; } ; \
+	  DEVENV_BRANCH=$(DEVENV_BRANCH) ; \
+	  if [[ "$$DEVENV_BRANCH" == "*auto*" ]] ; then \
+	    DEVENV_BRANCH=`query-recipe.py --gitbranch $(1)` ; \
+	    $(ECHO) "$(WHITE)NOTE:$(GRAY) Checking out recipe branch: $(BLUE)$$DEVENV_BRANCH$(GRAY)" ; \
+	  fi ; \
+	  git checkout $$DEVENV_BRANCH || { $(call FATAL_ERROR, Unable to checkout the request branch '$$DEVENV_BRANCH') ; } ; \
 	  popd > /dev/null ; \
 	  sed -e "s/##RECIPE##/$(1)/g" $(BUILD_ROOT)/tools/devenv-recipe-template.make >> $(BUILD_ROOT)/src/Rules.make ; \
 	  echo $(1) >> $(BUILD_ROOT)/.devenv ; \
@@ -559,7 +570,8 @@ changelog_manifest: header
 git_pull: header
 	$(V)$(ECHO) "Updating the base git repository..."
 	$(V)git pull --rebase || $(ECHO) "${RED}WARNING: git pull failed, skipping this error$(GRAY)"
-	$(V)for gitpath in `find yocto/ -maxdepth 2 -name .git` ; do \
+	$(V)$(ECHO) "Finding other .git dirs we need to update (skipping ./build and ./src)..."
+	$(V)for gitpath in `find ./ -maxdepth 4 -path ./.git -prune -o -path ./build -prune -o -path ./src -prune -o -name .git -prune -print` ; do \
 	   repo=`dirname $$gitpath` ; \
 	   $(ECHO) "\nUpdating the $$repo git repository..." ; \
 	   pushd . >/dev/null ; \

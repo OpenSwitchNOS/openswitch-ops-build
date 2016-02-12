@@ -18,6 +18,8 @@ PACKAGES = ' \
             packagegroup-ops-core \
             '
 
+PACKAGES += "${@bb.utils.contains("IMAGE_FEATURES", "ops-p4", "packagegroup-ops-p4", "", d)}"
+
 RDEPENDS_packagegroup-ops-base = "\
     os-release \
     i2c-tools \
@@ -37,6 +39,7 @@ RDEPENDS_packagegroup-ops-base = "\
     pwauth \
     shadow \
     cronie \
+    auditd audispd-plugins audit-python \
     inetutils-ping inetutils-ping6 inetutils-hostname inetutils-ifconfig \
     inetutils-tftp inetutils-traceroute inetutils-ftp inetutils-telnet \
     iputils-traceroute6 \
@@ -45,15 +48,14 @@ RDEPENDS_packagegroup-ops-base = "\
     libcap-bin \
     ops-init \
     virtual/switchd \
-    ${@bb.utils.contains('MACHINE_FEATURES', 'ops-container', 'ops-switchd-container-plugin', '',d)} \
-    ${@bb.utils.contains('MACHINE_FEATURES', 'broadcom', 'ops-switchd-opennsl-plugin', '',d)} \
+    virtual/ops-switchd-switch-api-plugin \
     ops-ovsdb \
     ops-hw-config \
     ops-cfgd ops-fand ops-ledd ops-pmd ops-powerd ops-sysd ops-tempd \
     ops-dhcp-tftp \
     ops-intfd ops-lacpd ops-lldpd ops-vland ops-arpmgrd \
     ops-script-utils \
-    ops-cli ops-restd lighttpd \
+    ops-cli ops-restd ops-webui \
     ops-portd ops-quagga \
     ops-aaa-utils \
     ops-bufmond \
@@ -62,8 +64,8 @@ RDEPENDS_packagegroup-ops-base = "\
     dnsmasq \
     ops-checkmk-agent \
     ops-ansible \
-    ops-chef \
     ops-ntpd \
+    ops-supportability \
     strongswan \
 "
 
@@ -87,4 +89,9 @@ RDEPENDS_packagegroup-ops-min-debug = "\
     "
 
 RDEPENDS_packagegroup-ops-core = "\
+    "
+
+RDEPENDS_packagegroup-ops-p4 = "\
+    ops-switchd-p4switch-plugin \
+    ops-p4dp \
     "

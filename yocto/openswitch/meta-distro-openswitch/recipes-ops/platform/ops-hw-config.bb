@@ -5,7 +5,7 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/Apache-2.0;md5=89aea4e17d99a7ca
 SRC_URI = "git://git.openswitch.net/openswitch/ops-hw-config;protocol=http \
 "
 
-SRCREV = "ed07eb4e9764d8cd2a7f1591130cbc5e3ff9b361"
+SRCREV = "f30626e39e0261e1fef323e75e6e9370c0daf6c8"
 
 PLATFORM_PATH?="${MACHINE}"
 
