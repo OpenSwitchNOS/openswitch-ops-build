@@ -2,9 +2,11 @@ SUMMARY = "OpenSwitch"
 LICENSE = "Apache-2.0"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/Apache-2.0;md5=89aea4e17d99a7cacdbeed46a0096b10"
 
-SRC_URI = "git://git.openswitch.net/openswitch/ops;protocol=https"
+SRC_URI = "git://git.openswitch.net/openswitch/ops;protocol=https;branch=feature/qos3"
 
-SRCREV = "beb68bfa6a31b186c8441b6e838818321c1a5970"
+SRCREV = "20a3b85d31a10963bee57057fff9c9999de07eae"
+# SRCREV = "${AUTOREV}"
+# SRCREV = "beb68bfa6a31b186c8441b6e838818321c1a5970"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.
