@@ -9,6 +9,7 @@ SRC_URI = "git://git.openswitch.net/openswitch/ops-openvswitch;protocol=http \
    file://switchd_bcm.service \
    file://switchd_sim.service \
    file://switchd_p4sim.service \
+   file://partial-map-updates.patch \
 "
 
 SRCREV = "24f24bb73da413ba322b0bab1419fc6c9846ba94"
