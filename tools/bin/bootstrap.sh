@@ -68,6 +68,7 @@ sanity_checks (){
     check_binary screen screen
     # Required to get packages
     check_binary curl curl
+    check_binary diffstat diffstat
     # Required by yocto
     check_python_version
     check_binary chrpath chrpath
