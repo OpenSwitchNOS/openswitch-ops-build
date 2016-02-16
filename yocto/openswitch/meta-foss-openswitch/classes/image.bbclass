@@ -309,12 +309,16 @@ fakeroot python do_rootfs () {
     from oe.rootfs import create_rootfs
     from oe.image import create_image
     from oe.manifest import create_manifest
+    from shutil import copyfile
 
     # generate the initial manifest
     create_manifest(d)
 
     # generate rootfs
     create_rootfs(d)
+
+    # copy the image manifest to the image
+    copyfile((d.getVar('IMAGE_MANIFEST', True)), (d.getVar('IMAGE_ROOTFS', True) + "/etc/image.manifest"))
 
     # generate final images
     create_image(d)
