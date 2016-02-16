@@ -1317,6 +1317,9 @@ python emit_pkgdata() {
         for dfile in (d.getVar('FILERDEPENDSFLIST_' + pkg, True) or "").split():
             write_if_exists(sf, pkg, 'FILERDEPENDS_' + dfile)
 
+        write_if_exists(sf, pkg, 'SRC_URI')
+        write_if_exists(sf, pkg, 'SRCREV')
+
         sf.write('%s_%s: %d\n' % ('PKGSIZE', pkg, total_size))
         sf.close()
 
