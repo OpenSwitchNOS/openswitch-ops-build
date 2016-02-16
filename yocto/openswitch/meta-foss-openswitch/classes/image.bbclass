@@ -316,6 +316,9 @@ fakeroot python do_rootfs () {
     # generate rootfs
     create_rootfs(d)
 
+    # copy the image manifest to the image
+    copyfile((d.getVar('IMAGE_MANIFEST', True)), (d.getVar('IMAGE_ROOTFS', True) + "/etc/image.manifest"))
+
     # generate final images
     create_image(d)
 }
