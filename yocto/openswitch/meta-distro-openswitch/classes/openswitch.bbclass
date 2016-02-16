@@ -24,6 +24,16 @@ python profile_compile_prefunc() {
     bb.warn('Profiling enabled for package %s on the devenv' % (d.getVar('PN', True)))
 }
 
+# The following __anonymous function has been added just to export the SRCREV value in each recipe to a file
+# It gets called in the context of every recipe file after it has been parsed.
+python __anonymous() {
+#    bb.warn('TOPDIR = %s PN = %s D = %s' % ((d.getVar('TOPDIR', True)), (d.getVar('PN', True)), (d.getVar('D', True)) ))
+    version_detail_file = (d.getVar('TOPDIR', True)) + "/version_detail";
+    f = open(version_detail_file, 'a')
+    f.write('%s %s\n' % ((d.getVar('PN', True)), (d.getVar('SRCREV', True))));
+    f.close()
+}
+
 # Debug flags is used by DEBUG_OPTIMIZATION that is used by SELECTED_OPTIMIZATION when DEBUG_BUILD is 1
 DEBUG_FLAGS = "${@enable_devenv_profiling(d)}"
 
