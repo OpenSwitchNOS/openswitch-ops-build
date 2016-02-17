@@ -89,6 +89,7 @@ OECMAKE_CXX_COMPILER = "${@get_cmake_cxx_compiler(d)}"
 EXTRA_OECMAKE+="-DCMAKE_BUILD_TYPE=Debug"
 # Enable simulation flag for cmake-based projects
 EXTRA_OECMAKE+="${@bb.utils.contains('MACHINE_FEATURES', 'ops-container', '-DPLATFORM_SIMULATION=ON', '',d)}"
+EXTRA_OECMAKE+="${@bb.utils.contains('MACHINE_FEATURES', 'ops-container', '-DUSE_SW_FRU=ON', '',d)}"
 # Provide cmake-based projects endianness information
 EXTRA_OECMAKE+="${@base_conditional('SITEINFO_ENDIANNESS', 'le', '-DCPU_LITTLE_ENDIAN=ON', '-DCPU_BIG_ENDIAN=ON', d)}"
 
