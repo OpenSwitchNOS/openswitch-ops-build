@@ -1,0 +1,245 @@
+#!/usr/bin/env python
+
+# Copyright (C) 2016 Hewlett-Packard Development Company, L.P.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at:
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""
+Provide high-level functionality for developers working as a team using
+a set of feature brnaches across repos of interest.
+"""
+from __future__ import print_function
+
+import os
+import sys
+import argparse
+import re
+import inspect
+
+# Setup python path so we can load our library modules
+this_path = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(os.path.join(this_path, 'pylib'))
+import ops_defs
+
+# couple of logging/output related variables whose creation is deferred
+# until after we process commandline args
+logger = None
+quiet = False
+
+# Misc globals
+script_name = os.path.basename(__file__)
+
+
+
+def fatal(msg):
+    logger.critical(msg)
+    sys.exit(-1)
+
+
+
+def main():
+    #######################################
+    # Configure commandline argument parser
+    #######################################
+    parser = argparse.ArgumentParser(description=
+        'Tool to help in the creation/maintenance of feature branchs sets for Openswitch development.')
+    subparsers = parser.add_subparsers(
+        title='subcommands (for subcommand help, use --help after subcommand)')
+
+    # ===== define common options for all subcommands =====
+    common_parser = argparse.ArgumentParser(add_help=False)
+    common_parser.add_argument(
+        '--log', dest="logLevel",
+        choices=['DEBUG','INFO','WARNING','ERROR','CRITICAL'],
+        default='WARNING',
+        help="Set the logging level (default WARNING)")
+
+    # ===== define validate options =====
+    validate_parser = subparsers.add_parser(
+        'validate',
+        parents=[common_parser],
+        description="Validate team environment",
+        help='Validate team environment')
+    validate_parser.add_argument(
+        '--merge-base', '-m',
+        action='store_const',
+        const=True,
+        default=False,
+        help='Validate that all branched repos have the correct merge-base')
+    validate_parser.set_defaults(func=validate)
+
+    # ===== define bootstrap options =====
+    bootstrap_parser = subparsers.add_parser(
+        'bootstrap',
+        parents=[common_parser],
+        description="Generate example teamdef.py",
+        help='Generate example teamdef.py')
+    bootstrap_parser.set_defaults(func=bootstrap)
+
+    # ===== define query options =====
+    recipe_parser = subparsers.add_parser(
+        'recipe',
+        parents=[common_parser],
+        description="Query variable value(s) from package recipe(s).",
+        help='Query recipe values')
+    recipe_parser.add_argument('--no-redirect',
+                               action='store_const',
+                               const=False,
+                               default=True,
+                               dest='quiet',
+                               help="Don't redirect to /dev/null  while parsing recipes")
+    recipe_parser.add_argument('-v', '--var',
+                               action='append',
+                               dest='var',
+                               metavar='VARNAME',
+                               help='Variable to fetch (e.g SRC_URI).')
+    recipe_parser.add_argument('--gitrepo',
+                               action='append_const',
+                               dest='var',
+                               const='*gitrepo*',
+                               help='Extract primary git repo from SRC_URI.')
+    recipe_parser.add_argument('--gitbranch',
+                               action='append_const',
+                               dest='var',
+                               const='*gitbranch*',
+                               help='Extract primary git branch from SRC_URI. (default: "master" if SRC_URI is git, but no branch specified)')
+    recipe_parser.add_argument('package', nargs='+',
+                               help='Name of package to query (e.g. ops-cli)')
+    recipe_parser.set_defaults(func=query_recipes, quiet=True)
+
+
+    ################################
+    # Process commandline argumments
+    ################################
+    global args
+    args = parser.parse_args()
+
+    # if the subsommand defined 'quiet' use it, otherwise assume False
+    global quiet
+    quiet = getattr(args, 'quiet', False)
+
+    # configure logging know that we know the level we want
+    import ops_logging
+    ops_logging.config(sys.stderr if quiet else sys.stdout,
+                       level=args.logLevel)
+    global logger
+    logger = ops_logging.getLogger(script_name)
+
+
+    #####################
+    # execute sub command
+    #####################
+    args.func(args)
+
+
+
+
+
+
+def validate(args):
+    # load and perform  self-referential checks of the team definition
+    import team
+    if not os.path.exists(team.teamfile):
+        fatal('{} does not exist.\n'
+              'You can run "{} bootstrap" to have an example created for you.'
+              .format(team.teamfile, script_name))
+    teamdef = team.load()
+
+    # create the correct Builder object based on the teamdef's product
+    import builders
+    if teamdef.product == 'ops':
+        builder = builders.OpsBuilder(teamdef, ops_defs.topdir)
+    else:
+        builder = builders.NestedBuilder(teamdef, ops_defs.topdir)
+
+    # Perform various levels of validation
+    builder.post_clone_validate(teamdef)
+
+    if not builder.is_configured:
+        logger.warning('{} is not configured. Cannot complete validation.'
+                       .format(builder.topdir))
+        return
+    builder.post_configure_validate(teamdef)
+
+    if not builder.is_devenv_inited:
+        logger.warning('{} is not devenv_init\'d. Cannot complete validation.'
+                       .format(builder.topdir))
+        return
+    builder.post_devenv_init_validate(teamdef)
+
+
+    if args.merge_base:
+        builder.validate_merge_base(teamdef)
+
+
+    # all_recipes = recipe_helps.all_recipes(quiet=False)
+    # logger.info('---------- (Distro Packages) ----------')
+    # logger.info(
+    # for pkgname in all_recipes.distro_package_names:
+    #     all_recipes.get(pkgname).validate_for_team()
+
+    # for pkgname in args.package:
+    #     pkg = all_recipes.get(pkgname)
+    #     git = pkg.getGitPkg()
+    #     if git:
+    #         logger.info('---------- ({}) ----------'.format(pkg.name))
+    #         logger.info('{}:\n  {}\n  branch={}\n  srcrev={}'.format(
+    #             git.repo.reponame,
+    #             git.repo.hostname,
+    #             git.repo.branch,
+    #             git.repo.srcrev))
+    #         for smod in git.submodules.itervalues():
+    #             logger.info('{}:\n  {}\n  branch={}\n  srcrev={}\n  subdir={}'.format(
+    #                 smod.reponame,
+    #                 smod.hostname,
+    #                 smod.branch,
+    #                 smod.srcrev,
+    #                 smod.subdir))
+
+
+def bootstrap(args):
+    team.write_sample()
+
+
+def query_recipes(args):
+    if args.var is None:
+        fatal('No variables specified to query.\nRun "{} {} --help" for usage.'
+              .format(script_name, 'recipe'))
+
+    import recipe_helps
+
+    # Explicitly check for readable recipes first.
+    # This allows us to provide better context for the error message
+    # than the one all_recipes() will emit.
+    recipe_helps.ensure_recipes_readable('{} recipe'.format(script_name))
+
+    all_recipes = recipe_helps.all_recipes(quiet)
+    for pkg in args.package:
+        recipe = all_recipes.get(pkg)
+        if len(args.package) == 1:
+            prefix = ''
+        else:
+            prefix = '{}: '.format(pkg)
+        if len(args.var) == 1:
+            val = recipe.getVar(args.var[0])
+            if prefix != '' or val is not None:
+                print("{}{}".format(prefix, '' if val is None else val))
+        else:
+            for var in args.var:
+                val = recipe.getVar(var)
+                print("{}{}={}".format(prefix, var, '' if val is None else val))
+
+
+
+if __name__ == "__main__":
+    main()
