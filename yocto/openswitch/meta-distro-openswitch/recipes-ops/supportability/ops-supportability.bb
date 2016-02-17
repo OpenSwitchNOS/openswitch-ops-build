@@ -6,7 +6,7 @@ DEPENDS = "ops-ovsdb libyaml ops-cli"
 
 SRC_URI = "git://git.openswitch.net/openswitch/ops-supportability;protocol=https"
 
-SRCREV = "074590d0d422fa724a41b9f0b2f52d4aad1cc0af"
+SRCREV = "cddb9a7a098c150c3fd188ff15f385b323ed8b35"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.
