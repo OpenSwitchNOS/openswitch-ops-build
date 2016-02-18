@@ -68,6 +68,8 @@ RDEPENDS_packagegroup-ops-base = "\
     ops-supportability \
     strongswan \
     firejail \
+    ops-switchd-feature1-plugin \
+    ops-switchd-feature2-plugin \
 "
 
 RDEPENDS_packagegroup-ops-base_append_arm = "\
