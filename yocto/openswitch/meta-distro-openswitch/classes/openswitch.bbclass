@@ -27,9 +27,64 @@ python profile_compile_prefunc() {
 # Debug flags is used by DEBUG_OPTIMIZATION that is used by SELECTED_OPTIMIZATION when DEBUG_BUILD is 1
 DEBUG_FLAGS = "${@enable_devenv_profiling(d)}"
 
+# Support for static analysis using HP Fortify
+inherit python-dir
+
+#-Dcom.fortify.sca.compilers.${HOST_PREFIX}gcc=com.fortify.sca.util.compilers.GccCompiler -Dcom.fortify.sca.compilers.${HOST_PREFIX}g++=com.fortify.sca.util.compilers.GppCompiler
+FORTIFY_PARAMETERS = "-b ${PN} -python-path ${STAGING_DIR_TARGET}${PYTHON_SITEPACKAGES_DIR}  "
+
+def get_static_analysis_cmd(d):
+    externalsrc = d.getVar('EXTERNALSRC', True)
+    if externalsrc:
+        if os.path.isfile(os.path.join(d.getVar('TOPDIR', True), 'devenv-sca-enabled')):
+            return "scan-build-3.5 "
+    return ""
+
+do_generate_sca_wrappers() {
+    for c in gcc g++ ar ld; do
+        dir=${WORKDIR}/bin/${HOST_PREFIX}
+        mkdir -p ${dir}
+        ln -f -s ${STAGING_BINDIR_TOOLCHAIN}/${HOST_PREFIX}${c} ${dir}/${c}
+        cat > ${WORKDIR}/fortify-${c} << EOF
+if [ \$1 = '--version' ] || [ \$1 = '-v' ]; then
+    ${dir}/${c} \$1
+else
+    scan-build-3.5 ${dir}/${c} \$@
+fi
+EOF
+        chmod +x ${WORKDIR}/fortify-${c}
+    done
+}
+
+addtask generate_sca_wrappers after do_patch before do_configure
+
+def get_cmake_c_compiler(d):
+    externalsrc = d.getVar('EXTERNALSRC', True)
+    if externalsrc:
+        if os.path.isfile(os.path.join(d.getVar('TOPDIR', True), 'devenv-sca-enabled')):
+            return "${WORKDIR}/fortify-gcc"
+    return "${HOST_PREFIX}gcc"
+
+def get_cmake_cxx_compiler(d):
+    externalsrc = d.getVar('EXTERNALSRC', True)
+    if externalsrc:
+        if os.path.isfile(os.path.join(d.getVar('TOPDIR', True), 'devenv-sca-enabled')):
+            return "${WORKDIR}/fortify-g++"
+    return "${HOST_PREFIX}g++"
+
+export CC = "${@get_static_analysis_cmd(d)}${CCACHE}${HOST_PREFIX}gcc ${HOST_CC_ARCH}${TOOLCHAIN_OPTIONS}"
+export CXX = "${@get_static_analysis_cmd(d)}${CCACHE}${HOST_PREFIX}g++ ${HOST_CC_ARCH}${TOOLCHAIN_OPTIONS}"
+export FC = "${@get_static_analysis_cmd(d)}${CCACHE}${HOST_PREFIX}gfortran ${HOST_CC_ARCH}${TOOLCHAIN_OPTIONS}"
+export CPP = "${@get_static_analysis_cmd(d)}${HOST_PREFIX}gcc -E${TOOLCHAIN_OPTIONS} ${HOST_CC_ARCH}"
+OECMAKE_C_COMPILER = "${@get_cmake_c_compiler(d)}"
+OECMAKE_CXX_COMPILER = "${@get_cmake_cxx_compiler(d)}"
+
+
 # Do cmake builds in debug mode
 EXTRA_OECMAKE+="-DCMAKE_BUILD_TYPE=Debug"
+# Enable simulation flag for cmake-based projects
 EXTRA_OECMAKE+="${@bb.utils.contains('MACHINE_FEATURES', 'ops-container', '-DPLATFORM_SIMULATION=ON', '',d)}"
+# Provide cmake-based projects endianness information
 EXTRA_OECMAKE+="${@base_conditional('SITEINFO_ENDIANNESS', 'le', '-DCPU_LITTLE_ENDIAN=ON', '-DCPU_BIG_ENDIAN=ON', d)}"
 
 # Add debug directory for packages
