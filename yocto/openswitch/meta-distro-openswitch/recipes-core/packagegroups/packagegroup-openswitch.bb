@@ -73,6 +73,8 @@ RDEPENDS_packagegroup-ops-base = "\
     ops-stpd \
     nicstat \
     sysstat \
+    ops-switchd-feature1-plugin \
+    ops-switchd-feature2-plugin \
 "
 
 RDEPENDS_packagegroup-ops-base_append_arm = "\
