@@ -1,0 +1,10 @@
+--- a/Makefile	2016-02-20 20:26:38.872502041 +0100
++++ b/Makefile	2016-02-20 20:27:01.088501441 +0100
+@@ -22,6 +22,7 @@
+ LDFLAGS   += -X $(REPO_PATH)/collector.Version=$(VERSION)
+ LDFLAGS   += -X $(REPO_PATH)/collector.Revision=$(REVISION)
+ LDFLAGS   += -X $(REPO_PATH)/collector.Branch=$(BRANCH)
++LDFLAGS   += $(EXTRA_LDFLAGS)
+ 
+ GOFLAGS   := -ldflags "$(LDFLAGS)"
+ 

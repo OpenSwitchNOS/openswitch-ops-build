@@ -1,0 +1,17 @@
+[Unit]
+Description=OpenSwitch Prometheus Monitoring Service
+After=ovsdb-server.service ops-init.service
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/prometheus \
+    -config.file=/etc/prometheus/prometheus.yml \
+    -log.format=logger:syslog?appname=prometheus&local=7 \
+    -storage.local.path=/var/volatile/prometheus/data \
+    -storage.local.retention=24h \
+    -storage.local.series-sync-strategy=never \
+    -web.listen-address=:9090 \
+    -web.external-url=https://url/prometheus
+
+[Install]
+WantedBy=multi-user.target
