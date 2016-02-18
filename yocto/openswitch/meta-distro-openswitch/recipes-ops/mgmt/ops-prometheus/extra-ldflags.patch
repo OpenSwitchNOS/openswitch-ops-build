@@ -1,0 +1,12 @@
+--- a/scripts/build.sh	2016-02-20 16:04:36.336926612 +0100
++++ b/scripts/build.sh	2016-02-20 16:04:52.008926189 +0100
+@@ -34,7 +34,8 @@
+   -X ${repo_path}/version.Branch=${branch}
+   -X ${repo_path}/version.BuildUser=${USER}@${host}
+   -X ${repo_path}/version.BuildDate=${build_date}
+-  -X ${repo_path}/version.GoVersion=${go_version}"
++  -X ${repo_path}/version.GoVersion=${go_version}
++  ${EXTRA_LDFLAGS}"
+ 
+ export GO15VENDOREXPERIMENT="1"
+ 
