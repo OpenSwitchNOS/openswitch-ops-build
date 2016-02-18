@@ -65,6 +65,8 @@ RDEPENDS_packagegroup-ops-base = "\
     ops-ansible \
     ops-ntpd \
     ops-supportability \
+    ops-prometheus \
+    ops-node-exporter \
     strongswan \
     firejail \
     ops-ipapps \

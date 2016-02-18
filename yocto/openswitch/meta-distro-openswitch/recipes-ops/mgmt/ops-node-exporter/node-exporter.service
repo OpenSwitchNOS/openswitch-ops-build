@@ -1,0 +1,14 @@
+[Unit]
+Description=OpenSwitch Node Exporter
+After=ovsdb-server.service ops-init.service
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/node_exporter \
+    -web.listen-address=:9100 \
+    -collector.ntp.server=localhost \
+    -collectors.enabled=conntrack,diskstats,entropy,filefd,filesystem,loadavg,meminfo,netdev,netstat,sockstat,stat,time,uname,version,vmstat,bonding,interrupts,ipvs,lastlogin,ntp,systemd,tcpstat
+User=node-exporter
+
+[Install]
+WantedBy=multi-user.target
