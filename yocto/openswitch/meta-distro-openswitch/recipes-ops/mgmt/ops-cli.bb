@@ -13,11 +13,9 @@ SRCREV = "61db3fdaa5275275c9c6efdcdb810ee7af57abbd"
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.
 PV = "git${SRCPV}"
-
 S = "${WORKDIR}/git"
 
-EXTRA_OECONF = "--enable-user=root --enable-group=root \
- --enable-ovsdb --enable-vtysh\
-"
+FILES_${PN} += "/usr/lib/*.so"
+FILES_${PN}-dev = "/usr/include /usr/lib/pkgconfig"
 
-inherit openswitch autotools pkgconfig
+inherit openswitch pkgconfig cmake
