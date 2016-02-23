@@ -44,7 +44,7 @@ EXTRA_OECONF += "TARGET_PYTHON=${bindir}/python \
 FILES_ops-ovsdb = "/run /var/run /var/log /var/volatile ${bindir}/ovsdb* \
   ${sbindir}/ovsdb-server ${datadir}/ovsdbmonitor ${sysconfdir}/openvswitch/ \
   ${libdir}/libovscommon.so.1* ${libdir}/libovsdb.so.1* \
-  ${sysconfdir}/tmpfiles.d/openswitch.conf"
+  ${sysconfdir}/tmpfiles.d/openswitch.conf /usr/share/openvswitch/*.ovsschema"
 
 inherit python-dir useradd
 
@@ -80,6 +80,9 @@ do_compile_prepend() {
     cp ${STAGING_DIR_TARGET}/usr/share/openvswitch/dhcp_leases.extschema ${S}/vswitchd/dhcp_leases.extschema
     cp ${STAGING_DIR_TARGET}/usr/share/openvswitch/dhcp_leases.ovsschema ${S}/vswitchd/dhcp_leases.ovsschema
     cp ${STAGING_DIR_TARGET}/usr/share/openvswitch/dhcp_leases.xml ${S}/vswitchd/dhcp_leases.xml
+    cp ${STAGING_DIR_TARGET}/usr/share/openvswitch/vtep.ovsschema ${S}/vswitchd/vtep.ovsschema
+    cp ${STAGING_DIR_TARGET}/usr/share/openvswitch/vtep.xml ${S}/vswitchd/vtep.xml
+
     cp ${STAGING_DIR_TARGET}/usr/share/openvswitch/configdb.ovsschema ${S}/vswitchd/configdb.ovsschema
 
     # ${PYTHON} ${S}/vswitchd/sanitize.py ${S}/vswitchd/vswitch.extschema ${S}/vswitchd/vswitch.ovsschema
