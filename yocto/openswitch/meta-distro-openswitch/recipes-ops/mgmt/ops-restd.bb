@@ -10,7 +10,7 @@ SRC_URI = "git://git.openswitch.net/openswitch/ops-restd;protocol=http \
            file://restd.service \
 "
 
-SRCREV = "10d4cecc4c504021b1de24b2f76bbf9b047dcfd0"
+SRCREV = "5f322beffefeb4d3793542c7939d4cd2de361aab"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.
@@ -30,6 +30,10 @@ do_install_append () {
       # We do not have a native ovsdb-python package, so we use the one
       # from the target by hacking the PYTHONPATH
       PYTHONPATH=${STAGING_DIR_TARGET}/${PYTHON_SITEPACKAGES_DIR}:${PYTHONPATH} ${PYTHON} apidocgen.py ${STAGING_DIR_TARGET}/${prefix}/share/openvswitch/vswitch.extschema ${STAGING_DIR_TARGET}/${prefix}/share/openvswitch/vswitch.xml > ${D}/srv/www/api/ops-restapi.json
+
+      install -d ${D}/etc/ssl/certs
+      cp ${S}/server.crt ${D}/etc/ssl/certs
+      cp ${S}/server-private.key ${D}/etc/ssl/certs
 }
 
 
@@ -38,4 +42,6 @@ SYSTEMD_SERVICE_${PN} = "restd.service"
 
 inherit openswitch setuptools systemd pythonnative
 
-FILES_${PN} += "/srv/www/api/ops-restapi.json"
+FILES_${PN} += "/srv/www/api/ops-restapi.json \
+                /etc/ssl/certs \
+"
