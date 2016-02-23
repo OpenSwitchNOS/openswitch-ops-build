@@ -1,14 +1,13 @@
-SUMMARY = "OpenSwitch VLAN Daemon"
+SUMMARY = "OpenSwitch IP Applications"
 LICENSE = "Apache-2.0"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/Apache-2.0;md5=89aea4e17d99a7cacdbeed46a0096b10"
 
-DEPENDS = "ops-ovsdb ops-cli"
+DEPENDS = "ops-utils ops-ovsdb ops-cli"
 
-SRC_URI = "git://git.openswitch.net/openswitch/ops-vland;protocol=http \
-           file://ops-vland.service \
-"
+SRC_URI = "git://git.openswitch.net/openswitch/ops-ipapps;protocol=http\
+           file://ops-ipapps.service"
 
-SRCREV = "d2f81f2c721e7210fb1dec432bbb6e8857251d44"
+SRCREV = "${AUTOREV}"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.
@@ -18,11 +17,11 @@ S = "${WORKDIR}/git"
 
 do_install_append() {
      install -d ${D}${systemd_unitdir}/system
-     install -m 0644 ${WORKDIR}/ops-vland.service ${D}${systemd_unitdir}/system/
+     install -m 0644 ${WORKDIR}/ops-ipapps.service ${D}${systemd_unitdir}/system/
 }
 
 FILES_${PN} += "/usr/lib/cli/plugins/"
 SYSTEMD_PACKAGES = "${PN}"
-SYSTEMD_SERVICE_${PN} = "ops-vland.service"
+SYSTEMD_SERVICE_${PN} = "ops-ipapps.service"
 
 inherit openswitch cmake systemd
