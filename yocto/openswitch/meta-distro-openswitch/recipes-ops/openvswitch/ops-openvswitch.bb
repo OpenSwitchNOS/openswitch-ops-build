@@ -8,11 +8,9 @@ SRC_URI = "git://git.openswitch.net/openswitch/ops-openvswitch;protocol=http \
    file://ovsdb-server.service \
    file://switchd_bcm.service \
    file://switchd_sim.service \
-   file://switchd_p4sim.service \
-   file://enable-jemalloc-ovsdb-server.patch \
 "
 
-SRCREV = "9a49144aa6ddee3b938aeeb094cc170125a3ecb7"
+SRCREV = "24f24bb73da413ba322b0bab1419fc6c9846ba94"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.
@@ -51,7 +49,6 @@ FILES_python-ops-ovsdb = "${PYTHON_SITEPACKAGES_DIR}/ovs"
 FILES_${PN} = "${bindir}/ovs-appctl ${bindir}/ovs-pki ${bindir}/ovs-vsctl \
  /var/local/openvswitch ${sbindir}/ops-switchd \
  ${libdir}/libofproto.so.1* ${libdir}/libopenvswitch.so.1* ${libdir}/libsflow.so.1* \
- ${libdir}/libplugins.so.1* \
 "
 
 USERADD_PACKAGES = "${PN}"
@@ -99,9 +96,7 @@ do_install_append() {
     if ${@bb.utils.contains('MACHINE_FEATURES','broadcom','true','false',d)}; then
         install -m 0644 ${WORKDIR}/switchd_bcm.service ${D}${systemd_unitdir}/system/switchd.service
     fi
-    if ${@bb.utils.contains('IMAGE_FEATURES','ops-p4','true','false',d)}; then
-        install -m 0644 ${WORKDIR}/switchd_p4sim.service ${D}${systemd_unitdir}/system/switchd.service
-    elif ${@bb.utils.contains('MACHINE_FEATURES','ops-container','true','false',d)}; then
+    if ${@bb.utils.contains('MACHINE_FEATURES','ops-container','true','false',d)}; then
         install -m 0644 ${WORKDIR}/switchd_sim.service ${D}${systemd_unitdir}/system/switchd.service
     fi
     install -d ${D}${sysconfdir}/tmpfiles.d

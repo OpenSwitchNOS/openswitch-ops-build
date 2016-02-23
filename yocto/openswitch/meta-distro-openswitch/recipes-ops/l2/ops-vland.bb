@@ -2,7 +2,7 @@ SUMMARY = "OpenSwitch VLAN Daemon"
 LICENSE = "Apache-2.0"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/Apache-2.0;md5=89aea4e17d99a7cacdbeed46a0096b10"
 
-DEPENDS = "ops-ovsdb ops-cli"
+DEPENDS = "ops-ovsdb"
 
 SRC_URI = "git://git.openswitch.net/openswitch/ops-vland;protocol=http \
            file://ops-vland.service \
@@ -21,7 +21,6 @@ do_install_append() {
      install -m 0644 ${WORKDIR}/ops-vland.service ${D}${systemd_unitdir}/system/
 }
 
-FILES_${PN} += "/usr/lib/cli/plugins/"
 SYSTEMD_PACKAGES = "${PN}"
 SYSTEMD_SERVICE_${PN} = "ops-vland.service"
 
