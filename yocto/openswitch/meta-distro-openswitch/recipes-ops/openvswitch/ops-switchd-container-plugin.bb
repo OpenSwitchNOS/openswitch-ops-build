@@ -7,11 +7,11 @@ DEPENDS = "ops-ovsdb"
 PROVIDES += "virtual/ops-switchd-switch-api-plugin"
 RPROVIDES_${PN} += "virtual/ops-switchd-switch-api-plugin"
 
-SRC_URI = "git://git.openswitch.net/openswitch/ops-switchd-container-plugin;protocol=http \
+SRC_URI = "git://git.openswitch.net/openswitch/ops-switchd-container-plugin;protocol=http;branch=feature/qos \
 "
 FILES_${PN} = "${libdir}/openvswitch/plugins"
 
-SRCREV = "114584e345901a5dbfc42626c7c4cf7403df555a"
+SRCREV = "${AUTOREV}"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.
