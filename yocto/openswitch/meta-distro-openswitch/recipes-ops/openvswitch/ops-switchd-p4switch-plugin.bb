@@ -12,7 +12,7 @@ RPROVIDES_${PN} += "virtual/ops-switchd-switch-api-plugin"
 
 # This is the repository we'll be using until we get the code into the
 # above repository
-SRC_URI = "git://github.com/ops-p4/ops-switchd-p4switch-plugin;protocol=https"
+SRC_URI = "gitsm://github.com/ops-p4/ops-switchd-p4switch-plugin;protocol=https"
 
 FILES_${PN} = "${libdir}/openvswitch/plugins"
 
