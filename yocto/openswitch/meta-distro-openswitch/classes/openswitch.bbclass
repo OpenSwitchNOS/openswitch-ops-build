@@ -55,7 +55,10 @@ do_generate_sca_wrappers() {
 if [ \${!#} = '--version' ] || [ \${!#} = '-v' ]; then
     ${dir}/${c} \${!#}
 else
-    sourceanalyzer ${FORTIFY_PARAMETERS} ${dir}/${c} \$@
+    default_prefix="sourceanalyzer ${FORTIFY_PARAMETERS} "
+    user_prefix="$(<${TOPDIR}/devenv-sca-enabled) "
+    [ -n "\${user_prefix}" ] && default_prefix=\${user_prefix}
+    \$default_prefix ${dir}/${c} \$@
 fi
 EOF
         chmod +x ${WORKDIR}/fortify-${c}
