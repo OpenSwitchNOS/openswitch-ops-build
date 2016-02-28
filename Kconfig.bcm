@@ -1,0 +1,14 @@
+#
+# Vendor specific features
+#
+menu "Forwarding ASIC (Broadcom) Features"
+
+config BROADVIEW
+	bool "Broadview"
+	depends on BUFMON
+	default y
+	---help---
+	  BroadView Instrumentation exposes various instrumentation
+	  capabilities in Broadcom silicon.
+
+endmenu

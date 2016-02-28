@@ -1,3 +1,34 @@
-comment "######################################################"
-comment "Features are yet to be populated for \"as5712\" Platform"
-comment "######################################################"
+config AS5712
+	bool
+	default y
+
+	# Please add new selects below by sorting them alphabetically
+	select HAVE_BUFMON
+	# Please add new selects above by sorting them alphabetically
+
+	---help---
+	  Add a description of AS5712 Platform here.
+
+#
+# Include relevant Kconfig files for this platform
+# !!! DO NOT CHANGE THE ORDER !!!
+# !!! KEEP THE ORDER SAME ACROSS PLATFORMS !!!
+#
+
+# General setup
+source "$BUILD_ROOT/yocto/$DISTRO/meta-distro-$DISTRO/recipes-ops/utils/Kconfig"
+
+# Platform vendor specific options
+source "$BUILD_ROOT/Kconfig.act"
+
+# Forwarding ASIC vendor specific features
+source "$BUILD_ROOT/Kconfig.bcm"
+
+# L2 feature set
+source "$BUILD_ROOT/yocto/$DISTRO/meta-distro-$DISTRO/recipes-ops/l2/Kconfig"
+
+# L3 and above feature set
+source "$BUILD_ROOT/yocto/$DISTRO/meta-distro-$DISTRO/recipes-ops/l3/Kconfig"
+
+# Management interface options
+source "$BUILD_ROOT/yocto/$DISTRO/meta-distro-$DISTRO/recipes-ops/mgmt/Kconfig"

@@ -1,3 +1,33 @@
-comment "#############################################################"
-comment "Features are yet to be populated for \"genericx86-64\" Platform"
-comment "#############################################################"
+config GENERICX86_64
+	bool
+	default y
+
+	# Please add new selects below by sorting them alphabetically
+	# Please add new selects above by sorting them alphabetically
+
+	---help---
+	  Add a description of genericx86-64 Platform here.
+
+#
+# Include relevant Kconfig files for this platform
+# !!! DO NOT CHANGE THE ORDER !!!
+# !!! KEEP THE ORDER SAME ACROSS PLATFORMS !!!
+#
+
+# General setup
+source "$BUILD_ROOT/yocto/$DISTRO/meta-distro-$DISTRO/recipes-ops/utils/Kconfig"
+
+# Platform vendor specific options
+source "$BUILD_ROOT/Kconfig.sim"
+
+# Forwarding ASIC vendor specific features
+# None for simulation environment
+
+# L2 feature set
+source "$BUILD_ROOT/yocto/$DISTRO/meta-distro-$DISTRO/recipes-ops/l2/Kconfig"
+
+# L3 and above feature set
+source "$BUILD_ROOT/yocto/$DISTRO/meta-distro-$DISTRO/recipes-ops/l3/Kconfig"
+
+# Management interface options
+source "$BUILD_ROOT/yocto/$DISTRO/meta-distro-$DISTRO/recipes-ops/mgmt/Kconfig"

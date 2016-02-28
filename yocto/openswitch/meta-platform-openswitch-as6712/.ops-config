@@ -2,15 +2,31 @@
 # Automatically generated file; DO NOT EDIT.
 # OpenSwitch 0.3.0 Configuration for "as6712" Platform
 #
+OPS_CONFIG_AS6712=y
 
 #
-# ######################################################
+# General Setup
+#
+OPS_CONFIG_HAVE_BUFMON=y
+OPS_CONFIG_BUFMON=y
+
+#
+# Platform (Accton) Options
 #
 
 #
-# Features are yet to be populated for "as6712" Platform
+# Forwarding ASIC (Broadcom) Features
+#
+OPS_CONFIG_BROADVIEW=y
+
+#
+# Layer 2 Features
 #
 
 #
-# ######################################################
+# Layer 3 and above Features
+#
+
+#
+# Management Interface Options
 #
