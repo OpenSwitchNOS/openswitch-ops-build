@@ -5,7 +5,7 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/Apache-2.0;md5=89aea4e17d99a7ca
 
 DEPENDS = "ops-ovsdb"
 
-RDEPENDS_${PN} = "python-argparse python-json python-ops-ovsdb python-distribute python-pam pam-plugin-radius-auth"
+RDEPENDS_${PN} = "python-argparse python-json python-ops-ovsdb python-distribute python-pam pam-plugin-radius-auth pam-plugin-radius-chap-auth"
 
 SRC_URI = "git://git.openswitch.net/openswitch/ops-aaa-utils;protocol=http \
            file://aaautils.service \
