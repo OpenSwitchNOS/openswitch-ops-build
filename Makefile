@@ -1,4 +1,4 @@
-# Copyright (C) 2015 Hewlett Packard Enterprise Development LP
+# Copyright (C) 2015-2016 Hewlett Packard Enterprise Development LP
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-.PHONY: all clean configure distclean header switch-platform show-platform help
+.PHONY: all clean configure distclean header switch-platform show-platform show-platforms help
 
 # This allows an overlay layer to basically override the whole environment
 -include yocto/*/.distro_override
@@ -114,6 +114,7 @@ Additional development/maintenance targets:
     $(BLUE)help$(GRAY)                : this, see also $(BLUE)$(DISTRO_HELP_LINK)$(GRAY)
     $(BLUE)switch-platform$(GRAY)     : change to a different platform
     $(BLUE)show-platform$(GRAY)       : show current platform
+    $(BLUE)show-platforms$(GRAY)      : show available platforms for the current distribution
 
 endef
 endif
@@ -190,7 +191,7 @@ _switch-platform:
      fi ; \
 	 $(ECHO) -n Switching to platform $(PLATFORM)... ; \
 	 ln -sf bblayers.conf-$(DISTRO)-$(PLATFORM) build/conf/bblayers.conf ; \
-	 if [ -f .devenv ] ; then \
+	 if [ -d $(BUILD_ROOT)/build/workspace ] ; then \
 		if ! grep -q "$(BUILD_ROOT)/build/workspace" build/conf/bblayers.conf ; then \
 			sed --follow-symlinks -i 's|\(.*$(BUILD_ROOT)/yocto/.*/meta-platform-$(DISTRO)-$(PLATFORM) \\\)|\1\n  $(BUILD_ROOT)/build/workspace \\|' build/conf/bblayers.conf ; \
 		fi ;\
@@ -200,6 +201,9 @@ _switch-platform:
 
 show-platform: header
 
+show-platforms: header
+	$(V)$(ECHO) "Available plaforms: $(PURPLE)$(PLATFORMS)$(GRAY)"
+
 clean:: header
 	$(V)$(ECHO) "Cleaning..."
 	$(V)rm -Rf build/{tmp,cache,bitbake.lock}
@@ -207,7 +211,7 @@ clean:: header
 
 distclean::
 	$(V)$(ECHO) "$(PURPLE)Distcleaning...$(GRAY)"
-	$(V)rm -Rf .platform .devenv images src build nfsroot* tools/bin/{corkscrew,python}
+	$(V)rm -Rf .platform .devenv .testenv images src build nfsroot* tools/bin/{corkscrew,python}
 	$(V)find -type l -lname 'images/*' -print0 | xargs -r0 rm -f
 	$(V)$(ECHO) "Distcleaning completed. You need to reconfigure to build again\n"
 

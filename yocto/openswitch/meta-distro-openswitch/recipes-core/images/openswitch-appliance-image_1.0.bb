@@ -1,19 +1,35 @@
-SUMMARY = "A VirtualBox image of OpenSwitch"
+SUMMARY = "A virtual machine image of OpenSwitch"
 
 LICENSE = "Apache-2.0"
 
-IMAGE_ROOTFS_SIZE = "524288"
+# Image alignment is required for the resulting VMDK to be loadable by
+# VirtualBox. To do this we need the partition size (IMAGE_ROOTFS_SIZE)
+# to be less than: FINAL_ROOTFS_SIZE - BOOTDD_EXTRA_SPACE - Bootloader
+# This is to align up neatly when we align the image.
+#
+# Technical details: VirtualBox requires that the grains of a streamOptimized
+# VMDK are all filled. qemu-img sets 128 sectors per grain, so that means
+# that we need to align on a 64KiB boundry.
+IMAGE_ROOTFS_SIZE = "491520"
+FINAL_ROOTFS_SIZE = "524288"
 
 # Do a quiet boot with limited console messages
 APPEND += "quiet"
 SYSLINUX_PROMPT ?= "0"
 SYSLINUX_TIMEOUT ?= "0"
 
-DEPENDS = "tar-native"
+DEPENDS = "tar-native qemu-native"
 IMAGE_FSTYPES = "vmdk tar.gz"
 
+CORE_NUMBER ??= "2"
+RAM_SIZE ??= "512"
+OVA_PRODUCT ??= "${DISTRO_NAME}"
+OVA_VENDOR ??= "${DISTRO_NAME}"
+OVA_VENDOR_URL ??= "http://www.openswitch.net"
+OVA_VERSION ??= "${DISTRO_VERSION}"
+
 SRC_URI = " \
-	file://openswitch.ovf \
+	file://appliance.ovf.in \
 	file://Vagrantfile \
 	file://metadata.json \
 "
@@ -33,20 +49,45 @@ python () {
 
 create_bundle_files () {
 	cd ${WORKDIR}
-	cp ${DEPLOY_DIR_IMAGE}/${IMAGE_NAME}.vmdk openswitch.vmdk
-	printf "SHA1 (openswitch.ovf)= %s\n" `sha1sum openswitch.ovf | cut -f1 -d' '` > openswitch.mf
-	printf "SHA1 (openswitch.vmdk)= %s\n" `sha1sum openswitch.vmdk | cut -f1 -d' '` >> openswitch.mf
-	tar cvf ${DEPLOY_DIR_IMAGE}/${IMAGE_NAME}.ova openswitch.ovf openswitch.vmdk openswitch.mf
+
+	cp ${DEPLOY_DIR_IMAGE}/${IMAGE_NAME}.vmdk ${DISTRO_NAME}.vmdk
+
+	DISK_BOOT_VMDK_SIZE=$(du -b ${DISTRO_NAME}.vmdk | awk '{ print $1 }')
+	DISK_BOOT_CAPACITY=$(qemu-img info ${DISTRO_NAME}.vmdk \
+		| awk -F '[\\( ]' '/^virtual size/ {print $5}')
+
+	sed -e "s|@@DISK_BOOT_NAME@@|${DISTRO_NAME}.vmdk|g" \
+        -e "s|@@DISK_BOOT_VMDK_SIZE@@|${DISK_BOOT_VMDK_SIZE}|g" \
+        -e "s|@@DISK_BOOT_CAPACITY@@|${DISK_BOOT_CAPACITY}|g" \
+        -e "s|@@DISTRO_NAME@@|${DISTRO_NAME}-${DISTRO_VERSION}|g" \
+        -e "s|@@CORE_NUMBER@@|${CORE_NUMBER}|g" \
+        -e "s|@@RAM_SIZE@@|${RAM_SIZE}|g" \
+	    -e "s|@@OVA_PRODUCT@@|${OVA_PRODUCT}|g" \
+	    -e "s|@@OVA_VENDOR@@|${OVA_VENDOR}|g" \
+	    -e "s|@@OVA_VENDOR_URL@@|${OVA_VENDOR_URL}|g" \
+	    -e "s|@@OVA_VERSION@@|${OVA_VERSION}|g" \
+            appliance.ovf.in  > ${DISTRO_NAME}.ovf
+
+	tar cvf ${DEPLOY_DIR_IMAGE}/${IMAGE_NAME}.ova ${DISTRO_NAME}.ovf ${DISTRO_NAME}.vmdk
 	ln -sf ${IMAGE_NAME}.ova ${DEPLOY_DIR_IMAGE}/${BPN}-${MACHINE}.ova
-	cp openswitch.ovf box.ovf
-	tar cvzf ${DEPLOY_DIR_IMAGE}/${IMAGE_NAME}.box box.ovf openswitch.vmdk Vagrantfile metadata.json
+	cp ${DISTRO_NAME}.ovf box.ovf
+	tar cvzf ${DEPLOY_DIR_IMAGE}/${IMAGE_NAME}.box box.ovf ${DISTRO_NAME}.vmdk Vagrantfile metadata.json
 	ln -sf ${IMAGE_NAME}.box ${DEPLOY_DIR_IMAGE}/${BPN}-${MACHINE}.box
+}
+
+align_directdisk() {
+  truncate -s ${FINAL_ROOTFS_SIZE}K ${DEPLOY_DIR_IMAGE}/${IMAGE_NAME}.hdddirect
+}
+
+python do_align_directdisk() {
+    bb.build.exec_func('align_directdisk', d)
 }
 
 python do_bundle_files() {
     bb.build.exec_func('create_bundle_files', d)
 }
 
+addtask align_directdisk after do_bootdirectdisk before do_vmdkimg
 addtask bundle_files after do_vmdkimg before do_build
 #do_bundle_files[nostamp] = "1"
 

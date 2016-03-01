@@ -9,10 +9,10 @@ DEPENDS = "ops-utils ops-ovsdb ncurses perl-native openssl"
 RDEPENDS_${PN} += "iproute2"
 
 SRC_URI = "git://git.openswitch.net/openswitch/ops-quagga;protocol=http \
-    file://ops-zebra.service file://ops-bgpd.service \
+    file://ops-zebra.service file://ops-bgpd.service file://ops-ospfd.service \
 "
 
-SRCREV = "97f09d7acd9ef46b5d38b81ace22d4db6fc989b1"
+SRCREV = "e293c256c0c6d73743a13718f2a676e3d1937f95"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.
@@ -21,7 +21,7 @@ PV = "git${SRCPV}"
 S = "${WORKDIR}/git"
 
 EXTRA_OECONF = "--disable-doc --disable-ripd \
- --disable-ripngd --disable-ospfd --disable-ospf6d --disable-babeld \
+ --disable-ripngd --disable-ospf6d --disable-babeld \
  --disable-watchquagga --disable-opaque-lsa --disable-ospfapi \
  --disable-ospfclient --disable-ospf-te --disable-rtadv --disable-rusage \
  --enable-user=root --enable-group=root --enable-multipath=32 \
@@ -29,15 +29,14 @@ EXTRA_OECONF = "--disable-doc --disable-ripd \
 "
 
 FILES_${PN} += "/usr/share/opsplugins"
-
 do_install_append() {
-    install -d ${D}${systemd_unitdir}/system
-    install -m 0644 ${WORKDIR}/ops-zebra.service ${D}${systemd_unitdir}/system/
-    install -m 0644 ${WORKDIR}/ops-bgpd.service ${D}${systemd_unitdir}/system/
-    # Remove non-ovs configuration files
-    rm -Rf ${D}${sysconfdir}*
-    rm -Rf ${D}/usr/include/quagga/*
-
+     install -d ${D}${systemd_unitdir}/system
+     install -m 0644 ${WORKDIR}/ops-zebra.service ${D}${systemd_unitdir}/system/
+     install -m 0644 ${WORKDIR}/ops-bgpd.service ${D}${systemd_unitdir}/system/
+     install -m 0644 ${WORKDIR}/ops-ospfd.service ${D}${systemd_unitdir}/system/
+     # Remove non-ovs configuration files
+     rm -Rf ${D}${sysconfdir}*
+     rm -Rf ${D}/usr/include/quagga/*
     install -d ${D}/usr/share/opsplugins
     for plugin in $(find ${S}/ops/opsplugins -name "*.py"); do \
         install -m 0644 ${plugin} ${D}/usr/share/opsplugins
@@ -45,6 +44,6 @@ do_install_append() {
 }
 
 SYSTEMD_PACKAGES = "${PN}"
-SYSTEMD_SERVICE_${PN} = "ops-zebra.service ops-bgpd.service"
+SYSTEMD_SERVICE_${PN} = "ops-zebra.service ops-bgpd.service ops-ospfd.service"
 
 inherit openswitch autotools pkgconfig systemd

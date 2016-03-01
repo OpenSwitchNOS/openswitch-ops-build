@@ -27,9 +27,69 @@ python profile_compile_prefunc() {
 # Debug flags is used by DEBUG_OPTIMIZATION that is used by SELECTED_OPTIMIZATION when DEBUG_BUILD is 1
 DEBUG_FLAGS = "${@enable_devenv_profiling(d)}"
 
+# Support for static analysis using HP Fortify
+inherit python-dir
+
+#-Dcom.fortify.sca.compilers.${HOST_PREFIX}gcc=com.fortify.sca.util.compilers.GccCompiler -Dcom.fortify.sca.compilers.${HOST_PREFIX}g++=com.fortify.sca.util.compilers.GppCompiler
+FORTIFY_PARAMETERS = "-b ${PN} -python-path ${STAGING_DIR_TARGET}${PYTHON_SITEPACKAGES_DIR}  "
+
+do_generate_sca_wrappers() {
+    if which sourceanalyzer > /dev/null && [ -f "${TOPDIR}/devenv-sca-enabled" ] ; then
+        sourceanalyzer -b ${PN} --clean
+    else
+        if [ -n "${EXTERNALSRC}" ] && [ -f "${TOPDIR}/devenv-sca-enabled" ] ; then
+            echo
+            echo
+            echo "Unable to find the Fortify sourceanalyzer tool, can't build the code in the devenv since ops-devenv-fortify-sca is enabled"
+            echo
+            echo
+            return 255
+        fi
+    fi
+
+    for c in gcc g++ ar ld; do
+        dir=${WORKDIR}/bin/${HOST_PREFIX}
+        mkdir -p ${dir}
+        ln -f -s ${STAGING_BINDIR_TOOLCHAIN}/${HOST_PREFIX}${c} ${dir}/${c}
+        cat > ${WORKDIR}/fortify-${c} << EOF
+if [ \${!#} = '--version' ] || [ \${!#} = '-v' ]; then
+    ${dir}/${c} \${!#}
+else
+    sourceanalyzer ${FORTIFY_PARAMETERS} ${dir}/${c} \$@
+fi
+EOF
+        chmod +x ${WORKDIR}/fortify-${c}
+    done
+}
+
+addtask generate_sca_wrappers after do_patch before do_configure
+
+def get_cmake_c_compiler(d):
+    externalsrc = d.getVar('EXTERNALSRC', True)
+    if externalsrc:
+        if os.path.isfile(os.path.join(d.getVar('TOPDIR', True), 'devenv-sca-enabled')):
+            return "${WORKDIR}/fortify-gcc"
+    return "${CCACHE}${HOST_PREFIX}gcc"
+
+def get_cmake_cxx_compiler(d):
+    externalsrc = d.getVar('EXTERNALSRC', True)
+    if externalsrc:
+        if os.path.isfile(os.path.join(d.getVar('TOPDIR', True), 'devenv-sca-enabled')):
+            return "${WORKDIR}/fortify-g++"
+    return "${CCACHE}${HOST_PREFIX}g++"
+
+export CC = "${@get_cmake_c_compiler(d)} ${HOST_CC_ARCH}${TOOLCHAIN_OPTIONS}"
+export CXX = "${@get_cmake_cxx_compiler(d)} ${HOST_CC_ARCH}${TOOLCHAIN_OPTIONS}"
+export FC = "${CCACHE}${HOST_PREFIX}gfortran ${HOST_CC_ARCH}${TOOLCHAIN_OPTIONS}"
+export CPP = "${CCACHE}${HOST_PREFIX}gcc -E${TOOLCHAIN_OPTIONS} ${HOST_CC_ARCH}"
+OECMAKE_C_COMPILER = "${@get_cmake_c_compiler(d)}"
+OECMAKE_CXX_COMPILER = "${@get_cmake_cxx_compiler(d)}"
+
 # Do cmake builds in debug mode
 EXTRA_OECMAKE+="-DCMAKE_BUILD_TYPE=Debug"
+# Enable simulation flag for cmake-based projects
 EXTRA_OECMAKE+="${@bb.utils.contains('MACHINE_FEATURES', 'ops-container', '-DPLATFORM_SIMULATION=ON', '',d)}"
+# Provide cmake-based projects endianness information
 EXTRA_OECMAKE+="${@base_conditional('SITEINFO_ENDIANNESS', 'le', '-DCPU_LITTLE_ENDIAN=ON', '-DCPU_BIG_ENDIAN=ON', d)}"
 
 # Add debug directory for packages
@@ -39,5 +99,81 @@ PACKAGE_DEBUG_SPLIT_STYLE??="debug-file-directory"
 EXTERNALSRC_BUILD??="${S}/build"
 
 DEPENDS += "gmock gtest"
+
+do_unit_test() {
+    :
+}
+
+do_gtest_harness() {
+    #don't run unit tests for non-checked-out code
+    if [ -f $1 ]; then
+        do_coverage_setup
+        #TODO: how to show this output to the developers? or at least hint them where the log is
+        LD_LIBRARY_PATH=${STAGING_DIR_TARGET}/usr/lib ${HOST_INTERPRETER} $1 ${GTEST_PARAMS}
+        do_coverage_report
+    fi
+}
+
+do_unit_test_base() {
+    export COVERAGE_ENABLED_FILE=${TOPDIR}/devenv-coverage-enabled
+    export HOST_INTERPRETER=$(readelf -a /bin/sh | grep interpreter | awk '{ print substr($4, 0, length($4)-1)}')
+    export GTEST_PARAMS="--gtest_shuffle"
+
+    do_coverage_vars_setup
+    do_unit_test
+}
+
+do_coverage_vars_setup() {
+    export MODULE_NAME="${PN}"
+    export COVERAGE_BASE_DIR=$(pwd)
+    export COVERAGE_REPORT_DIR="${COVERAGE_BASE_DIR}/coverage"
+    #lcov based coverage support for C/C++ code
+    export COVERAGE_EXCLUDE_PATTERN="c++* gmock* gtest* tests*"
+    export LCOV="lcov --rc lcov_branch_coverage=1"
+}
+
+do_coverage_setup() {
+    #Silently exit if coverage is not enabled
+    if [ ! -f $COVERAGE_ENABLED_FILE ]; then
+        return
+    fi
+
+    mkdir -p ${COVERAGE_REPORT_DIR}
+    ${LCOV} --zerocounters --directory ${COVERAGE_REPORT_DIR}
+}
+
+do_coverage_report() {
+    #Silently exit if coverage is not enabled
+    if [ ! -f $COVERAGE_ENABLED_FILE ]; then
+        return
+    fi
+
+    bbnote "Exclude pattern: ${COVERAGE_EXCLUDE_PATTERN}"
+    ${LCOV} --directory ${COVERAGE_BASE_DIR} --capture --output-file ${COVERAGE_REPORT_DIR}/${MODULE_NAME}.info
+
+    #lcov 1.10 bug workaround: when lcov is run on a folder "near" the info file, it doesn't remove files as expected
+    cd ${COVERAGE_REPORT_DIR}
+    ${LCOV} --remove ${MODULE_NAME}.info $COVERAGE_EXCLUDE_PATTERN --output-file ${MODULE_NAME}
+    cd ${COVERAGE_BASE_DIR}
+
+    #create HTML report
+    mkdir -p ${COVERAGE_REPORT_DIR}/html
+    genhtml ${COVERAGE_REPORT_DIR}/${MODULE_NAME} -o ${COVERAGE_REPORT_DIR}/html --demangle-cpp --branch-coverage
+    #This is not visible on the developer console due to our version of open embedded
+    bbplain "Coverage report is at ${COVERAGE_REPORT_DIR}/html/index.html"
+}
+
+#Workaround for bbplain not showing on the console when executed from a shell task
+python do_show_coverage_report() {
+    if os.path.isfile(os.path.join(d.getVar('TOPDIR', True), 'devenv-coverage-enabled')):
+        bb.plain('Coverage report is at %s/coverage/html/index.html' % (d.getVar('B', True)))
+}
+
+# Enable unit tests and coverage for devenv recipes (meaning they are in external src)
+python() {
+    externalsrc = d.getVar('EXTERNALSRC', True)
+    if externalsrc:
+        d.appendVarFlag('do_compile', 'postfuncs', "do_unit_test_base do_show_coverage_report ")
+}
 
 inherit siteinfo

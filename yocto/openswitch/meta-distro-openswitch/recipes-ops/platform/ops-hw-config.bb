@@ -5,7 +5,7 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/Apache-2.0;md5=89aea4e17d99a7ca
 SRC_URI = "git://git.openswitch.net/openswitch/ops-hw-config;protocol=http \
 "
 
-SRCREV = "ed07eb4e9764d8cd2a7f1591130cbc5e3ff9b361"
+SRCREV = "f30626e39e0261e1fef323e75e6e9370c0daf6c8"
 
 PLATFORM_PATH?="${MACHINE}"
 
@@ -17,7 +17,16 @@ S = "${WORKDIR}/git"
 
 do_install () {
     install -d ${D}${sysconfdir}/openswitch/platform/${PLATFORM_PATH}
-    cp -p ${S}/${PLATFORM_PATH}/*.yaml ${D}${sysconfdir}/openswitch/platform/${PLATFORM_PATH}
+    for f in ${S}/${PLATFORM_PATH}/*.yaml ; do
+        d=`dirname "$f"`
+        n=`basename "$f"`
+        # If there's a flavor override, use that
+        if test -n "${PLATFORM_FLAVOR}" -a -e "${d}/${PLATFORM_FLAVOR}/${n}" ; then
+            cp -p "${d}/${PLATFORM_FLAVOR}/${n}" "${D}${sysconfdir}/openswitch/platform/${PLATFORM_PATH}"
+        else
+            cp -p "${d}/${n}" "${D}${sysconfdir}/openswitch/platform/${PLATFORM_PATH}"
+        fi
+    done
 }
 
 FILES_${PN} = "${sysconfdir}"
