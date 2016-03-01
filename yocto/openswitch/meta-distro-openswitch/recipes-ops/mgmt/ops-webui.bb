@@ -16,19 +16,22 @@ B = "${S}"
 
 inherit npm
 
-# Put it after the inherit NPM to override the dependency on node
-RDEPENDS_${PN} = "lighttpd"
+# Override the NPM dependency on node, it is only used compile the resources
+RDEPENDS_${PN} = ""
 
 do_compile() {
     ./tools/scripts/extract-node-tars
     oe_runnpm run test
     oe_runnpm run buildprod
     oe_runnpm run testcover
+    make -C errors/
 }
 
 do_install() {
     install -d ${D}/srv/www/static
     cp -Rp build/* ${D}/srv/www/static
+    install -d  ${D}/srv/www/static/error
+    install -m0644 errors/build/*.html ${D}/srv/www/static/error/
 }
 
 FILES_${PN} = "/srv/www/static/*"
