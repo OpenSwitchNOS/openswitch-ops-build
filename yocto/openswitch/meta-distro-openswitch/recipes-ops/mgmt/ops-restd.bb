@@ -8,6 +8,7 @@ RDEPENDS_${PN} = "python-argparse python-json python-ops-ovsdb python-distribute
 
 SRC_URI = "git://git.openswitch.net/openswitch/ops-restd;protocol=http \
            file://restd.service \
+           file://restd.nginx \
 "
 
 SRCREV = "6429a04c5c8e4fdfe453f06cf642386baca0bb64"
@@ -21,6 +22,8 @@ S = "${WORKDIR}/git"
 do_install_prepend() {
      install -d ${D}${systemd_unitdir}/system
      install -m 0644 ${WORKDIR}/restd.service ${D}${systemd_unitdir}/system/
+     install -d ${D}/etc/nginx/conf.d
+     install -m 0644 ${WORKDIR}/restd.nginx ${D}/etc/nginx/conf.d/backend-restd.conf
 }
 
 do_install_append () {
@@ -44,4 +47,5 @@ inherit openswitch setuptools systemd pythonnative
 
 FILES_${PN} += "/srv/www/api/ops-restapi.json \
                 /etc/ssl/certs \
+                /etc/nginx/conf.d \
 "
