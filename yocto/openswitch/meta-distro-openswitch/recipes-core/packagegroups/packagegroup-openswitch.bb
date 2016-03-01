@@ -69,6 +69,7 @@ RDEPENDS_packagegroup-ops-base = "\
     strongswan \
     firejail \
     ops-ipapps \
+    nginx \
 "
 
 RDEPENDS_packagegroup-ops-base_append_arm = "\
