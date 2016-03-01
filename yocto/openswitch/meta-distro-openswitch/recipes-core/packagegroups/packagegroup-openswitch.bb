@@ -68,6 +68,7 @@ RDEPENDS_packagegroup-ops-base = "\
     ops-ntpd \
     ops-supportability \
     strongswan \
+    firejail \
 "
 
 RDEPENDS_packagegroup-ops-base_append_arm = "\

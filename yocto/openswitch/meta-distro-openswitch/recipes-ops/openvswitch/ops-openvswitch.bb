@@ -2,7 +2,7 @@ SUMMARY = "OpenVSwitch for OpenSwitch"
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
 
-DEPENDS = "openssl python perl systemd libtool libyaml jemalloc-dev ops"
+DEPENDS = "openssl python perl systemd libtool libyaml jemalloc ops"
 
 SRC_URI = "git://git.openswitch.net/openswitch/ops-openvswitch;protocol=http;branch=feature/qos \
    file://ovsdb-server.service \
@@ -11,6 +11,7 @@ SRC_URI = "git://git.openswitch.net/openswitch/ops-openvswitch;protocol=http;bra
    file://switchd_p4sim.service \
    file://enable-jemalloc-ovsdb-server.patch \
    file://partial-map-updates.patch \
+   file://on-demand-fetching.patch \
 "
 
 SRCREV = "${AUTOREV}"
@@ -30,7 +31,7 @@ RDEPENDS_${PN} = "openssl procps util-linux-uuidgen util-linux-libuuid coreutils
   python perl perl-module-strict sed gawk grep ops-ovsdb \
   ${@bb.utils.contains('MACHINE_FEATURES', 'ops-container', 'openvswitch-sim-switch', '',d)} \
 "
-RDEPENDS_ops-ovsdb = "ops jemalloc"
+RDEPENDS_ops-ovsdb = "ops"
 
 RDEPENDS_python-ops-ovsdb = "python-io python-netclient python-datetime \
   python-logging python-threading python-math python-fcntl python-resource"
@@ -58,11 +59,13 @@ FILES_${PN} = "${bindir}/ovs-appctl ${bindir}/ovs-pki ${bindir}/ovs-vsctl \
 
 USERADD_PACKAGES = "${PN}"
 
-GROUPADD_PARAM_${PN} ="-g 1020 ovsdb-client;-o -g 1020 ovsdb_users;ops_netop;ops_admin"
+GROUPADD_PARAM_${PN} ="-g 1020 ovsdb-client;ops_netop;ops_admin"
 
 do_configure_prepend() {
     export OPEN_HALON_BUILD=1
     export OPS_BUILD=1
+    export BUILD_OVS_VSWITCHD=1
+    export BUILD_PLUGINS_LIB=1
     # After building the code with libltdl, we get a subdirectory with autoconf that will
     # inherit the m4 macros configurations from his parent, causing to fail if not finding some
     # of their macros. This hack removes the issue
