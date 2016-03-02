@@ -69,6 +69,8 @@ RDEPENDS_packagegroup-ops-base = "\
     strongswan \
     firejail \
     ops-ipapps \
+    nicstat \
+    sysstat \
 "
 
 RDEPENDS_packagegroup-ops-base_append_arm = "\
