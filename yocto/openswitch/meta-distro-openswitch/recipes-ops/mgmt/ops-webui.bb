@@ -5,7 +5,7 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/Apache-2.0;md5=89aea4e17d99a7ca
 SRC_URI = "git://git.openswitch.net/openswitch/ops-webui;protocol=http \
 "
 
-SRCREV = "589bffb79884da1cf2198207fbb45765d995a680"
+SRCREV = "3897b2782712e6dbc798785565bb18e8a0fa416a"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.
@@ -20,7 +20,8 @@ inherit npm
 RDEPENDS_${PN} = "lighttpd"
 
 do_compile() {
-    oe_runnpm install     # Installs dependencies defined in package.json
+    ./tools/scripts/extract-node-tars
+    oe_runnpm run test
     oe_runnpm run buildprod
 }
 
