@@ -40,9 +40,9 @@ RDEPENDS_packagegroup-ops-base = "\
     shadow \
     cronie \
     auditd audispd-plugins audit-python \
-    inetutils-ping inetutils-ping6 inetutils-hostname inetutils-ifconfig \
+    inetutils-hostname inetutils-ifconfig \
     inetutils-tftp inetutils-traceroute inetutils-ftp inetutils-telnet \
-    iputils-traceroute6 \
+    iputils-traceroute6 iputils-ping iputils-ping6 \
     wget curl \
     xinetd \
     libcap-bin \
@@ -55,7 +55,7 @@ RDEPENDS_packagegroup-ops-base = "\
     ops-dhcp-tftp \
     ops-intfd ops-lacpd ops-lldpd ops-vland ops-arpmgrd \
     ops-script-utils \
-    ops-cli ops-restd lighttpd \
+    ops-cli ops-restd ops-webui \
     ops-portd ops-quagga \
     ops-aaa-utils \
     ops-bufmond \
@@ -94,4 +94,5 @@ RDEPENDS_packagegroup-ops-core = "\
 RDEPENDS_packagegroup-ops-p4 = "\
     ops-switchd-p4switch-plugin \
     ops-p4dp \
+    ops-p4c \
     "

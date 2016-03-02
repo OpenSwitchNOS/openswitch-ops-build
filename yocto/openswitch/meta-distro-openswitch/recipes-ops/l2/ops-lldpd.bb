@@ -3,13 +3,13 @@ SUMMARY = "OpenSwitch LLDP Daemon"
 LICENSE = "ISC"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/Apache-2.0;md5=89aea4e17d99a7cacdbeed46a0096b10"
 
-DEPENDS = "ops-utils ops-config-yaml ops-ovsdb libevent openssl ops-supportability"
+DEPENDS = "net-snmp ops-utils ops-config-yaml ops-ovsdb libevent openssl ops-supportability ops-cli"
 
 SRC_URI = "git://git.openswitch.net/openswitch/ops-lldpd;protocol=http \
-	  file://ops-lldpd.service \
+          file://ops-lldpd.service \
 "
 
-SRCREV = "4f0b17d19f476055d41910e6b5a1a3d541c685c6"
+SRCREV = "ddcd41137d71e2615633ed7adbee10a3fa4297d1"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.
@@ -24,10 +24,10 @@ inherit openswitch autotools systemd pkgconfig
 #
 # Works good enough without autoreconf
 do_configure() {
-	cd ${S}
+        cd ${S}
         autoreconf -fi
         cd ${B}
-	oe_runconf
+        oe_runconf
 }
 
 # Disable readline to skip GPL linking
@@ -41,4 +41,4 @@ do_install_append() {
 SYSTEMD_PACKAGES = "${PN}"
 SYSTEMD_SERVICE_${PN} = "ops-lldpd.service"
 
-FILES_${PN} += "/usr/share/zsh usr/lib/sysusers.d"
+FILES_${PN} += "/usr/share/zsh usr/lib/sysusers.d /usr/lib/snmp/plugins /usr/lib/cli/plugins"
