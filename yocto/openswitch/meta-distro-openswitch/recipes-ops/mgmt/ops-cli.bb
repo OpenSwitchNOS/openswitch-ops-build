@@ -8,7 +8,7 @@ DEPENDS = "ops-utils ops-ovsdb"
 SRC_URI = "git://git.openswitch.net/openswitch/ops-cli;protocol=http \
 "
 
-SRCREV = "48b55cda231e5108ca37241f3730993b22e5a3f8"
+SRCREV = "8877c975c51d39a28fa01fe961cd54d0530e6a01"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.
@@ -16,8 +16,4 @@ PV = "git${SRCPV}"
 
 S = "${WORKDIR}/git"
 
-EXTRA_OECONF = "--enable-user=root --enable-group=root \
- --enable-ovsdb --enable-vtysh\
-"
-
-inherit openswitch autotools pkgconfig
+inherit openswitch pkgconfig cmake

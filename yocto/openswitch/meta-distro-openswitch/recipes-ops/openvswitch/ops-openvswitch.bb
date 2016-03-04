@@ -2,16 +2,19 @@ SUMMARY = "OpenVSwitch for OpenSwitch"
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
 
-DEPENDS = "openssl python perl systemd libtool libyaml ops"
+DEPENDS = "openssl python perl systemd libtool libyaml jemalloc ops"
 
 SRC_URI = "git://git.openswitch.net/openswitch/ops-openvswitch;protocol=http \
    file://ovsdb-server.service \
    file://switchd_bcm.service \
    file://switchd_sim.service \
    file://switchd_p4sim.service \
+   file://enable-jemalloc-ovsdb-server.patch \
+   file://partial-map-updates.patch \
+   file://on-demand-fetching.patch \
 "
 
-SRCREV = "a5feeb39ef901b07e6ac240a7c9a8cb6b794f446"
+SRCREV = "fdf5466566253bf2bacb0a23f7ff2f3d4c4ef8cf"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.
@@ -33,9 +36,10 @@ RDEPENDS_ops-ovsdb = "ops"
 RDEPENDS_python-ops-ovsdb = "python-io python-netclient python-datetime \
   python-logging python-threading python-math python-fcntl python-resource"
 
+# ops-openvswitch was patched to support the --enable-jemalloc flag
 EXTRA_OECONF += "TARGET_PYTHON=${bindir}/python \
                  TARGET_PERL=${bindir}/perl \
-                 --disable-static --enable-shared\
+                 --disable-static --enable-shared --enable-jemalloc \
                  ${@bb.utils.contains('MACHINE_FEATURES', 'ops-container', '--enable-simulator-provider', '',d)} \
                  "
 FILES_ops-ovsdb = "/run /var/run /var/log /var/volatile ${bindir}/ovsdb* \
@@ -55,11 +59,13 @@ FILES_${PN} = "${bindir}/ovs-appctl ${bindir}/ovs-pki ${bindir}/ovs-vsctl \
 
 USERADD_PACKAGES = "${PN}"
 
-GROUPADD_PARAM_${PN} ="-g 1020 ovsdb_users;-o -g 1020 ovsdb-client;ops_netop;ops_admin"
+GROUPADD_PARAM_${PN} ="-g 1020 ovsdb-client;ops_netop;ops_admin"
 
 do_configure_prepend() {
     export OPEN_HALON_BUILD=1
     export OPS_BUILD=1
+    export BUILD_OVS_VSWITCHD=1
+    export BUILD_PLUGINS_LIB=1
     # After building the code with libltdl, we get a subdirectory with autoconf that will
     # inherit the m4 macros configurations from his parent, causing to fail if not finding some
     # of their macros. This hack removes the issue
@@ -104,7 +110,7 @@ do_install_append() {
         install -m 0644 ${WORKDIR}/switchd_sim.service ${D}${systemd_unitdir}/system/switchd.service
     fi
     install -d ${D}${sysconfdir}/tmpfiles.d
-    echo "d /run/openvswitch/ 0770 - ovsdb_users -" > ${D}${sysconfdir}/tmpfiles.d/openswitch.conf
+    echo "d /run/openvswitch/ 0770 - ovsdb-client -" > ${D}${sysconfdir}/tmpfiles.d/openswitch.conf
     install -d ${D}${PYTHON_SITEPACKAGES_DIR}
     mv ${D}/${prefix}/share/openvswitch/python/ovs ${D}${PYTHON_SITEPACKAGES_DIR}
 }
