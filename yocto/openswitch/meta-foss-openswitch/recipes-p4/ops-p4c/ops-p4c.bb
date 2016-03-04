@@ -8,7 +8,7 @@ OPS_P4C_REPO = "github.com/p4lang/p4c-bm.git"
 SRC_URI = "\
 	git://${OPS_P4C_REPO};protocol=https;branch=ops \
 "
-SRCREV = "e7901218fd74eeca2af6e8fbcf4d5916c0552069"
+SRCREV = "7f0fe25836d9fb4cfe533865b06c7bf6fbbbe89e"
 PV = "git${SRCPV}"
 S = "${WORKDIR}/git"
 
@@ -35,6 +35,7 @@ RDEPENDS_${PN} = "\
 "
 
 FILES_${PN} += "/usr/share/p4/switch_bmv2.json"
+FILES_${PN} += "/usr/share/p4c_bm_install.tar.gz"
 
 inherit pythonnative
 inherit autotools-brokensep
