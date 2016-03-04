@@ -37,6 +37,7 @@ INSTALLING_FROM_OPS=false
 
 # Install NOS on the same block device as ONIE
 : ${NOS_DISK:=$(blkid | awk '/LABEL="ONIE-BOOT"/ {print substr ($1,0,8)}')}
+: ${PARTITION_PREFIX:=}
 ACTIVE_PARTITION_NUMBER=-1
 INACTIVE_PARTITION_NUMBER=-1
 INSTALLING_PARTITION_NUMBER=-1
@@ -75,7 +76,7 @@ setup_nos_partitions()
 
         # We have a config partition, find the active partition
         if ! $INSTALLING_FROM_OPS ; then
-            mount -t ext4 ${NOS_DISK}${CONFIG_PARTITION_NUMBER} $config_mount_point
+            mount -t ext4 ${NOS_DISK}${PARTITION_PREFIX}${CONFIG_PARTITION_NUMBER} $config_mount_point
         fi
         active_grub_entry=$(grub-editenv $config_mount_point/boot/grub/grubenv list | awk -F= '/^saved_entry/ { print $2 }')
         if ! $INSTALLING_FROM_OPS ; then
@@ -94,14 +95,14 @@ setup_nos_partitions()
             PREVIOUS_BOOT_ENTRY=1
         fi
 
-        if mount | grep -q ${NOS_DISK}${INACTIVE_PARTITION_NUMBER} ; then
-            echo -e "${red}ERROR${normal}: The inactive partition is currently mounted (${NOS_DISK}${INACTIVE_PARTITION_NUMBER}). Aborting!"
+        if mount | grep -q ${NOS_DISK}${PARTITION_PREFIX}${INACTIVE_PARTITION_NUMBER} ; then
+            echo -e "${red}ERROR${normal}: The inactive partition is currently mounted (${NOS_DISK}${PARTITION_PREFIX}${INACTIVE_PARTITION_NUMBER}). Aborting!"
             exit 1
         fi
 
         echo
         echo -e "${bold} --- Formating the inactive partition ($INACTIVE_PARTITION_LABEL, #${INACTIVE_PARTITION_NUMBER}) --- ${low}"
-        mkfs.ext4 -L "$INACTIVE_PARTITION_LABEL" -q ${NOS_DISK}${INACTIVE_PARTITION_NUMBER} || {
+        mkfs.ext4 -L "$INACTIVE_PARTITION_LABEL" -q ${NOS_DISK}${PARTITION_PREFIX}${INACTIVE_PARTITION_NUMBER} || {
             echo -e "${red}ERROR${normal}: Failed to format partition ${NOS_DISK}${INACTIVE_PARTITION_NUMBER}!"
             exit 1
         }
@@ -170,13 +171,13 @@ setup_nos_partitions()
         # Format the partitions
         echo
         echo -e "${bold} --- Formatting configuration partition in ext4 --- ${low}"
-        mkfs.ext4 -L "$config_label" -q ${NOS_DISK}${CONFIG_PARTITION_NUMBER}
+        mkfs.ext4 -L "$config_label" -q ${NOS_DISK}${PARTITION_PREFIX}${CONFIG_PARTITION_NUMBER}
         echo
         echo -e "${bold} --- Formatting primary partition in ext4 --- ${low}"
-        mkfs.ext4 -L "$primary_label" -q ${NOS_DISK}${PRIMARY_PARTITION_NUMBER}
+        mkfs.ext4 -L "$primary_label" -q ${NOS_DISK}${PARTITION_PREFIX}${PRIMARY_PARTITION_NUMBER}
         echo
         echo -e "${bold} --- Formatting secondary partition in ext4 --- ${low}"
-        mkfs.ext4 -L "$secondary_label" -q ${NOS_DISK}${SECONDARY_PARTITION_NUMBER}
+        mkfs.ext4 -L "$secondary_label" -q ${NOS_DISK}${PARTITION_PREFIX}${SECONDARY_PARTITION_NUMBER}
 
         INSTALLING_PARTITION_NUMBER=${PRIMARY_PARTITION_NUMBER}
         INSTALLING_PARTITION_LABEL=$primary_label
@@ -188,18 +189,19 @@ populate_rootfs()
 {
     echo
     echo -e "${bold} --- Populating the root filesystem at partition ${INSTALLING_PARTITION_LABEL} (${NOS_DISK}${INSTALLING_PARTITION_NUMBER}) --- ${low}"
-    mount -t ext4 ${NOS_DISK}${INSTALLING_PARTITION_NUMBER} $mount_point
+    mount -t ext4 ${NOS_DISK}${PARTITION_PREFIX}${INSTALLING_PARTITION_NUMBER} $mount_point
     prev_dir=$(pwd)
     source_path=$(realpath "$0")
     cd $mount_point
     sed -e '1,/^exit_marker$/d' "$source_path" | gzip -cd - | cpio -idm || {
-        echo -e "${red}ERROR${normal}: Failed to populate the root filesystem on ${NOS_DISK}${INSTALLING_PARTITION_NUMBER}!"
+        echo -e "${red}ERROR${normal}: Failed to populate the root filesystem on ${NOS_DISK}${PARTITION_PREFIX}${INSTALLING_PARTITION_NUMBER}!"
         exit 1
     }
     echo
     echo -e "${bold} --- Installing $label GRUB --- ${low}"
     sed -i -e "s/OPENSWITCH_PRIMARY_PART_NUM/${PRIMARY_PARTITION_NUMBER}/g" \
            -e "s/OPENSWITCH_SECONDARY_PART_NUM/${SECONDARY_PARTITION_NUMBER}/g" \
+           -e "s/OPENSWITCH_BOOT_DEVICE/${NOS_DISK}${PARTITION_PREFIX}/g" \
            -e "s/OPENSWITCH_CONFIG_PART_NUM/${CONFIG_PARTITION_NUMBER}/g" \
            -e "s/OPENSWITCH_CONFIG_CONSOLE/${CONFIG_CONSOLE}/g" \
        ${mount_point}/boot/grub/grub.cfg
@@ -211,7 +213,7 @@ populate_rootfs()
 
     # Update the grub environment
     if ! $INSTALLING_FROM_OPS ; then
-        mount -t ext4 ${NOS_DISK}${CONFIG_PARTITION_NUMBER} $config_mount_point
+        mount -t ext4 ${NOS_DISK}${PARTITION_PREFIX}${CONFIG_PARTITION_NUMBER} $config_mount_point
         mkdir -p ${config_mount_point}/boot/grub/
         # We are mounting the config inside the installing partition to allow the chroot to reach it
         chroot ${mount_point} /usr/bin/grub-editenv /tmp/boot/grub/grubenv set saved_entry=${INSTALLING_BOOT_ENTRY}
