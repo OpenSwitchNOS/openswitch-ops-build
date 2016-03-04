@@ -19,4 +19,9 @@ PACKAGES =+ "${PN}-bash-completion"
 
 FILES_${PN}-bash-completion = "${datadir}/bash-completion"
 
+do_install_append() {
+  cd ${S}
+  rm -rf ${S}/etc/* 
+}
+
 inherit autotools-brokensep pkgconfig gettext
