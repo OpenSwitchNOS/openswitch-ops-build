@@ -40,9 +40,9 @@ RDEPENDS_packagegroup-ops-base = "\
     shadow \
     cronie \
     auditd audispd-plugins audit-python \
-    inetutils-ping inetutils-ping6 inetutils-hostname inetutils-ifconfig \
+    inetutils-hostname inetutils-ifconfig \
     inetutils-tftp inetutils-traceroute inetutils-ftp inetutils-telnet \
-    iputils-traceroute6 \
+    iputils-traceroute6 iputils-ping iputils-ping6 \
     wget curl \
     xinetd \
     libcap-bin \
@@ -67,6 +67,7 @@ RDEPENDS_packagegroup-ops-base = "\
     ops-ntpd \
     ops-supportability \
     strongswan \
+    firejail \
 "
 
 RDEPENDS_packagegroup-ops-base_append_arm = "\
@@ -94,4 +95,5 @@ RDEPENDS_packagegroup-ops-core = "\
 RDEPENDS_packagegroup-ops-p4 = "\
     ops-switchd-p4switch-plugin \
     ops-p4dp \
+    ops-p4c \
     "

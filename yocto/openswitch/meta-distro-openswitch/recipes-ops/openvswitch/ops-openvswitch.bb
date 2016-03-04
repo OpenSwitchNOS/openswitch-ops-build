@@ -2,16 +2,19 @@ SUMMARY = "OpenVSwitch for OpenSwitch"
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
 
-DEPENDS = "openssl python perl systemd libtool libyaml ops"
+DEPENDS = "openssl python perl systemd libtool libyaml jemalloc ops"
 
 SRC_URI = "git://git.openswitch.net/openswitch/ops-openvswitch;protocol=http \
    file://ovsdb-server.service \
    file://switchd_bcm.service \
    file://switchd_sim.service \
+   file://switchd_p4sim.service \
+   file://enable-jemalloc-ovsdb-server.patch \
+   file://partial-map-updates.patch \
    file://on-demand-fetching.patch \
 "
 
-SRCREV = "a654e4468ae73ff70496b41934b785ce1e9f8c53"
+SRCREV = "9a49144aa6ddee3b938aeeb094cc170125a3ecb7"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.
@@ -33,9 +36,10 @@ RDEPENDS_ops-ovsdb = "ops"
 RDEPENDS_python-ops-ovsdb = "python-io python-netclient python-datetime \
   python-logging python-threading python-math python-fcntl python-resource"
 
+# ops-openvswitch was patched to support the --enable-jemalloc flag
 EXTRA_OECONF += "TARGET_PYTHON=${bindir}/python \
                  TARGET_PERL=${bindir}/perl \
-                 --disable-static --enable-shared\
+                 --disable-static --enable-shared --enable-jemalloc \
                  ${@bb.utils.contains('MACHINE_FEATURES', 'ops-container', '--enable-simulator-provider', '',d)} \
                  "
 FILES_ops-ovsdb = "/run /var/run /var/log /var/volatile ${bindir}/ovsdb* \
@@ -50,11 +54,12 @@ FILES_python-ops-ovsdb = "${PYTHON_SITEPACKAGES_DIR}/ovs"
 FILES_${PN} = "${bindir}/ovs-appctl ${bindir}/ovs-pki ${bindir}/ovs-vsctl \
  /var/local/openvswitch ${sbindir}/ops-switchd \
  ${libdir}/libofproto.so.1* ${libdir}/libopenvswitch.so.1* ${libdir}/libsflow.so.1* \
+ ${libdir}/libplugins.so.1* \
 "
 
 USERADD_PACKAGES = "${PN}"
 
-GROUPADD_PARAM_${PN} ="-g 1020 ovsdb_users"
+GROUPADD_PARAM_${PN} ="-g 1020 ovsdb-client;ops_netop;ops_admin"
 
 do_configure_prepend() {
     export OPEN_HALON_BUILD=1
@@ -97,11 +102,13 @@ do_install_append() {
     if ${@bb.utils.contains('MACHINE_FEATURES','broadcom','true','false',d)}; then
         install -m 0644 ${WORKDIR}/switchd_bcm.service ${D}${systemd_unitdir}/system/switchd.service
     fi
-    if ${@bb.utils.contains('MACHINE_FEATURES','ops-container','true','false',d)}; then
+    if ${@bb.utils.contains('IMAGE_FEATURES','ops-p4','true','false',d)}; then
+        install -m 0644 ${WORKDIR}/switchd_p4sim.service ${D}${systemd_unitdir}/system/switchd.service
+    elif ${@bb.utils.contains('MACHINE_FEATURES','ops-container','true','false',d)}; then
         install -m 0644 ${WORKDIR}/switchd_sim.service ${D}${systemd_unitdir}/system/switchd.service
     fi
     install -d ${D}${sysconfdir}/tmpfiles.d
-    echo "d /run/openvswitch/ 0770 - ovsdb_users -" > ${D}${sysconfdir}/tmpfiles.d/openswitch.conf
+    echo "d /run/openvswitch/ 0770 - ovsdb-client -" > ${D}${sysconfdir}/tmpfiles.d/openswitch.conf
     install -d ${D}${PYTHON_SITEPACKAGES_DIR}
     mv ${D}/${prefix}/share/openvswitch/python/ovs ${D}${PYTHON_SITEPACKAGES_DIR}
 }

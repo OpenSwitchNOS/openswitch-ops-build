@@ -2,12 +2,12 @@ SUMMARY = "OpenSwitch Interface Daemon"
 LICENSE = "Apache-2.0"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/Apache-2.0;md5=89aea4e17d99a7cacdbeed46a0096b10"
 
-DEPENDS = "ops-utils ops-config-yaml ops-ovsdb"
+DEPENDS = "ops-utils ops-config-yaml ops-ovsdb ops-cli"
 
 SRC_URI = "git://git.openswitch.net/openswitch/ops-intfd;protocol=http\
            file://ops-intfd.service"
 
-SRCREV = "01f45eac388eb4a4b67e315c747807088370a6b3"
+SRCREV = "43961af673e3c1dc754135da89cf3ca4b6089eb6"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.
@@ -20,6 +20,7 @@ do_install_append() {
      install -m 0644 ${WORKDIR}/ops-intfd.service ${D}${systemd_unitdir}/system/
 }
 
+FILES_${PN} += "/usr/lib/cli/plugins/"
 SYSTEMD_PACKAGES = "${PN}"
 SYSTEMD_SERVICE_${PN} = "ops-intfd.service"
 
