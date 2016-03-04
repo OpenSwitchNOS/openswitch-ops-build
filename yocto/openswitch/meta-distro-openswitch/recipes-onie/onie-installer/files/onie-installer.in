@@ -37,6 +37,7 @@ INSTALLING_FROM_OPS=false
 
 # Install NOS on the same block device as ONIE
 : ${NOS_DISK:=$(blkid | awk '/LABEL="ONIE-BOOT"/ {print substr ($1,0,8)}')}
+: ${PARTITION_PREFIX:=}
 ACTIVE_PARTITION_NUMBER=-1
 INACTIVE_PARTITION_NUMBER=-1
 INSTALLING_PARTITION_NUMBER=-1
@@ -66,9 +67,9 @@ setup_nos_partitions()
     fi
 
     # Find if we have a config partition
-    CONFIG_PARTITION_NUMBER=$(get_partition_number "$config_label")
-    PRIMARY_PARTITION_NUMBER=$(get_partition_number "$primary_label")
-    SECONDARY_PARTITION_NUMBER=$(get_partition_number "$secondary_label")
+    CONFIG_PARTITION_NUMBER=${PARTITION_PREFIX}$(get_partition_number "$config_label")
+    PRIMARY_PARTITION_NUMBER=${PARTITION_PREFIX}$(get_partition_number "$primary_label")
+    SECONDARY_PARTITION_NUMBER=${PARTITION_PREFIX}$(get_partition_number "$secondary_label")
     if ! $OPS_CLEAN_INSTALL && [ -n "$CONFIG_PARTITION_NUMBER" ]; then
         echo
         echo -e "${bold} --- Existing installation found, installing on the inactive partition --- ${low}"
