@@ -471,10 +471,8 @@ python write_version_detail () {
     import oe.packagedata
     from oe.rootfs import image_list_installed_packages
     from shutil import copyfile
-
-    vars = {
-        "SRC_URI", "SRCREV", "PV"
-    }
+    import string
+    from urlparse import urlparse
 
     installed_pkg_list = image_list_installed_packages(d)
 
@@ -483,13 +481,26 @@ python write_version_detail () {
             version_detail.write("PKG=%s" % pkg)
 
             sdata = oe.packagedata.read_subpkgdata(pkg, d)
-            for key in vars:
-                if key in sdata.keys():
-                    version_detail.write(" %s=%s" % (key, sdata[key]))
-                    #Mark the "SRCREV" as dirty if local changes are present
-                    if ((key == "SRCREV") and ("PV" in sdata.keys())):
-                        if ((sdata['PV']).endswith('999')):
-                            version_detail.write("~DIRTY")
+
+            if 'SRCREV' in sdata.keys():
+                version_detail.write(" SRCREV=%s" % (sdata['SRCREV']))
+            else:
+                version_detail.write(" SRCREV=INVALID")
+        
+            if 'PV' in sdata.keys():
+                version_detail.write(" PV=%s" % (sdata['PV']))
+            else:
+                version_detail.write(" PV=Not Available")
+
+            version_detail.write(" TYPE=other")
+
+            if 'SRC_URI' in sdata.keys():
+                strurl = (str(sdata['SRC_URI'])).split()
+                bb.warn('strurl = %s' % strurl)
+
+                version_detail.write(" SRC_URL=%s" % (sdata['SRC_URI']))
+            else:
+                version_detail.write(" SRC_URL=Not available")
 
             version_detail.write("\n")
 
