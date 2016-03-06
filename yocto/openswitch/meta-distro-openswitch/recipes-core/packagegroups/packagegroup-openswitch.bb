@@ -53,7 +53,7 @@ RDEPENDS_packagegroup-ops-base = "\
     ops-hw-config \
     ops-cfgd ops-fand ops-ledd ops-pmd ops-powerd ops-sysd ops-tempd \
     ops-dhcp-tftp \
-    ops-intfd ops-lacpd ops-lldpd ops-vland ops-arpmgrd \
+    ops-intfd ops-lacpd ops-lldpd ops-vland ops-arpmgrd ops-hw-vtep \
     ops-script-utils \
     ops-cli ops-restd ops-webui \
     ops-classifierd \
@@ -69,6 +69,7 @@ RDEPENDS_packagegroup-ops-base = "\
     ops-supportability \
     strongswan \
     firejail \
+    ops-ipapps \
 "
 
 RDEPENDS_packagegroup-ops-base_append_arm = "\
