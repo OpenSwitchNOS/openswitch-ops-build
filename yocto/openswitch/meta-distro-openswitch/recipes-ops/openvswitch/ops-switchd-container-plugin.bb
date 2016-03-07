@@ -7,7 +7,7 @@ DEPENDS = "ops-ovsdb"
 PROVIDES += "virtual/ops-switchd-switch-api-plugin"
 RPROVIDES_${PN} += "virtual/ops-switchd-switch-api-plugin"
 
-SRC_URI = "git://git.openswitch.net/openswitch/ops-switchd-container-plugin;protocol=http \
+SRC_URI = "git://git.openswitch.net/openswitch/ops-switchd-container-plugin;protocol=http;branch=feature/acl \
 "
 FILES_${PN} = "${libdir}/openvswitch/plugins"
 
