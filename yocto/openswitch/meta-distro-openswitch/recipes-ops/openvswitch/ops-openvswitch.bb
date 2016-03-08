@@ -10,7 +10,7 @@ SRC_URI = "git://git.openswitch.net/openswitch/ops-openvswitch;protocol=http \
    file://partial-map-updates.patch \
 "
 
-SRCREV = "fdf5466566253bf2bacb0a23f7ff2f3d4c4ef8cf"
+SRCREV = "12b038d6665f871e89c4abc176c8d133805ac099"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.
