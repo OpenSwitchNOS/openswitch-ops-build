@@ -7,6 +7,7 @@ DEPENDS = "\
         libedit \
         nanomsg \
         ops-ovsdb \
+        ops-switchd \
         ops-p4c \
         p4-hlir \
         python-native \
