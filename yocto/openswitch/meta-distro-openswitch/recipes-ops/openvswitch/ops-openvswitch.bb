@@ -14,7 +14,7 @@ SRC_URI = "git://git.openswitch.net/openswitch/ops-openvswitch;protocol=http;bra
    file://on-demand-fetching.patch \
 "
 
-SRCREV = "b00a4984c5fa60056357230f9e1e9d4e8c609402"
+SRCREV = "52e9a71a587ca35e244e9d209212f576077b86e9"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.
