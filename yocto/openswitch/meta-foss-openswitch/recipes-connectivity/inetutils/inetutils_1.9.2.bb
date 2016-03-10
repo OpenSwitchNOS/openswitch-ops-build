@@ -1,7 +1,6 @@
 DESCRIPTION = "The GNU inetutils are a collection of common \
-networking utilities and servers including ftp, ftpd, rcp, \
-rexec, rlogin, rlogind, rsh, rshd, syslog, syslogd, talk, \
-talkd, telnet, telnetd, tftp, tftpd, and uucpd."
+networking utilities including ftp, rcp, rexec, rlogin, rsh, \
+syslog, talk, telnet, and tftp."
 SECTION = "libs"
 DEPENDS = "ncurses netbase readline"
 LICENSE = "GPLv3"
@@ -25,15 +24,12 @@ inherit autotools gettext update-alternatives texinfo
 SRC_URI += "${@base_contains('DISTRO_FEATURES', 'ipv6', '', 'file://fix-disable-ipv6.patch', d)}"
 noipv6="${@base_contains('DISTRO_FEATURES', 'ipv6', '', '--disable-ipv6 gl_cv_socket_ipv6=no', d)}"
 
-PACKAGECONFIG ??= "ftp uucpd"
-PACKAGECONFIG[ftp] = "--enable-ftp,--disable-ftp,readline"
-PACKAGECONFIG[uucpd] = "--enable-uucpd,--disable-uucpd,readline"
-
 EXTRA_OECONF = "--with-ncurses-include-dir=${STAGING_INCDIR} \
         ${noipv6} \
         inetutils_cv_path_login=${base_bindir}/login \
         --with-libreadline-prefix=${STAGING_LIBDIR} \
         --enable-rpath=no \
+        --disable-servers \
 "
 
 do_configure_prepend () {
@@ -45,20 +41,10 @@ do_configure_prepend () {
 do_install_append () {
     install -m 0755 -d ${D}${base_bindir}
     install -m 0755 -d ${D}${base_sbindir}
-    install -m 0755 -d ${D}${sbindir}
     mv ${D}${bindir}/ping ${D}${base_bindir}/
     mv ${D}${bindir}/ping6 ${D}${base_bindir}/
     mv ${D}${bindir}/ifconfig ${D}${base_sbindir}/
-    mv ${D}${libexecdir}/syslogd ${D}${base_sbindir}/
     mv ${D}${bindir}/hostname ${D}${base_bindir}/
-    mv ${D}${libexecdir}/tftpd ${D}${sbindir}/in.tftpd
-    mv ${D}${libexecdir}/telnetd ${D}${sbindir}/in.telnetd
-    mv ${D}${libexecdir}/rexecd ${D}${sbindir}/in.rexecd
-    mv ${D}${libexecdir}/rlogind ${D}${sbindir}/in.rlogind
-    mv ${D}${libexecdir}/rshd ${D}${sbindir}/in.rshd
-    mv ${D}${libexecdir}/talkd ${D}${sbindir}/in.talkd
-    mv ${D}${libexecdir}/uucpd ${D}${sbindir}/in.uucpd
-    mv ${D}${libexecdir}/* ${D}${bindir}/
     rm -rf ${D}${libexecdir}/
     # remove usr/lib if empty
     rmdir ${D}${libdir}
