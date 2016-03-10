@@ -8,7 +8,7 @@ RDEPENDS_${PN} = "python-argparse python-json python-ops-ovsdb python-distribute
 
 SRC_URI = "git://git.openswitch.net/openswitch/ops-supportability;protocol=https"
 
-SRCREV = "b84cbf96d6bee6b9efdb7cfdd6b3fd74bbcf8c23"
+SRCREV = "1896708029e183b205e488ee220a6c5c39d92cbd"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.
@@ -38,7 +38,8 @@ do_install() {
 do_install_append(){
    install -d   ${D}/etc/openswitch/supportability
    install -d   ${D}/usr/bin
-   install -c -m 755 ${S}/conf/*.yaml ${D}/etc/openswitch/supportability/
+   install -c -m 0644 ${S}/conf/*.yaml ${D}/etc/openswitch/supportability/
+   install -c -m 0444 ${S}/conf/ops_showtech.yaml ${D}/etc/openswitch/supportability/ops_showtech.defaults.yaml
    install -c -m 755 ${S}/scripts/*   ${D}/usr/bin/
 }
 
