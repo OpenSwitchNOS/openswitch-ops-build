@@ -17,6 +17,8 @@ SRC_URI[sha256sum] = "956aaf431c955ba88dd7d98920ade3a8c4bad04adb1f9431377950a813
 
 inherit autotools gettext
 
+B = "${S}"
+
 EXTRA_AUTORECONF = "-I m4"
 
 PACKAGECONFIG ??= ""
