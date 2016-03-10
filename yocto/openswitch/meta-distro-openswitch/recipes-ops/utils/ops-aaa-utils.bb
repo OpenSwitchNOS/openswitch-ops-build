@@ -7,9 +7,9 @@ PACKAGES += "ops-librbac ops-librbac-dev"
 FILES_ops-librbac = "/usr/lib/librbac.so.*.*.*"
 FILES_ops-librbac-dev = "/usr/lib/pkgconfig/rbac.pc /usr/lib/librbac.so*"
 
-DEPENDS = "ops-ovsdb"
+DEPENDS = "ops-ovsdb ops-cli"
 
-RDEPENDS_${PN} = "python-argparse python-json python-ops-ovsdb python-distribute python-pam pam-plugin-radius-auth"
+RDEPENDS_${PN} = "python-argparse python-json python-ops-ovsdb python-distribute python-pam pam-plugin-radius-auth pam-plugin-radius-chap-auth"
 
 SRC_URI = "git://git.openswitch.net/openswitch/ops-aaa-utils;protocol=http \
            file://aaautils.service \
@@ -17,7 +17,7 @@ SRC_URI = "git://git.openswitch.net/openswitch/ops-aaa-utils;protocol=http \
            file://useradd \
          "
 
-SRCREV = "2625bc7281035de6a302cf181f9b0b3e51886277"
+SRCREV = "5593927aedff37f0c7f2e822de0829555f3d3460"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.
@@ -50,6 +50,7 @@ do_install() {
      install -m 0644 ${WORKDIR}/useradd ${D}${sysconfdir}/sudoers.d/useradd
 }
 
+FILES_${PN} += "/usr/lib/cli/plugins/"
 FILES_${PN}   += "${sysconfdir}/raddb/ ${sysconfdir}/sudoers.d/"
 SYSTEMD_PACKAGES = "${PN}"
 SYSTEMD_SERVICE_${PN} = "aaautils.service"
