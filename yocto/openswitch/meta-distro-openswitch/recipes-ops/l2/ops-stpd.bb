@@ -24,4 +24,4 @@ do_install_append() {
 SYSTEMD_PACKAGES = "${PN}"
 SYSTEMD_SERVICE_${PN} = "ops-stpd.service"
 
-inherit openswitch systemd
+inherit openswitch cmake systemd
