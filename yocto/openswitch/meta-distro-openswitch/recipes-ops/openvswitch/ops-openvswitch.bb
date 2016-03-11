@@ -12,7 +12,7 @@ SRC_URI = "git://git.openswitch.net/openswitch/ops-openvswitch;protocol=http \
    file://compound-indexes.patch \
 "
 
-SRCREV = "5bbac4a6ceee8c5ef13cf8945fbd15d9e7fbb9e6"
+SRCREV = "237aca2a55b2f4580effc809ab9342789fcb0e92"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.
