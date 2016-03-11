@@ -13,6 +13,8 @@ ExecStart=/usr/sbin/ovsdb-server --remote=punix:/var/run/openvswitch/db.sock --d
 WorkingDirectory=/var/run/openvswitch
 PIDFile=/var/run/openvswitch/ovsdb-server.pid
 Restart=on-abort
+OOMScoreAdjust=-1000
+Nice=-10
 
 [Install]
 WantedBy=multi-user.target
