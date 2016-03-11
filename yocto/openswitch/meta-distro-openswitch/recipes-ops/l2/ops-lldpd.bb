@@ -3,7 +3,11 @@ SUMMARY = "OpenSwitch LLDP Daemon"
 LICENSE = "ISC"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/Apache-2.0;md5=89aea4e17d99a7cacdbeed46a0096b10"
 
+<<<<<<< HEAD
 DEPENDS = "net-snmp ops-utils ops-config-yaml ops-ovsdb libevent openssl ops-supportability ops-cli"
+=======
+DEPENDS = "net-snmp ops-utils ops-hw-config ops-ovsdb libevent openssl ops-supportability"
+>>>>>>> 8afe9f7... Change some recipes in order to get the merge between ops-config-yaml into ops-hw-config
 
 SRC_URI = "git://git.openswitch.net/openswitch/ops-lldpd;protocol=http \
           file://ops-lldpd.service \
