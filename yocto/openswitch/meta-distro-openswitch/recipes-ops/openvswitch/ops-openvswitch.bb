@@ -4,7 +4,7 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda
 
 DEPENDS = "openssl python perl systemd libtool libyaml jemalloc ops"
 
-SRC_URI = "git://git.openswitch.net/openswitch/ops-openvswitch;protocol=http;branch=feature/acl \
+SRC_URI = "git://git.openswitch.net/openswitch/ops-openvswitch;protocol=http \
    file://ovsdb-server.service \
    file://switchd_bcm.service \
    file://switchd_sim.service \
@@ -14,7 +14,7 @@ SRC_URI = "git://git.openswitch.net/openswitch/ops-openvswitch;protocol=http;bra
    file://on-demand-fetching.patch \
 "
 
-SRCREV = "52e9a71a587ca35e244e9d209212f576077b86e9"
+SRCREV = "b59ce5bfd8c83a36f2293ecd36d7808066a3f230"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.
