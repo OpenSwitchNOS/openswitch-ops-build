@@ -2,7 +2,11 @@ SUMMARY = "OpenSwitch System Daemon (sysd)"
 LICENSE = "Apache-2.0"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/Apache-2.0;md5=89aea4e17d99a7cacdbeed46a0096b10"
 
+<<<<<<< HEAD
 DEPENDS = "ops-utils ops-config-yaml ops-ovsdb ops-cli"
+=======
+DEPENDS = "ops-utils ops-hw-config ops-ovsdb"
+>>>>>>> 8afe9f7... Change some recipes in order to get the merge between ops-config-yaml into ops-hw-config
 RDEPENDS_${PN} = "dmidecode"
 
 SRC_URI = "git://git.openswitch.net/openswitch/ops-sysd;protocol=https \
