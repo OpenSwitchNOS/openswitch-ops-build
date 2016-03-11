@@ -6,12 +6,10 @@ DEPENDS = "openssl python perl systemd libtool libyaml jemalloc ops"
 
 SRC_URI = "git://git.openswitch.net/openswitch/ops-openvswitch;branch=feature/sflow;protocol=http \
    file://ovsdb-server.service \
-   file://switchd_bcm.service \
-   file://switchd_sim.service \
-   file://switchd_p4sim.service \
    file://enable-jemalloc-ovsdb-server.patch \
    file://partial-map-updates.patch \
    file://on-demand-fetching.patch \
+   file://compound-indexes.patch \
 "
 
 SRCREV = "${AUTOREV}"
@@ -24,8 +22,6 @@ S = "${WORKDIR}/git"
 
 PACKAGES =+ "ops-ovsdb python-ops-ovsdb"
 PROVIDES = "${PACKAGES}"
-
-RPROVIDES_${PN} = "virtual/switchd"
 
 RDEPENDS_${PN} = "openssl procps util-linux-uuidgen util-linux-libuuid coreutils \
   python perl perl-module-strict sed gawk grep ops-ovsdb \
@@ -52,8 +48,10 @@ inherit python-dir useradd
 FILES_python-ops-ovsdb = "${PYTHON_SITEPACKAGES_DIR}/ovs"
 
 FILES_${PN} = "${bindir}/ovs-appctl ${bindir}/ovs-pki ${bindir}/ovs-vsctl \
- /var/local/openvswitch ${sbindir}/ops-switchd \
- ${libdir}/libofproto.so.1* ${libdir}/libopenvswitch.so.1* ${libdir}/libsflow.so.1* \
+ /var/local/openvswitch \
+ ${libdir}/libofproto.so.1* \
+ ${libdir}/libopenvswitch.so.1* \
+ ${libdir}/libsflow.so.1* \
  ${libdir}/libplugins.so.1* \
 "
 
@@ -64,6 +62,8 @@ GROUPADD_PARAM_${PN} ="-g 1020 ovsdb-client;ops_netop;ops_admin"
 do_configure_prepend() {
     export OPEN_HALON_BUILD=1
     export OPS_BUILD=1
+    export BUILD_OVS_VSWITCHD=0
+    export BUILD_PLUGINS_LIB=1
     # After building the code with libltdl, we get a subdirectory with autoconf that will
     # inherit the m4 macros configurations from his parent, causing to fail if not finding some
     # of their macros. This hack removes the issue
@@ -82,9 +82,9 @@ do_compile_prepend() {
     cp ${STAGING_DIR_TARGET}/usr/share/openvswitch/dhcp_leases.ovsschema ${S}/vswitchd/dhcp_leases.ovsschema
     cp ${STAGING_DIR_TARGET}/usr/share/openvswitch/dhcp_leases.xml ${S}/vswitchd/dhcp_leases.xml
     cp ${STAGING_DIR_TARGET}/usr/share/openvswitch/configdb.ovsschema ${S}/vswitchd/configdb.ovsschema
+    cp ${STAGING_DIR_TARGET}/usr/share/openvswitch/vtep.ovsschema ${S}/vswitchd/vtep.ovsschema
+    cp ${STAGING_DIR_TARGET}/usr/share/openvswitch/vtep.xml ${S}/vswitchd/vtep.xml
 
-    # ${PYTHON} ${S}/vswitchd/sanitize.py ${S}/vswitchd/vswitch.extschema ${S}/vswitchd/vswitch.ovsschema
-    # ${PYTHON} ${S}/vswitchd/sanitize.py ${S}/vswitchd/dhcp_leases.extschema ${S}/vswitchd/dhcp_leases.ovsschema
     touch ${S}/vswitchd/vswitch.xml
 }
 
@@ -96,17 +96,10 @@ do_install_append() {
     install -m 0644 lib/libopenvswitch.pc ${D}/${libdir}/pkgconfig/
     install -m 0644 ofproto/libofproto.pc ${D}/${libdir}/pkgconfig/
     install -m 0644 ovsdb/libovsdb.pc ${D}/${libdir}/pkgconfig/
+    install -m 0644 plugins/libplugins.pc ${D}/${libdir}/pkgconfig/
     install -d ${D}${systemd_unitdir}/system
     install -d ${D}/var/local/openvswitch
     install -m 0644 ${WORKDIR}/ovsdb-server.service ${D}${systemd_unitdir}/system/
-    if ${@bb.utils.contains('MACHINE_FEATURES','broadcom','true','false',d)}; then
-        install -m 0644 ${WORKDIR}/switchd_bcm.service ${D}${systemd_unitdir}/system/switchd.service
-    fi
-    if ${@bb.utils.contains('IMAGE_FEATURES','ops-p4','true','false',d)}; then
-        install -m 0644 ${WORKDIR}/switchd_p4sim.service ${D}${systemd_unitdir}/system/switchd.service
-    elif ${@bb.utils.contains('MACHINE_FEATURES','ops-container','true','false',d)}; then
-        install -m 0644 ${WORKDIR}/switchd_sim.service ${D}${systemd_unitdir}/system/switchd.service
-    fi
     install -d ${D}${sysconfdir}/tmpfiles.d
     echo "d /run/openvswitch/ 0770 - ovsdb-client -" > ${D}${sysconfdir}/tmpfiles.d/openswitch.conf
     install -d ${D}${PYTHON_SITEPACKAGES_DIR}
@@ -124,7 +117,6 @@ INSANE_SKIP_${PN} = "installed-vs-shipped"
 
 SYSTEMD_PACKAGES = "${PN} ops-ovsdb"
 
-SYSTEMD_SERVICE_${PN} += "switchd.service"
 SYSTEMD_SERVICE_ops-ovsdb = "ovsdb-server.service"
 
 inherit openswitch autotools pkgconfig systemd

@@ -44,7 +44,6 @@ RDEPENDS_packagegroup-ops-base = "\
     inetutils-tftp inetutils-traceroute inetutils-ftp inetutils-telnet \
     iputils-traceroute6 iputils-ping iputils-ping6 \
     wget curl \
-    xinetd \
     libcap-bin \
     ops-init \
     virtual/switchd \
@@ -53,7 +52,7 @@ RDEPENDS_packagegroup-ops-base = "\
     ops-hw-config \
     ops-cfgd ops-fand ops-ledd ops-pmd ops-powerd ops-sysd ops-tempd \
     ops-dhcp-tftp \
-    ops-intfd ops-lacpd ops-lldpd ops-vland ops-arpmgrd \
+    ops-intfd ops-lacpd ops-lldpd ops-vland ops-arpmgrd ops-hw-vtep \
     ops-script-utils \
     ops-cli ops-restd ops-webui \
     ops-portd ops-quagga \
@@ -68,6 +67,8 @@ RDEPENDS_packagegroup-ops-base = "\
     ops-supportability \
     strongswan \
     firejail \
+    ops-ipapps \
+    ops-stpd \
 "
 
 RDEPENDS_packagegroup-ops-base_append_arm = "\
