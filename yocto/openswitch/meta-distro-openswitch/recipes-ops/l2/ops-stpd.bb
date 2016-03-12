@@ -16,12 +16,12 @@ PV = "git${SRCPV}"
 
 S = "${WORKDIR}/git"
 
-do_install_append() {
-     install -d ${D}${systemd_unitdir}/system
-     install -m 0644 ${WORKDIR}/ops-stpd.service ${D}${systemd_unitdir}/system/
-}
+#do_install_append() {
+#     install -d ${D}${systemd_unitdir}/system
+#     install -m 0644 ${WORKDIR}/ops-stpd.service ${D}${systemd_unitdir}/system/
+#}
 
 SYSTEMD_PACKAGES = "${PN}"
-SYSTEMD_SERVICE_${PN} = "ops-stpd.service"
+#SYSTEMD_SERVICE_${PN} = "ops-stpd.service"
 
 inherit openswitch systemd
