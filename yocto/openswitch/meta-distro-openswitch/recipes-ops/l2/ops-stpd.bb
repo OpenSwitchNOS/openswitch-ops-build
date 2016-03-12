@@ -22,6 +22,6 @@ do_install_append() {
 }
 
 SYSTEMD_PACKAGES = "${PN}"
-SYSTEMD_SERVICE_${PN} = "ops-stpd.service"
+#SYSTEMD_SERVICE_${PN} = "ops-stpd.service"
 
 inherit openswitch systemd
