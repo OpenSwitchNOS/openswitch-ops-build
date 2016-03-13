@@ -2,10 +2,10 @@ SUMMARY = "Platform Configuration files for OpenSwitch"
 LICENSE = "Apache-2.0"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/Apache-2.0;md5=89aea4e17d99a7cacdbeed46a0096b10"
 
-SRC_URI = "git://git.openswitch.net/openswitch/ops-hw-config;protocol=http;branch=feature/qos \
+SRC_URI = "git://git.openswitch.net/openswitch/ops-hw-config;protocol=http \
 "
 
-SRCREV = "${AUTOREV}"
+SRCREV = "984a8619a1b9281a1a8fff798352d72ce4a46658"
 
 PLATFORM_PATH?="${MACHINE}"
 

@@ -5,11 +5,11 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/Apache-2.0;md5=89aea4e17d99a7ca
 DEPENDS = "ops-utils ops-config-yaml ops-ovsdb ops-cli"
 RDEPENDS_${PN} = "dmidecode"
 
-SRC_URI = "git://git.openswitch.net/openswitch/ops-sysd;protocol=https;branch=feature/qos \
+SRC_URI = "git://git.openswitch.net/openswitch/ops-sysd;protocol=https \
            file://ops-sysd.service \
 "
 
-SRCREV = "${AUTOREV}"
+SRCREV = "f1927e0b7349f163ba0e0a89a527f51ba3c3cee3"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.

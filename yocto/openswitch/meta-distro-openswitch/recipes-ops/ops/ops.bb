@@ -2,9 +2,9 @@ SUMMARY = "OpenSwitch"
 LICENSE = "Apache-2.0"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/Apache-2.0;md5=89aea4e17d99a7cacdbeed46a0096b10"
 
-SRC_URI = "git://git.openswitch.net/openswitch/ops;protocol=https;branch=feature/qos"
+SRC_URI = "git://git.openswitch.net/openswitch/ops;protocol=https"
 
-SRCREV = "${AUTOREV}"
+SRCREV = "d26bbb2b171c48e43287ea946e237c6b3bc12fc9"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.
@@ -31,4 +31,6 @@ do_install() {
 	install -m 0644 ${OPS_SCHEMA_PATH}/dhcp_leases.ovsschema ${D}/${prefix}/share/openvswitch/dhcp_leases.ovsschema
 	install -m 0644 ${OPS_SCHEMA_PATH}/dhcp_leases.xml ${D}/${prefix}/share/openvswitch/dhcp_leases.xml
 	install -m 0644 ${OPS_SCHEMA_PATH}/configdb.ovsschema ${D}/${prefix}/share/openvswitch/configdb.ovsschema
+	install -m 0644 ${OPS_SCHEMA_PATH}/vtep.ovsschema ${D}/${prefix}/share/openvswitch/vtep.ovsschema
+	install -m 0644 ${OPS_SCHEMA_PATH}/vtep.xml ${D}/${prefix}/share/openvswitch/vtep.xml
 }
