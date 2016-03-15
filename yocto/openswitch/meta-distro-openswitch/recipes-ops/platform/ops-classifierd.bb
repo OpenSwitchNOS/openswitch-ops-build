@@ -24,4 +24,6 @@ do_install_append() {
 SYSTEMD_PACKAGES = "${PN}"
 SYSTEMD_SERVICE_${PN} = "ops-classifierd.service"
 
+FILES_${PN} += "/usr/lib/cli/plugins/"
+
 inherit openswitch cmake systemd
