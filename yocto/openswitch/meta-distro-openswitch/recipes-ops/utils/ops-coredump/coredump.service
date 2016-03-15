@@ -1,0 +1,13 @@
+# Copyright (C) 2016 Hewlett Packard Enterprise Development LP
+
+[Unit]
+Description=Coredump utility daemon
+After=syslog.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/coredump
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

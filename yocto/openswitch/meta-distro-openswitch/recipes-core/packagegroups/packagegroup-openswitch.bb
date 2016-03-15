@@ -69,6 +69,7 @@ RDEPENDS_packagegroup-ops-base = "\
     firejail \
     ops-ipapps \
     ops-stpd \
+    ops-coredump \
 "
 
 RDEPENDS_packagegroup-ops-base_append_arm = "\
