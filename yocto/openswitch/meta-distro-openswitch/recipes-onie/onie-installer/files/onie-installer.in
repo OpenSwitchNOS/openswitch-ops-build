@@ -29,6 +29,7 @@ echo -e "${bold}OpenSwitch ONIE installer (version $installer_version) for $MACH
 attr_bitmask="0x0000000000000001"
 label="OpenSwitch"
 config_label="$label Conf"
+diags_label="$label Diags"
 primary_label="$label 1"
 secondary_label="$label 2"
 mount_point=/mnt/ops
@@ -67,6 +68,7 @@ setup_nos_partitions()
 
     # Find if we have a config partition
     CONFIG_PARTITION_NUMBER=$(get_partition_number "$config_label")
+    DIAGS_PARTITION_NUMBER=$(get_partition_number "$diags_label")
     PRIMARY_PARTITION_NUMBER=$(get_partition_number "$primary_label")
     SECONDARY_PARTITION_NUMBER=$(get_partition_number "$secondary_label")
     if ! $OPS_CLEAN_INSTALL && [ -n "$CONFIG_PARTITION_NUMBER" ]; then
@@ -137,8 +139,23 @@ setup_nos_partitions()
             partprobe ${NOS_DISK}
         fi
 
+        if [ -z "$DIAGS_PARTITION_NUMBER" ] ; then
+            DIAGS_PARTITION_NUMBER=$((${CONFIG_PARTITION_NUMBER} + 1))
+            echo
+            echo -e "${bold} --- Creating the configuration partition (#${DIAGS_PARTITION_NUMBER}, label $diags_label) --- ${low}"
+            first_sector=$(($(sgdisk -i $((${DIAGS_PARTITION_NUMBER} - 1)) ${NOS_DISK} | grep 'Last sector:' | awk '{ print $3 }') + 1))
+            sgdisk --new=${DIAGS_PARTITION_NUMBER}:${first_sector}:+${DIAGS_PARTITION_SIZE} \
+               --typecode=${DIAGS_PARTITION_NUMBER}:8300 \
+               --attributes=${DIAGS_PARTITION_NUMBER}:=:$attr_bitmask \
+               --change-name=${DIAGS_PARTITION_NUMBER}:"$diags_label"  ${NOS_DISK} || {
+                    echo -e "${red}ERROR${normal}: Failed to create partition ${NOS_DISK}${DIAGS_PARTITION_NUMBER}!"
+                    exit 1
+                }
+            partprobe ${NOS_DISK}
+        fi
+
         if [ -z "$PRIMARY_PARTITION_NUMBER" ] ; then
-            PRIMARY_PARTITION_NUMBER=$((${CONFIG_PARTITION_NUMBER} + 1))
+            PRIMARY_PARTITION_NUMBER=$((${DIAGS_PARTITION_NUMBER} + 1))
             echo
             echo -e "${bold} --- Creating the primary partition (#${PRIMARY_PARTITION_NUMBER}, label $primary_label) --- ${low}"
             first_sector=$(($(sgdisk -i $((${PRIMARY_PARTITION_NUMBER} - 1)) ${NOS_DISK} | grep 'Last sector:' | awk '{ print $3 }') + 1))
@@ -172,6 +189,9 @@ setup_nos_partitions()
         echo -e "${bold} --- Formatting configuration partition in ext4 --- ${low}"
         mkfs.ext4 -L "$config_label" -q ${NOS_DISK}${CONFIG_PARTITION_NUMBER}
         echo
+        echo -e "${bold} --- Formatting diagnostics partition in ext4 --- ${low}"
+        mkfs.ext4 -L "$diags_label" -q ${NOS_DISK}${DIAGS_PARTITION_NUMBER}
+        echo
         echo -e "${bold} --- Formatting primary partition in ext4 --- ${low}"
         mkfs.ext4 -L "$primary_label" -q ${NOS_DISK}${PRIMARY_PARTITION_NUMBER}
         echo
@@ -200,7 +220,8 @@ populate_rootfs()
     echo -e "${bold} --- Installing $label GRUB --- ${low}"
     sed -i -e "s/OPENSWITCH_PRIMARY_PART_NUM/${PRIMARY_PARTITION_NUMBER}/g" \
            -e "s/OPENSWITCH_SECONDARY_PART_NUM/${SECONDARY_PARTITION_NUMBER}/g" \
-           -e "s/OPENSWITCH_CONFIG_PART_NUM/${CONFIG_PARTITION_NUMBER}/g" \
+           -e "s/OPENSWITCH_CONFIG_PART_NUM/${DIAGS_PARTITION_NUMBER}/g" \
+           -e "s/OPENSWITCH_DIAGS_PART_NUM/${CONFIG_PARTITION_NUMBER}/g" \
            -e "s/OPENSWITCH_CONFIG_CONSOLE/${CONFIG_CONSOLE}/g" \
        ${mount_point}/boot/grub/grub.cfg
     ${mount_point}/usr/sbin/grub-install --force --boot-directory ${mount_point}/boot --recheck ${NOS_DISK} || {
