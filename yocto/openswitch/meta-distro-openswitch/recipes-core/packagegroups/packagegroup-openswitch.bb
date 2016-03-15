@@ -65,6 +65,7 @@ RDEPENDS_packagegroup-ops-base = "\
     ops-checkmk-agent \
     ops-ansible \
     ops-ntpd \
+    host-sflow \
     ops-supportability \
     strongswan \
     firejail \
