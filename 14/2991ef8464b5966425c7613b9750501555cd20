@@ -1,0 +1,9 @@
+Verified-1: Zuul <zuul@lists.openswitch.net>
+Code-Review+2: Ricky Charlet <ricky.charlet@hpe.com>
+Verified+2: Ricky Charlet <ricky.charlet@hpe.com>
+Workflow+1: Ricky Charlet <ricky.charlet@hpe.com>
+Submitted-by: Ricky Charlet <ricky.charlet@hpe.com>
+Submitted-at: Wed, 16 Mar 2016 19:36:49 +0000
+Reviewed-on: https://review.openswitch.net/5550
+Project: openswitch/ops-build
+Branch: refs/heads/feature/vxlan
