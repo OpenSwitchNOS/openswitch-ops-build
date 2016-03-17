@@ -1,0 +1,8 @@
+Code-Review+2: Ricky Charlet <ricky.charlet@hpe.com>
+Verified+2: Ricky Charlet <ricky.charlet@hpe.com>
+Workflow+1: Ricky Charlet <ricky.charlet@hpe.com>
+Submitted-by: Ricky Charlet <ricky.charlet@hpe.com>
+Submitted-at: Thu, 17 Mar 2016 02:03:13 +0000
+Reviewed-on: https://review.openswitch.net/5620
+Project: openswitch/ops-build
+Branch: refs/heads/feature/vxlan
