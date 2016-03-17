@@ -12,9 +12,6 @@ DEPENDS = "\
         ops-switchd \
         ops-p4c \
         p4-hlir \
-        python-native \
-        python-pyyaml-native \
-        python-tenjin \
         thrift \
         thrift-native \
         "
@@ -55,4 +52,3 @@ RDEPENDS_${PN} = "\
         "
 
 EXTRA_OECONF = "--enable-bmv2 --disable-static CPPFLAGS='${CPPFLAGS} -DHOST_BYTE_ORDER_CALLER'"
-EXTRA_OEMAKE = "PFX=${PKG_CONFIG_SYSROOT_DIR}"
