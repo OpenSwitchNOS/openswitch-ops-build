@@ -2,13 +2,13 @@ SUMMARY = "OpenSwitch Pluggable Module Daemon"
 LICENSE = "Apache-2.0"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/Apache-2.0;md5=89aea4e17d99a7cacdbeed46a0096b10"
 
-DEPENDS = "ops-config-yaml ops-ovsdb"
+DEPENDS = "ops-hw-config ops-ovsdb"
 
 SRC_URI = "git://git.openswitch.net/openswitch/ops-pmd;protocol=http \
            file://ops-pmd.service \
 "
 
-SRCREV = "0f508f453dba49c0d6a3ad21069b1a18e0cb67d0"
+SRCREV = "d42be01b69c5960e2eba08b4134aaa280e55ac7a"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.

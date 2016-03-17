@@ -2,13 +2,13 @@ SUMMARY = "OpenSwitch Power Supply Management Daemon"
 LICENSE = "Apache-2.0"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/Apache-2.0;md5=89aea4e17d99a7cacdbeed46a0096b10"
 
-DEPENDS = "ops-config-yaml ops-ovsdb ops-cli"
+DEPENDS = "ops-hw-config ops-ovsdb ops-cli"
 
 SRC_URI = "git://git.openswitch.net/openswitch/ops-powerd;protocol=http \
            file://ops-powerd.service \
 "
 
-SRCREV = "1d067b7adc094cb8f7328380c6cb4d8b0d379de3"
+SRCREV = "a721e4e7ef17667ba8ec2e648a226c1937d2f385"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.
