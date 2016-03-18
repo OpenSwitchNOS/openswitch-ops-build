@@ -6,13 +6,12 @@ DEPENDS = "openssl python perl systemd libtool libyaml jemalloc ops"
 
 SRC_URI = "git://git.openswitch.net/openswitch/ops-openvswitch;protocol=http \
    file://ovsdb-server.service \
-   file://enable-jemalloc-ovsdb-server.patch \
    file://partial-map-updates.patch \
    file://on-demand-fetching.patch \
    file://compound-indexes.patch \
 "
 
-SRCREV = "3fea99dfad327e5b2492683565bcec79ea474fd4"
+SRCREV = "71b2ed16d42f37064878b2db57f5219bbcfb20e5"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.
@@ -32,10 +31,9 @@ RDEPENDS_ops-ovsdb = "ops"
 RDEPENDS_python-ops-ovsdb = "python-io python-netclient python-datetime \
   python-logging python-threading python-math python-fcntl python-resource"
 
-# ops-openvswitch was patched to support the --enable-jemalloc flag
 EXTRA_OECONF += "TARGET_PYTHON=${bindir}/python \
                  TARGET_PERL=${bindir}/perl \
-                 --disable-static --enable-shared --enable-jemalloc \
+                 --disable-static --enable-shared LIBS=-ljemalloc \
                  ${@bb.utils.contains('MACHINE_FEATURES', 'ops-container', '--enable-simulator-provider', '',d)} \
                  "
 FILES_ops-ovsdb = "/run /var/run /var/log /var/volatile ${bindir}/ovsdb* \
