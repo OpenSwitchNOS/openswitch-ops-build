@@ -32,6 +32,16 @@ S = "${WORKDIR}/git"
 
 inherit openswitch autotools-brokensep
 
+do_compile() {
+	cat ${STAGING_BINDIR}/p4c-bmv2
+	ls -l `head -1 "${STAGING_BINDIR}/p4c-bmv2" | cut -c3-`
+	ls -l `readlink -m $(head -1 "${STAGING_BINDIR}/p4c-bmv2" | cut -c3-)`
+	file `readlink -m $(head -1 "${STAGING_BINDIR}/p4c-bmv2" | cut -c3-)`
+	objdump -x `readlink -m $(head -1 "${STAGING_BINDIR}/p4c-bmv2" | cut -c3-)`
+	echo PATH=$PATH
+	exit 42
+}
+
 # temporary workaround while the correct code enters the repository
 do_install() {
     if test -e "${S}/Makefile" ; then
