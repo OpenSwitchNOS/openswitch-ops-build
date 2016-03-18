@@ -8,4 +8,4 @@ SRC_URI = "git://git.openswitch.net/openswitch/ops-openvswitch;protocol=http;bra
    file://compound-indexes.patch \
 "
 
-SRCREV = "52e9a71a587ca35e244e9d209212f576077b86e9"
+SRCREV = "714194488b13bacf504f1b5b0412807cd1eef7d8"
