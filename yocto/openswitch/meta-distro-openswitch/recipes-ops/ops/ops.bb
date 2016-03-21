@@ -17,6 +17,15 @@ FILES_${PN} = "/usr/share/openvswitch/ /usr/share/openvswitch/*.extschema /usr/s
 OPS_SCHEMA_PATH="${S}/schema"
 
 do_compile() {
+  cp ${OPS_SCHEMA_PATH}/vswitch.xml ${OPS_SCHEMA_PATH}/vswitch.xml.orig
+  cp ${OPS_SCHEMA_PATH}/vswitch.extschema ${OPS_SCHEMA_PATH}/vswitch.extschema.orig
+  cp ${OPS_SCHEMA_PATH}/dhcp_leases.xml ${OPS_SCHEMA_PATH}/dhcp_leases.xml.orig
+  cp ${OPS_SCHEMA_PATH}/dhcp_leases.extschema ${OPS_SCHEMA_PATH}/dhcp_leases.extschema.orig
+  echo ${IMAGE_FEATURES} > ${TOPDIR}/image_features
+  ${PYTHON} ${OPS_SCHEMA_PATH}/schemaprune_xml.py ${OPS_SCHEMA_PATH}/vswitch.xml.orig ${OPS_SCHEMA_PATH}/vswitch.xml ${TOPDIR}/image_features
+  ${PYTHON} ${OPS_SCHEMA_PATH}/schemaprune_xml.py ${OPS_SCHEMA_PATH}/dhcp_leases.xml.orig ${OPS_SCHEMA_PATH}/dhcp_leases.xml ${TOPDIR}/image_features
+  ${PYTHON} ${OPS_SCHEMA_PATH}/schemaprune_json.py ${OPS_SCHEMA_PATH}/vswitch.extschema.orig ${OPS_SCHEMA_PATH}/vswitch.extschema ${TOPDIR}/image_features
+  ${PYTHON} ${OPS_SCHEMA_PATH}/schemaprune_json.py ${OPS_SCHEMA_PATH}/dhcp_leases.extschema.orig ${OPS_SCHEMA_PATH}/dhcp_leases.extschema ${TOPDIR}/image_features
   ${PYTHON} ${OPS_SCHEMA_PATH}/sanitize.py ${OPS_SCHEMA_PATH}/vswitch.extschema ${OPS_SCHEMA_PATH}/vswitch.ovsschema
   ${PYTHON} ${OPS_SCHEMA_PATH}/sanitize.py ${OPS_SCHEMA_PATH}/dhcp_leases.extschema ${OPS_SCHEMA_PATH}/dhcp_leases.ovsschema
   touch ${OPS_SCHEMA_PATH}/vswitch.xml
