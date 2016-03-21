@@ -5,9 +5,9 @@ After=ovsdb-server.service ops-init.service
 
 [Service]
 Type=forking
-ExecStart=/etc/init.d/hsflowd start
-ExecStop=/etc/init.d/hsflowd stop
-ExecReload=/etc/init.d/hsflowd restart
+ExecStart=/sbin/ip netns exec swns /etc/init.d/hsflowd start
+ExecStop=/sbin/ip netns exec swns /etc/init.d/hsflowd stop
+ExecReload=/sbin/ip netns exec swns /etc/init.d/hsflowd restart
 
 
 [Install]
