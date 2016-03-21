@@ -7,8 +7,14 @@ BB_GENERATE_MIRROR_TARBALLS = "0"
 CFLAGS += "-DHALON"
 CFLAGS += "-DOPS"
 
-# Do builds with debug mode by default
-DEBUG_BUILD = "1"
+# Do builds with debug mode by default if the code is on the devenv
+def enable_devenv_debugging(d):
+    externalsrc = d.getVar('EXTERNALSRC', True)
+    if externalsrc:
+        return "1"
+    return "0"
+
+DEBUG_BUILD = "${@enable_devenv_debugging(d)}"
 
 # Enable profiling for devenv recipes (meaning they are in external src)
 def enable_devenv_profiling(d):
@@ -17,7 +23,9 @@ def enable_devenv_profiling(d):
         if os.path.isfile(os.path.join(d.getVar('TOPDIR', True), 'devenv-coverage-enabled')):
             d.setVar("INHIBIT_PACKAGE_STRIP", "1")
             d.prependVarFlag('do_compile', 'prefuncs', "profile_compile_prefunc ")
-            return "-fprofile-arcs -ftest-coverage"
+            return "-fprofile-arcs -ftest-coverage -fdebug-prefix-map=${@d.getVar('S')}=/usr/src/debug/${BPN}/${PV}-${PR} "
+        # Inside the devenv, we need symbol remmaping to get the split debug packages to work properly
+        return "-fdebug-prefix-map=${@d.getVar('S')}=/usr/src/debug/${BPN}/${PV}-${PR}"
     return ""
 
 python profile_compile_prefunc() {
@@ -25,7 +33,7 @@ python profile_compile_prefunc() {
 }
 
 # Debug flags is used by DEBUG_OPTIMIZATION that is used by SELECTED_OPTIMIZATION when DEBUG_BUILD is 1
-DEBUG_FLAGS = "${@enable_devenv_profiling(d)}"
+DEBUG_FLAGS += "${@enable_devenv_profiling(d)}"
 
 # Support for static analysis using HP Fortify
 inherit python-dir
