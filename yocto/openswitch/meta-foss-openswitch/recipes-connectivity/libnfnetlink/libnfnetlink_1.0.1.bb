@@ -16,8 +16,3 @@ SRC_URI[tar.md5sum] = "98927583d2016a9fb1936fed992e2c5e"
 SRC_URI[tar.sha256sum] = "f270e19de9127642d2a11589ef2ec97ef90a649a74f56cf9a96306b04817b51a"
 
 inherit autotools pkgconfig
-
-do_install_prepend () {
-    install -d ${D}${libdir}
-    oe_libinstall -so libnfnetlink ${D}${libdir}
-}
