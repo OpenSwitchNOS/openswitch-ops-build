@@ -1,17 +1,17 @@
-From cce442785f22ffea7d0828fd54544fe8f0afe3bc Mon Sep 17 00:00:00 2001
-From: Diego Dompe <dompe@hpe.com>
-Date: Mon, 28 Dec 2015 13:32:54 -0600
+From b9b701d6f42c96cc82ba01ca0ee335853d38bc8e Mon Sep 17 00:00:00 2001
+From: Ligeo George <ligeo.george@hpe.com>
+Date: Mon, 21 Mar 2016 16:28:38 -0700
 Subject: [PATCH] Fix makefiles to support cross compiling
 
-Signed-off-by: Diego Dompe <dompe@hpe.com>
+Signed-off-by: Ligeo George <ligeo.george@hpe.com>
 ---
- src/Linux/Makefile | 21 +++++++++++----------
+ src/Linux/Makefile | 23 ++++++++++++-----------
  src/json/Makefile  |  2 +-
  src/sflow/Makefile |  3 +--
- 3 files changed, 13 insertions(+), 13 deletions(-)
+ 3 files changed, 14 insertions(+), 14 deletions(-)
 
 diff --git a/src/Linux/Makefile b/src/Linux/Makefile
-index c508f25..5c266bc 100644
+index c508f25..d28a9ff 100644
 --- a/src/Linux/Makefile
 +++ b/src/Linux/Makefile
 @@ -5,10 +5,10 @@ HEADERS= hsflowd.h hsflowtokens.h hsflow_ethtool.h sflowovsd.h cpu_utils.h Makef
@@ -36,7 +36,7 @@ index c508f25..5c266bc 100644
  endif
  ifeq ($(ULOG),yes)
  	CFLAGS += -DHSF_ULOG
-@@ -31,7 +31,7 @@ endif
+@@ -31,17 +31,17 @@ endif
  # if NFLOG is not set, assume it should be "yes" if the include file is present
  # (So you can use "make NFLOG=no" to compile without this feature)
  ifeq ($(NFLOG),)
@@ -45,7 +45,11 @@ index c508f25..5c266bc 100644
  endif
  ifeq ($(NFLOG),yes)
  #	CFLAGS += -I/usr/include/libnl3 -DHSF_NFLOG
-@@ -41,7 +41,7 @@ ifeq ($(NFLOG),yes)
+ #	LIBS += -lnl-3 -lnl-nf-3
+-	CFLAGS += -I/usr/include/libnfnetlink -DHSF_NFLOG
+-	LIBS += -lnfnetlink
++	CFLAGS += -I$(TARGET_SYSROOT)/usr/include/libnfnetlink -DHSF_NFLOG
++	LIBS += -L$(TARGET_SYSROOT)/usr/lib -lnfnetlink
  endif
  
  # make the inclusion of sflowovsd options
@@ -63,14 +67,7 @@ index c508f25..5c266bc 100644
  ifeq ($(INSTROOT),)
  	BIN_D=$(BINDIR)
  	INIT_D=$(INITDIR)
-@@ -275,13 +277,13 @@ install: $(INSTALLTGTS)
- install-hsflowd: hsflowd
- 	$(INSTALL) -d $(BIN_D)
- 	$(INSTALL) -m 700 hsflowd $(BIN_D)
--	if [ ! -e $(INIT_D)/hsflowd ]; then $(INSTALL) -d $(INIT_D); $(INSTALL) -m 755 $(HSFLOWD_INITSCRIPT) $(INIT_D)/hsflowd; fi
-+	if [ ! -e $(INIT_D)/hsflowd ]; then $(INSTALL) -d $(INIT_D); $(INSTALL) -m 755 $(HSFLOWD_INITSCRIPT) $(INIT_D)/hsflowd; fi
- 	if [ ! -e $(CONF_D)/hsflowd.conf ]; then $(INSTALL) -d $(CONF_D); $(INSTALL) -m 644 scripts/hsflowd.conf $(CONF_D); fi
- 
+@@ -281,7 +283,7 @@ install-hsflowd: hsflowd
  install-sflowovsd: sflowovsd
  	$(INSTALL) -d $(BIN_D)
  	$(INSTALL) -m 700 sflowovsd $(BIN_D)
