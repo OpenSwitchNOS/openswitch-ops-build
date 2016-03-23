@@ -1,0 +1,27 @@
+From a3ef59badf516a184583b180a089f738c5ca23ab Mon Sep 17 00:00:00 2001
+From: PRD <dinesh.ramakrishnan@hpe.com>
+Date: Mon, 28 Mar 2016 03:48:30 -0700
+Subject: [PATCH] Rsyslog support over data ports
+
+---
+ rsyslog.service.in | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/rsyslog.service.in b/rsyslog.service.in
+index 8e2d64c..9bbd96a 100644
+--- a/rsyslog.service.in
++++ b/rsyslog.service.in
+@@ -4,8 +4,9 @@ Requires=syslog.socket
+ 
+ [Service]
+ Type=notify
+-ExecStart=@sbindir@/rsyslogd -n
++ExecStart=/sbin/ip netns exec swns @sbindir@/rsyslogd -n
+ StandardOutput=null
++Restart=on-abort
+ 
+ [Install]
+ WantedBy=multi-user.target
+-- 
+1.9.1
+
