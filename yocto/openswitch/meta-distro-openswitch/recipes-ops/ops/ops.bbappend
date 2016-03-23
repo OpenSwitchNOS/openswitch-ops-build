@@ -2,4 +2,4 @@
 
 SRC_URI = "git://git.openswitch.net/openswitch/ops;protocol=https;branch=feature/acl"
 
-SRCREV = "cdab0d846ac51c2aafc05119d760d9d83708bc09"
+SRCREV = "7beb9036a15cba521564cf7b0d9099b677e671ab"
