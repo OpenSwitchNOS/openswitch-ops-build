@@ -17,27 +17,22 @@ FILES_${PN} = "/usr/share/openvswitch/ /usr/share/openvswitch/*.extschema /usr/s
 OPS_SCHEMA_PATH="${S}/schema"
 
 do_compile() {
-  cp ${OPS_SCHEMA_PATH}/vswitch.xml ${OPS_SCHEMA_PATH}/vswitch.xml.orig
-  cp ${OPS_SCHEMA_PATH}/vswitch.extschema ${OPS_SCHEMA_PATH}/vswitch.extschema.orig
-  cp ${OPS_SCHEMA_PATH}/dhcp_leases.xml ${OPS_SCHEMA_PATH}/dhcp_leases.xml.orig
-  cp ${OPS_SCHEMA_PATH}/dhcp_leases.extschema ${OPS_SCHEMA_PATH}/dhcp_leases.extschema.orig
   echo ${IMAGE_FEATURES} > ${TOPDIR}/image_features
-  ${PYTHON} ${OPS_SCHEMA_PATH}/schemaprune_xml.py ${OPS_SCHEMA_PATH}/vswitch.xml.orig ${OPS_SCHEMA_PATH}/vswitch.xml ${TOPDIR}/image_features
-  ${PYTHON} ${OPS_SCHEMA_PATH}/schemaprune_xml.py ${OPS_SCHEMA_PATH}/dhcp_leases.xml.orig ${OPS_SCHEMA_PATH}/dhcp_leases.xml ${TOPDIR}/image_features
-  ${PYTHON} ${OPS_SCHEMA_PATH}/schemaprune_json.py ${OPS_SCHEMA_PATH}/vswitch.extschema.orig ${OPS_SCHEMA_PATH}/vswitch.extschema ${TOPDIR}/image_features
-  ${PYTHON} ${OPS_SCHEMA_PATH}/schemaprune_json.py ${OPS_SCHEMA_PATH}/dhcp_leases.extschema.orig ${OPS_SCHEMA_PATH}/dhcp_leases.extschema ${TOPDIR}/image_features
-  ${PYTHON} ${OPS_SCHEMA_PATH}/sanitize.py ${OPS_SCHEMA_PATH}/vswitch.extschema ${OPS_SCHEMA_PATH}/vswitch.ovsschema
-  ${PYTHON} ${OPS_SCHEMA_PATH}/sanitize.py ${OPS_SCHEMA_PATH}/dhcp_leases.extschema ${OPS_SCHEMA_PATH}/dhcp_leases.ovsschema
-  touch ${OPS_SCHEMA_PATH}/vswitch.xml
+  ${PYTHON} ${OPS_SCHEMA_PATH}/schemaprune_xml.py ${OPS_SCHEMA_PATH}/vswitch.xml ${OPS_SCHEMA_PATH}/vswitch.untag.xml ${TOPDIR}/image_features
+  ${PYTHON} ${OPS_SCHEMA_PATH}/schemaprune_xml.py ${OPS_SCHEMA_PATH}/dhcp_leases.xml ${OPS_SCHEMA_PATH}/dhcp_leases.untag.xml ${TOPDIR}/image_features
+  ${PYTHON} ${OPS_SCHEMA_PATH}/schemaprune_json.py ${OPS_SCHEMA_PATH}/vswitch.extschema ${OPS_SCHEMA_PATH}/vswitch.untag.extschema ${TOPDIR}/image_features
+  ${PYTHON} ${OPS_SCHEMA_PATH}/schemaprune_json.py ${OPS_SCHEMA_PATH}/dhcp_leases.extschema ${OPS_SCHEMA_PATH}/dhcp_leases.untag.extschema ${TOPDIR}/image_features
+  ${PYTHON} ${OPS_SCHEMA_PATH}/sanitize.py ${OPS_SCHEMA_PATH}/vswitch.untag.extschema ${OPS_SCHEMA_PATH}/vswitch.ovsschema
+  ${PYTHON} ${OPS_SCHEMA_PATH}/sanitize.py ${OPS_SCHEMA_PATH}/dhcp_leases.untag.extschema ${OPS_SCHEMA_PATH}/dhcp_leases.ovsschema
 }
 
 do_install() {
   install -d ${D}/${prefix}/share/openvswitch
-	install -m 0644 ${OPS_SCHEMA_PATH}/vswitch.extschema ${D}/${prefix}/share/openvswitch/vswitch.extschema
+	install -m 0644 ${OPS_SCHEMA_PATH}/vswitch.untag.extschema ${D}/${prefix}/share/openvswitch/vswitch.extschema
 	install -m 0644 ${OPS_SCHEMA_PATH}/vswitch.ovsschema ${D}/${prefix}/share/openvswitch/vswitch.ovsschema
-	install -m 0644 ${OPS_SCHEMA_PATH}/vswitch.xml ${D}/${prefix}/share/openvswitch/vswitch.xml
-	install -m 0644 ${OPS_SCHEMA_PATH}/dhcp_leases.extschema ${D}/${prefix}/share/openvswitch/dhcp_leases.extschema
+	install -m 0644 ${OPS_SCHEMA_PATH}/vswitch.untag.xml ${D}/${prefix}/share/openvswitch/vswitch.xml
+	install -m 0644 ${OPS_SCHEMA_PATH}/dhcp_leases.untag.extschema ${D}/${prefix}/share/openvswitch/dhcp_leases.extschema
 	install -m 0644 ${OPS_SCHEMA_PATH}/dhcp_leases.ovsschema ${D}/${prefix}/share/openvswitch/dhcp_leases.ovsschema
-	install -m 0644 ${OPS_SCHEMA_PATH}/dhcp_leases.xml ${D}/${prefix}/share/openvswitch/dhcp_leases.xml
+	install -m 0644 ${OPS_SCHEMA_PATH}/dhcp_leases.untag.xml ${D}/${prefix}/share/openvswitch/dhcp_leases.xml
 	install -m 0644 ${OPS_SCHEMA_PATH}/configdb.ovsschema ${D}/${prefix}/share/openvswitch/configdb.ovsschema
 }
