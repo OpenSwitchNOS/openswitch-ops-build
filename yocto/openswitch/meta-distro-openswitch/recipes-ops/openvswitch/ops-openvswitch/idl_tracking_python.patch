@@ -1,18 +1,16 @@
 diff --git a/python/ovs/db/idl.py b/python/ovs/db/idl.py
-index b6c986e..b9490e9 100644
+index b6c986e..54bef8a 100644
 --- a/python/ovs/db/idl.py
 +++ b/python/ovs/db/idl.py
-@@ -14,6 +14,9 @@
+@@ -13,6 +13,7 @@
+ # limitations under the License.
  
  import uuid
- 
-+import six
 +import collections
-+
+ 
  import ovs.jsonrpc
  import ovs.db.parser
- import ovs.db.schema
-@@ -406,7 +409,19 @@ class Idl(object):
+@@ -406,7 +407,19 @@ class Idl(object):
          if not new:
              # Delete row.
              if row:
@@ -33,7 +31,7 @@ index b6c986e..b9490e9 100644
                  changed = True
                  self.notify(ROW_DELETE, row)
              else:
-@@ -418,6 +433,13 @@ class Idl(object):
+@@ -418,6 +431,13 @@ class Idl(object):
              if not row:
                  row = self.__create_row(table, uuid)
                  changed = True
@@ -47,19 +45,20 @@ index b6c986e..b9490e9 100644
              else:
                  # XXX rate-limit
                  vlog.warn("cannot add existing row %s to table %s"
-@@ -441,7 +463,10 @@ class Idl(object):
+@@ -439,8 +459,12 @@ class Idl(object):
+                 self.notify(op, row, Row.from_json(self, table, uuid, old))
+         return changed
  
++
      def __row_update(self, table, row, row_json):
          changed = False
--        for column_name, datum_json in row_json.iteritems():
 +
 +        # tracking
 +        tracked_columns = []
-+        for column_name, datum_json in six.iteritems(row_json):
+         for column_name, datum_json in row_json.iteritems():
              column = table.columns.get(column_name)
              if not column:
-                 # XXX rate-limit
-@@ -451,7 +476,7 @@ class Idl(object):
+@@ -451,7 +475,7 @@ class Idl(object):
  
              try:
                  datum = ovs.db.data.Datum.from_json(column.type, datum_json)
@@ -68,7 +67,7 @@ index b6c986e..b9490e9 100644
                  # XXX rate-limit
                  vlog.warn("error parsing column %s in table %s: %s"
                            % (column_name, table.name, e))
-@@ -459,12 +484,29 @@ class Idl(object):
+@@ -459,12 +483,29 @@ class Idl(object):
  
              if datum != row._data[column_name]:
                  row._data[column_name] = datum
@@ -98,7 +97,7 @@ index b6c986e..b9490e9 100644
          return changed
  
      def __create_row(self, table, uuid):
-@@ -487,6 +529,108 @@ class Idl(object):
+@@ -487,6 +528,108 @@ class Idl(object):
          if txn:
              txn._process_reply(msg)
  
@@ -207,8 +206,11 @@ index b6c986e..b9490e9 100644
  
  def _uuid_to_row(atom, base):
      if base.ref_table:
-@@ -1404,3 +1548,41 @@ class SchemaHelper(object):
+@@ -1401,6 +1544,43 @@ class SchemaHelper(object):
+             assert column_name in table.columns
  
+             new_columns[column_name] = table.columns[column_name]
+-
          table.columns = new_columns
          return table
 +
