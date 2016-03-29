@@ -1,0 +1,939 @@
+diff --git a/vtep/README.ovs-vtep.md b/vtep/README.ovs-vtep.md
+index e5ba0ca..6734dab 100644
+--- a/vtep/README.ovs-vtep.md
++++ b/vtep/README.ovs-vtep.md
+@@ -173,6 +173,7 @@ vtep-ctl add-mcast-remote ls0 unknown-dst 10.2.2.2
+       ```
+
+ 4. Direct unicast destinations out a different tunnel:
++
+       ```
+ vtep-ctl add-ucast-remote ls0 00:11:22:33:44:55 10.2.2.3
+       ```
+diff --git a/vtep/ovs-vtep b/vtep/ovs-vtep
+index 46a5692..31ff159 100755
+--- a/vtep/ovs-vtep
++++ b/vtep/ovs-vtep
+@@ -29,6 +29,8 @@ import ovs.util
+ import ovs.daemon
+ import ovs.unixctl.server
+ import ovs.vlog
++from six.moves import range
++import six
+
+
+ VERSION = "0.99"
+@@ -49,21 +51,25 @@ tun_id = 0
+ bfd_bridge = "vtep_bfd"
+ bfd_ref = {}
+
++
+ def call_prog(prog, args_list):
+     cmd = [prog, "-vconsole:off"] + args_list
+     output = subprocess.Popen(cmd, stdout=subprocess.PIPE).communicate()
+-    if len(output) == 0 or output[0] == None:
++    if len(output) == 0 or output[0] is None:
+         output = ""
+     else:
+         output = output[0].strip()
+     return output
+
++
+ def ovs_vsctl(args):
+     return call_prog("ovs-vsctl", shlex.split(args))
+
++
+ def ovs_ofctl(args):
+     return call_prog("ovs-ofctl", shlex.split(args))
+
++
+ def vtep_ctl(args):
+     return call_prog("vtep-ctl", shlex.split(args))
+
+@@ -96,7 +102,7 @@ class Logical_Switch(object):
+         column = vtep_ctl("--columns=tunnel_key find logical_switch "
+                               "name=%s" % self.name)
+         tunnel_key = column.partition(":")[2].strip()
+-        if (tunnel_key and type(eval(tunnel_key)) == types.IntType):
++        if tunnel_key and isinstance(eval(tunnel_key), types.IntType):
+             self.tunnel_key = tunnel_key
+             vlog.info("using tunnel key %s in %s"
+                       % (self.tunnel_key, self.name))
+@@ -122,11 +128,11 @@ class Logical_Switch(object):
+         ovs_ofctl("add-flow %s priority=0,action=drop" % self.short_name)
+
+     def cleanup_ls(self):
+-        for port_no, tun_name, remote_ip in self.tunnels.itervalues():
++        for port_no, tun_name, remote_ip in six.itervalues(self.tunnels):
+             del_bfd(remote_ip)
+
+     def update_flood(self):
+-        flood_ports = self.ports.values()
++        flood_ports = list(self.ports.values())
+
+         # Traffic flowing from one 'unknown-dst' should not be flooded to
+         # port belonging to another 'unknown-dst'.
+@@ -161,7 +167,7 @@ class Logical_Switch(object):
+     def del_lbinding(self, lbinding):
+         vlog.info("removing %s binding from %s" % (lbinding, self.name))
+         port_no = self.ports[lbinding]
+-        ovs_ofctl("del-flows %s in_port=%s" % (self.short_name, port_no));
++        ovs_ofctl("del-flows %s in_port=%s" % (self.short_name, port_no))
+         del self.ports[lbinding]
+         self.update_flood()
+
+@@ -233,7 +239,7 @@ class Logical_Switch(object):
+         self.local_macs = macs
+
+     def add_remote_mac(self, mac, tunnel):
+-        port_no = self.tunnels.get(tunnel, (0,""))[0]
++        port_no = self.tunnels.get(tunnel, (0, ""))[0]
+         if not port_no:
+             return
+
+@@ -277,12 +283,12 @@ class Logical_Switch(object):
+         for tunnel in old_tunnels.difference(tunnels):
+             self.del_tunnel(tunnel)
+
+-        for mac in remote_macs.keys():
++        for mac in six.iterkeys(remote_macs):
+             if (self.remote_macs.get(mac) != remote_macs[mac]):
+                 self.add_remote_mac(mac, remote_macs[mac])
+
+-        for mac in self.remote_macs.keys():
+-            if not remote_macs.has_key(mac):
++        for mac in six.iterkeys(self.remote_macs):
++            if mac not in remote_macs:
+                 self.del_remote_mac(mac)
+
+         self.remote_macs = remote_macs
+@@ -296,14 +302,14 @@ class Logical_Switch(object):
+         # vtep's logical_binding_stats. Since we are using the 'interface' from
+         # the logical switch to collect stats, packets transmitted from it
+         # is received in the physical switch and vice versa.
+-        stats_map = {'tx_packets':'packets_to_local',
+-                    'tx_bytes':'bytes_to_local',
+-                    'rx_packets':'packets_from_local',
+-                     'rx_bytes':'bytes_from_local'}
++        stats_map = {'tx_packets': 'packets_to_local',
++                     'tx_bytes': 'bytes_to_local',
++                     'rx_packets': 'packets_from_local',
++                     'rx_bytes': 'bytes_from_local'}
+
+         # Go through all the logical switch's interfaces that end with "-l"
+         # and copy the statistics to logical_binding_stats.
+-        for interface in self.ports.iterkeys():
++        for interface in six.iterkeys(self.ports):
+             if not interface.endswith("-l"):
+                 continue
+             # Physical ports can have a '-' as part of its name.
+@@ -314,7 +320,7 @@ class Logical_Switch(object):
+             if not uuid:
+                 continue
+
+-            for (mapfrom, mapto) in stats_map.iteritems():
++            for mapfrom, mapto in six.iteritems(stats_map):
+                 value = ovs_vsctl("get interface %s statistics:%s"
+                                 % (interface, mapfrom)).strip('"')
+                 vtep_ctl("set logical_binding_stats %s %s=%s"
+@@ -325,6 +331,7 @@ class Logical_Switch(object):
+         self.update_remote_macs()
+         self.update_stats()
+
++
+ def get_vtep_tunnel(remote_ip):
+     # Get the physical_locator record for the local tunnel end point.
+     column = vtep_ctl("--columns=_uuid find physical_locator "
+@@ -346,6 +353,7 @@ def get_vtep_tunnel(remote_ip):
+
+     return (local, remote, tunnel)
+
++
+ def create_vtep_tunnel(remote_ip):
+     local, remote, tunnel = get_vtep_tunnel(remote_ip)
+     if not local or not remote:
+@@ -356,9 +364,10 @@ def create_vtep_tunnel(remote_ip):
+                   % remote_ip)
+         tunnel = vtep_ctl("add physical_switch %s tunnels @tun -- "
+                           "--id=@tun create Tunnel local=%s remote=%s"
+-                          %(ps_name, local, remote))
++                          % (ps_name, local, remote))
+     return tunnel
+
++
+ def destroy_vtep_tunnel(remote_ip):
+     local, remote, tunnel = get_vtep_tunnel(remote_ip)
+     if tunnel:
+@@ -368,6 +377,7 @@ def destroy_vtep_tunnel(remote_ip):
+                  "-- --if-exists destroy tunnel %s"
+                  % (ps_name, tunnel, tunnel))
+
++
+ def add_bfd(remote_ip):
+     # The VTEP emulator creates one OVS bridge for every logical switch.
+     # Multiple logical switches can have multiple OVS tunnels to the
+@@ -397,6 +407,7 @@ def add_bfd(remote_ip):
+     # conditions, pass the responsibility of creating a 'tunnel' record
+     # to run_bfd() which runs more often.
+
++
+ def del_bfd(remote_ip):
+     if remote_ip in bfd_ref:
+         if bfd_ref[remote_ip] == 1:
+@@ -408,6 +419,7 @@ def del_bfd(remote_ip):
+         else:
+             bfd_ref[remote_ip] -= 1
+
++
+ def run_bfd():
+     bfd_ports = ovs_vsctl("list-ports %s" % bfd_bridge).split()
+     for port in bfd_ports:
+@@ -416,15 +428,15 @@ def run_bfd():
+         if not tunnel:
+             continue
+
+-        bfd_params_default = {'bfd_params:enable' : 'false',
+-                              'bfd_params:min_rx' : 1000,
+-                              'bfd_params:min_tx' : 100,
+-                              'bfd_params:decay_min_rx' : 0,
+-                              'bfd_params:cpath_down' : 'false',
+-                              'bfd_params:check_tnl_key' : 'false'}
++        bfd_params_default = {'bfd_params:enable': 'false',
++                              'bfd_params:min_rx': 1000,
++                              'bfd_params:min_tx': 100,
++                              'bfd_params:decay_min_rx': 0,
++                              'bfd_params:cpath_down': 'false',
++                              'bfd_params:check_tnl_key': 'false'}
+         bfd_params_values = {}
+
+-        for key, default in bfd_params_default.iteritems():
++        for key, default in six.iteritems(bfd_params_default):
+             column = vtep_ctl("--if-exists get tunnel %s %s"
+                                % (tunnel, key))
+             if not column:
+@@ -432,8 +444,8 @@ def run_bfd():
+             else:
+                 bfd_params_values[key] = column
+
+-        for key, value in bfd_params_values.iteritems():
+-            new_key = key.replace('_params','')
++        for key, value in six.iteritems(bfd_params_values):
++            new_key = key.replace('_params', '')
+             ovs_vsctl("set interface %s %s=%s" % (port, new_key, value))
+
+         bfd_status = ['bfd_status:state', 'bfd_status:forwarding',
+@@ -442,7 +454,7 @@ def run_bfd():
+         for key in bfd_status:
+             value = ovs_vsctl("--if-exists get interface %s %s" % (port, key))
+             if value:
+-                vtep_ctl("set tunnel %s %s=%s" %(tunnel, key, value))
++                vtep_ctl("set tunnel %s %s=%s" % (tunnel, key, value))
+             else:
+                 new_key = key.replace('bfd_status:', '')
+                 vtep_ctl("remove tunnel %s bfd_status %s" % (tunnel, new_key))
+@@ -451,11 +463,11 @@ def run_bfd():
+                  % (tunnel, bfd_params_values['bfd_params:enable']))
+
+         # Add the defaults as described in VTEP schema to make it explicit.
+-        bfd_lconf_default = {'bfd_config_local:bfd_dst_ip' : '169.254.1.0',
+-                             'bfd_config_local:bfd_dst_mac' :
++        bfd_lconf_default = {'bfd_config_local:bfd_dst_ip': '169.254.1.0',
++                             'bfd_config_local:bfd_dst_mac':
+                                     '00:23:20:00:00:01'}
+-        for key, value in bfd_lconf_default.iteritems():
+-            vtep_ctl("set tunnel %s %s=%s" %(tunnel, key, value))
++        for key, value in six.iteritems(bfd_lconf_default):
++            vtep_ctl("set tunnel %s %s=%s" % (tunnel, key, value))
+
+         # bfd_config_remote options from VTEP DB should be populated to
+         # corresponding OVS DB values.
+@@ -475,12 +487,13 @@ def run_bfd():
+                   bfd_lconf_default['bfd_config_local:bfd_dst_mac'],
+                   bfd_dst_mac))
+
++
+ def add_binding(binding, ls):
+     vlog.info("adding binding %s" % binding)
+
+     vlan, pp_name = binding.split("-", 1)
+-    pbinding = binding+"-p"
+-    lbinding = binding+"-l"
++    pbinding = binding + "-p"
++    lbinding = binding + "-l"
+
+     # Create a patch port that connects the VLAN+port to the lswitch.
+     # Do them as two separate calls so if one side already exists, the
+@@ -509,19 +522,20 @@ def add_binding(binding, ls):
+     # Create a logical_bindings_stats record.
+     if not vlan_:
+         vlan_ = "0"
+-    vtep_ctl("set physical_port %s vlan_stats:%s=@stats --\
+-            --id=@stats create logical_binding_stats packets_from_local=0"\
+-            % (pp_name, vlan_))
++    vtep_ctl("set physical_port %s vlan_stats:%s=@stats -- "
++             "--id=@stats create logical_binding_stats packets_from_local=0"
++             % (pp_name, vlan_))
+
+     ls.add_lbinding(lbinding)
+     Bindings[binding] = ls.name
+
++
+ def del_binding(binding, ls):
+     vlog.info("removing binding %s" % binding)
+
+     vlan, pp_name = binding.split("-", 1)
+-    pbinding = binding+"-p"
+-    lbinding = binding+"-l"
++    pbinding = binding + "-p"
++    lbinding = binding + "-l"
+
+     port_no = ovs_vsctl("get Interface %s ofport" % pp_name)
+     patch_no = ovs_vsctl("get Interface %s ofport" % pbinding)
+@@ -531,8 +545,8 @@ def del_binding(binding, ls):
+                   % (ps_name, port_no, vlan_))
+         ovs_ofctl("del-flows %s in_port=%s" % (ps_name, patch_no))
+     else:
+-        ovs_ofctl("del-flows %s in_port=%s" % (ps_name, port_no))
+-        ovs_ofctl("del-flows %s in_port=%s" % (ps_name, patch_no))
++        ovs_ofctl("--strict del-flows %s in_port=%s" % (ps_name, port_no))
++        ovs_ofctl("--strict del-flows %s in_port=%s" % (ps_name, patch_no))
+
+     ls.del_lbinding(lbinding)
+
+@@ -545,6 +559,7 @@ def del_binding(binding, ls):
+
+     del Bindings[binding]
+
++
+ def handle_physical():
+     # Gather physical ports except the patch ports we created
+     ovs_ports = ovs_vsctl("list-ports %s" % ps_name).split()
+@@ -574,7 +589,7 @@ def handle_physical():
+             ls = Lswitches[ls_name]
+             new_bindings.add(binding)
+
+-            if Bindings.has_key(binding):
++            if binding in Bindings:
+                 if Bindings[binding] == ls_name:
+                     continue
+                 else:
+@@ -582,7 +597,6 @@ def handle_physical():
+
+             add_binding(binding, ls)
+
+-
+     dead_bindings = set(Bindings.keys()).difference(new_bindings)
+     for binding in dead_bindings:
+         ls_name = Bindings[binding]
+@@ -596,6 +610,7 @@ def handle_physical():
+             vtep_ctl("clear-local-macs %s" % Lswitches[ls_name].name)
+             del Lswitches[ls_name]
+
++
+ def setup():
+     br_list = ovs_vsctl("list-br").split()
+     if (ps_name not in br_list):
+@@ -641,7 +656,7 @@ def setup():
+             for port in bfd_ports:
+                 remote_ip = ovs_vsctl("get interface %s options:remote_ip"
+                                       % port)
+-                tunnel = destroy_vtep_tunnel(remote_ip)
++                destroy_vtep_tunnel(remote_ip)
+
+             ovs_vsctl("del-br %s" % br)
+
+@@ -651,6 +666,13 @@ def setup():
+     else:
+         ovs_vsctl("add-br %s" % bfd_bridge)
+
++    # Remove local-mac entries from the previous run.  Otherwise, if a vlan
++    # binding is removed while the emulator is *not* running, the corresponding
++    # local-mac entries are never cleaned up.
++    vtep_ls = set(vtep_ctl("list-ls").split())
++    for ls_name in vtep_ls:
++        vtep_ctl("clear-local-macs %s" % ls_name)
++
+
+ def main():
+     parser = argparse.ArgumentParser()
+@@ -692,7 +714,7 @@ def main():
+
+         handle_physical()
+
+-        for ls_name, ls in Lswitches.items():
++        for ls_name, ls in six.iteritems(Lswitches):
+             ls.run()
+
+         run_bfd()
+diff --git a/vtep/vtep-ctl.8.in b/vtep/vtep-ctl.8.in
+index 21fb6db..129c7ed 100644
+--- a/vtep/vtep-ctl.8.in
++++ b/vtep/vtep-ctl.8.in
+@@ -195,6 +195,31 @@ combination on the physical switch \fIpswitch\fR.
+ List the logical switch bindings for \fIport\fR on the physical switch
+ \fIpswitch\fR.
+ .
++.SS "Logical Router Commands"
++These commands examine and manipulate logical routers.
++.
++.IP "[\fB\-\-may\-exist\fR] \fBadd\-lr \fIlrouter\fR"
++Creates a new logical router named \fIlrouter\fR.
++.IP
++Without \fB\-\-may\-exist\fR, attempting to create a router that
++exists is an error.  With \fB\-\-may\-exist\fR, this command does
++nothing if \fIlrouter\fR already exists.
++.
++.IP "[\fB\-\-if\-exists\fR] \fBdel\-lr \fIlrouter\fR"
++Deletes \fIlrouter\fR.
++.IP
++Without \fB\-\-if\-exists\fR, attempting to delete a router that does
++not exist is an error.  With \fB\-\-if\-exists\fR, attempting to
++delete a router that does not exist has no effect.
++.
++.IP "\fBlist\-lr\fR"
++Lists all existing logical routers on standard output, one per line.
++.
++.IP "\fBlr\-exists \fIlrouter\fR"
++Tests whether \fIlrouter\fR exists.  If so, \fBvtep\-ctl\fR exits
++successfully with exit code 0.  If not, \fBvtep\-ctl\fR exits
++unsuccessfully with exit code 2.
++
+ .SS "Local MAC Binding Commands"
+ These commands examine and manipulate local MAC bindings for the logical
+ switch.  The local maps are written by the VTEP to refer to MACs it has
+diff --git a/vtep/vtep-ctl.c b/vtep/vtep-ctl.c
+index 604d19d..bbcda75 100644
+--- a/vtep/vtep-ctl.c
++++ b/vtep/vtep-ctl.c
+@@ -1,5 +1,5 @@
+ /*
+- * Copyright (c) 2009, 2010, 2011, 2012, 2014, 2015 Nicira, Inc.
++ * Copyright (c) 2009, 2010, 2011, 2012, 2014, 2015, 2016 Nicira, Inc.
+  *
+  * Licensed under the Apache License, Version 2.0 (the "License");
+  * you may not use this file except in compliance with the License.
+@@ -87,6 +87,9 @@ static void do_vtep_ctl(const char *args, struct ctl_command *, size_t n,
+ static struct vtep_ctl_lswitch *find_lswitch(struct vtep_ctl_context *,
+                                              const char *name,
+                                              bool must_exist);
++static struct vtep_ctl_lrouter *find_lrouter(struct vtep_ctl_context *,
++                                             const char *name,
++                                             bool must_exist);
+
+ int
+ main(int argc, char *argv[])
+@@ -334,6 +337,12 @@ Logical Switch commands:\n\
+   unbind-ls PS PORT VLAN      unbind logical switch on VLAN from PORT\n\
+   list-bindings PS PORT       list bindings for PORT on PS\n\
+ \n\
++Logical Router commands:\n\
++  add-lr LR                   create a new logical router named LR\n\
++  del-lr LR                   delete LR\n\
++  list-lr                     print the names of all the logical routers\n\
++  lr-exists LR                exit 2 if LR does not exist\n\
++\n\
+ MAC binding commands:\n\
+   add-ucast-local LS MAC [ENCAP] IP   add ucast local entry in LS\n\
+   del-ucast-local LS MAC              del ucast local entry from LS\n\
+@@ -437,6 +446,8 @@ struct vtep_ctl_context {
+                              * struct vtep_ctl_lswitch. */
+     struct shash plocs;     /* Maps from "<encap>+<dst_ip>" to
+                              * struct vteprec_physical_locator. */
++    struct shash lrouters;  /* Maps from logical router name to
++                             * struct vtep_ctl_lrouter. */
+ };
+
+ /* Casts 'base' into 'struct vtep_ctl_context'. */
+@@ -468,6 +479,11 @@ struct vtep_ctl_lswitch {
+     struct shash mcast_remote;  /* Maps from mac to vtep_ctl_mcast_mac. */
+ };
+
++struct vtep_ctl_lrouter {
++    const struct vteprec_logical_router *lr_cfg;
++    char *name;
++};
++
+ struct vtep_ctl_mcast_mac {
+     const struct vteprec_mcast_macs_local *local_cfg;
+     const struct vteprec_mcast_macs_remote *remote_cfg;
+@@ -648,6 +664,28 @@ del_cached_ls_binding(struct vtep_ctl_port *port, const char *vlan)
+     shash_find_and_delete(&port->bindings, vlan);
+ }
+
++static struct vtep_ctl_lrouter *
++add_lrouter_to_cache(struct vtep_ctl_context *vtepctl_ctx,
++                     const struct vteprec_logical_router *lr_cfg)
++{
++    struct vtep_ctl_lrouter *lr = xmalloc(sizeof *lr);
++    lr->lr_cfg = lr_cfg;
++    lr->name = xstrdup(lr_cfg->name);
++    shash_add(&vtepctl_ctx->lrouters, lr->name, lr);
++    return lr;
++}
++
++static void
++del_cached_lrouter(struct vtep_ctl_context *ctx, struct vtep_ctl_lrouter *lr)
++{
++    if (lr->lr_cfg) {
++        vteprec_logical_router_delete(lr->lr_cfg);
++    }
++    shash_find_and_delete(&ctx->lrouters, lr->name);
++    free(lr->name);
++    free(lr);
++}
++
+ static struct vteprec_physical_locator *
+ find_ploc(struct vtep_ctl_context *vtepctl_ctx, const char *encap,
+           const char *dst_ip)
+@@ -792,6 +830,13 @@ vtep_ctl_context_invalidate_cache(struct ctl_context *ctx)
+     }
+     shash_destroy(&vtepctl_ctx->lswitches);
+     shash_destroy(&vtepctl_ctx->plocs);
++
++    SHASH_FOR_EACH (node, &vtepctl_ctx->lrouters) {
++        struct vtep_ctl_lrouter *lr = node->data;
++        free(lr->name);
++        free(lr);
++    }
++    shash_destroy(&vtepctl_ctx->lrouters);
+ }
+
+ static void
+@@ -808,6 +853,8 @@ pre_get_info(struct ctl_context *ctx)
+
+     ovsdb_idl_add_column(ctx->idl, &vteprec_logical_switch_col_name);
+
++    ovsdb_idl_add_column(ctx->idl, &vteprec_logical_router_col_name);
++
+     ovsdb_idl_add_column(ctx->idl, &vteprec_ucast_macs_local_col_MAC);
+     ovsdb_idl_add_column(ctx->idl, &vteprec_ucast_macs_local_col_locator);
+     ovsdb_idl_add_column(ctx->idl,
+@@ -848,12 +895,14 @@ vtep_ctl_context_populate_cache(struct ctl_context *ctx)
+     struct vtep_ctl_context *vtepctl_ctx = vtep_ctl_context_cast(ctx);
+     const struct vteprec_global *vtep_global = vtepctl_ctx->vtep_global;
+     const struct vteprec_logical_switch *ls_cfg;
++    const struct vteprec_logical_router *lr_cfg;
+     const struct vteprec_ucast_macs_local *ucast_local_cfg;
+     const struct vteprec_ucast_macs_remote *ucast_remote_cfg;
+     const struct vteprec_mcast_macs_local *mcast_local_cfg;
+     const struct vteprec_mcast_macs_remote *mcast_remote_cfg;
+     const struct vteprec_tunnel *tunnel_cfg;
+     struct sset pswitches, ports, lswitches;
++    struct sset lrouters;
+     size_t i;
+
+     if (vtepctl_ctx->cache_valid) {
+@@ -865,6 +914,7 @@ vtep_ctl_context_populate_cache(struct ctl_context *ctx)
+     shash_init(&vtepctl_ctx->ports);
+     shash_init(&vtepctl_ctx->lswitches);
+     shash_init(&vtepctl_ctx->plocs);
++    shash_init(&vtepctl_ctx->lrouters);
+
+     sset_init(&pswitches);
+     sset_init(&ports);
+@@ -902,6 +952,17 @@ vtep_ctl_context_populate_cache(struct ctl_context *ctx)
+     }
+     sset_destroy(&lswitches);
+
++    sset_init(&lrouters);
++    VTEPREC_LOGICAL_ROUTER_FOR_EACH (lr_cfg, ctx->idl) {
++        if (!sset_add(&lrouters, lr_cfg->name)) {
++            VLOG_WARN("%s: database contains duplicate logical router name",
++                      lr_cfg->name);
++            continue;
++        }
++        add_lrouter_to_cache(vtepctl_ctx, lr_cfg);
++    }
++    sset_destroy(&lrouters);
++
+     VTEPREC_UCAST_MACS_LOCAL_FOR_EACH (ucast_local_cfg, ctx->idl) {
+         struct vtep_ctl_lswitch *ls;
+
+@@ -1463,6 +1524,94 @@ cmd_unbind_ls(struct ctl_context *ctx)
+     vtep_ctl_context_invalidate_cache(ctx);
+ }
+
++static struct vtep_ctl_lrouter *
++find_lrouter(struct vtep_ctl_context *vtepctl_ctx,
++             const char *name, bool must_exist)
++{
++    struct vtep_ctl_lrouter *lr;
++
++    ovs_assert(vtepctl_ctx->cache_valid);
++
++    lr = shash_find_data(&vtepctl_ctx->lrouters, name);
++    if (must_exist && !lr) {
++        ctl_fatal("no logical router named %s", name);
++    }
++    return lr;
++}
++
++static void
++cmd_add_lr(struct ctl_context *ctx)
++{
++    struct vtep_ctl_context *vtepctl_ctx = vtep_ctl_context_cast(ctx);
++    const char *lr_name = ctx->argv[1];
++    bool may_exist = shash_find(&ctx->options, "--may-exist") != NULL;
++    struct vteprec_logical_router *lr;
++
++    vtep_ctl_context_populate_cache(ctx);
++    if (find_lrouter(vtepctl_ctx, lr_name, false)) {
++        if (!may_exist) {
++            ctl_fatal("cannot create logical router %s because it "
++                      "already exists", lr_name);
++        }
++        return;
++    }
++
++    lr = vteprec_logical_router_insert(ctx->txn);
++    vteprec_logical_router_set_name(lr, lr_name);
++
++    vtep_ctl_context_invalidate_cache(ctx);
++}
++
++static void
++del_lrouter(struct vtep_ctl_context *vtepctl_ctx, struct vtep_ctl_lrouter *lr)
++{
++    del_cached_lrouter(vtepctl_ctx, lr);
++}
++
++static void
++cmd_del_lr(struct ctl_context *ctx)
++{
++    struct vtep_ctl_context *vtepctl_ctx = vtep_ctl_context_cast(ctx);
++    bool must_exist = !shash_find(&ctx->options, "--if-exists");
++    struct vtep_ctl_lrouter *lr;
++
++    vtep_ctl_context_populate_cache(ctx);
++    lr = find_lrouter(vtepctl_ctx, ctx->argv[1], must_exist);
++    if (lr) {
++        del_lrouter(vtepctl_ctx, lr);
++    }
++}
++
++static void
++cmd_list_lr(struct ctl_context *ctx)
++{
++    struct vtep_ctl_context *vtepctl_ctx = vtep_ctl_context_cast(ctx);
++    struct shash_node *node;
++    struct svec lrouters;
++
++    vtep_ctl_context_populate_cache(ctx);
++
++    svec_init(&lrouters);
++    SHASH_FOR_EACH (node, &vtepctl_ctx->lrouters) {
++        struct vtep_ctl_lrouter *lr = node->data;
++
++        svec_add(&lrouters, lr->name);
++    }
++    output_sorted(&lrouters, &ctx->output);
++    svec_destroy(&lrouters);
++}
++
++static void
++cmd_lr_exists(struct ctl_context *ctx)
++{
++    struct vtep_ctl_context *vtepctl_ctx = vtep_ctl_context_cast(ctx);
++
++    vtep_ctl_context_populate_cache(ctx);
++    if (!find_lrouter(vtepctl_ctx, ctx->argv[1], false)) {
++        vtep_ctl_exit(2);
++    }
++}
++
+ static void
+ add_ucast_entry(struct ctl_context *ctx, bool local)
+ {
+@@ -2044,6 +2193,18 @@ static const struct ctl_table_class tables[] = {
+      {{NULL, NULL, NULL},
+       {NULL, NULL, NULL}}},
+
++    {&vteprec_table_logical_router,
++     {{&vteprec_table_logical_router, &vteprec_logical_router_col_name, NULL},
++      {NULL, NULL, NULL}}},
++
++    {&vteprec_table_arp_sources_local,
++     {{NULL, NULL, NULL},
++      {NULL, NULL, NULL}}},
++
++    {&vteprec_table_arp_sources_remote,
++     {{NULL, NULL, NULL},
++      {NULL, NULL, NULL}}},
++
+     {NULL, {{NULL, NULL, NULL}, {NULL, NULL, NULL}}}
+ };
+
+@@ -2300,6 +2461,12 @@ static const struct ctl_command_syntax vtep_commands[] = {
+     {"bind-ls", 4, 4, NULL, pre_get_info, cmd_bind_ls, NULL, "", RO},
+     {"unbind-ls", 3, 3, NULL, pre_get_info, cmd_unbind_ls, NULL, "", RO},
+
++    /* Logical Router commands. */
++    {"add-lr", 1, 1, NULL, pre_get_info, cmd_add_lr, NULL, "--may-exist", RW},
++    {"del-lr", 1, 1, NULL, pre_get_info, cmd_del_lr, NULL, "--if-exists", RW},
++    {"list-lr", 0, 0, NULL, pre_get_info, cmd_list_lr, NULL, "", RO},
++    {"lr-exists", 1, 1, NULL, pre_get_info, cmd_lr_exists, NULL, "", RO},
++
+     /* MAC binding commands. */
+     {"add-ucast-local", 3, 4, NULL, pre_get_info, cmd_add_ucast_local, NULL,
+      "", RW},
+diff --git a/vtep/vtep.ovsschema b/vtep/vtep.ovsschema
+index 1375173..533fd2e 100644
+--- a/vtep/vtep.ovsschema
++++ b/vtep/vtep.ovsschema
+@@ -1,6 +1,6 @@
+ {
+   "name": "hardware_vtep",
+-  "cksum": "2177247725 10499",
++  "cksum": "770244945 11113",
+   "tables": {
+     "Global": {
+       "columns": {
+@@ -28,6 +28,9 @@
+         "tunnels": {
+           "type": {"key": {"type": "uuid", "refTable": "Tunnel"},
+                    "min": 0, "max": "unlimited"}},
++        "other_config": {
++          "type": {"key": "string", "value": "string",
++                   "min": 0, "max": "unlimited"}},
+         "switch_fault_status": {
+           "type": {
+             "key": "string", "min": 0, "max": "unlimited"},
+@@ -54,6 +57,9 @@
+                              "refTable": "Logical_Binding_Stats"},
+                    "min": 0, "max": "unlimited"},
+           "ephemeral": true},
++        "other_config": {
++          "type": {"key": "string", "value": "string",
++                   "min": 0, "max": "unlimited"}},
+         "port_fault_status": {
+           "type": {
+             "key": "string", "min": 0, "max": "unlimited"},
+@@ -89,7 +95,10 @@
+       "columns": {
+         "name": {"type": "string"},
+         "description": {"type": "string"},
+-        "tunnel_key": {"type": {"key": "integer", "min": 0, "max": 1}}},
++        "tunnel_key": {"type": {"key": "integer", "min": 0, "max": 1}},
++        "other_config": {
++          "type": {"key": "string", "value": "string",
++                   "min": 0, "max": "unlimited"}}},
+       "isRoot": true,
+       "indexes": [["name"]]},
+     "Ucast_Macs_Local": {
+@@ -154,6 +163,9 @@
+                    "value": {"type": "uuid",
+                              "refTable": "ACL"},
+                    "min": 0, "max": "unlimited"}},
++        "other_config": {
++          "type": {"key": "string", "value": "string",
++                   "min": 0, "max": "unlimited"}},
+         "LR_fault_status": {
+           "type": {
+             "key": "string", "min": 0, "max": "unlimited"},
+@@ -188,8 +200,9 @@
+               "enum": ["set", ["vxlan_over_ipv4"]],
+               "type": "string"}},
+           "mutable": false},
+-        "dst_ip": {"type": "string", "mutable": false}},
+-      "indexes": [["encapsulation_type", "dst_ip"]]},
++        "dst_ip": {"type": "string", "mutable": false},
++        "tunnel_key": {"type": {"key": "integer", "min": 0, "max": 1}}},
++      "indexes": [["encapsulation_type", "dst_ip", "tunnel_key"]]},
+     "ACL_entry": {
+       "columns": {
+         "sequence": {"type": "integer"},
+@@ -283,4 +296,4 @@
+           "ephemeral": true}},
+       "indexes": [["target"]],
+       "isRoot": false}},
+-  "version": "1.4.1"}
++  "version": "1.5.1"}
+diff --git a/vtep/vtep.xml b/vtep/vtep.xml
+index 6c49e06..a3a6988 100644
+--- a/vtep/vtep.xml
++++ b/vtep/vtep.xml
+@@ -31,6 +31,27 @@
+     </dd>
+   </dl>
+
++  <h2>Common Column</h2>
++
++  <p>
++    Some tables contain a column, named <code>other_config</code>.
++    This column has the same form and purpose each place that it appears,
++    so we describe it here to save space later.
++  </p>
++
++  <dl>
++    <dt><code>other_config</code>: map of string-string pairs</dt>
++    <dd>
++      <p>
++        Key-value pairs for configuring rarely used or proprietary features.
++      </p>
++      <p>
++        Some tables do not have <code>other_config</code> column because no
++        key-value pairs have yet been defined for them.
++      </p>
++    </dd>
++  </dl>
++
+   <table name="Global" title="Top-level configuration.">
+     Top-level configuration for a hardware VTEP.  There must be
+     exactly one record in the <ref table="Global"/> table.
+@@ -310,12 +331,41 @@
+         requested by the NVC due to lack of resources.
+       </column>
+
++      <column name="switch_fault_status" key="lr_switch_bindings_fault">
++        Indicates that the switch has been unable to create the logical router
++        interfaces requested by the NVC due to conflicting configurations or a
++        lack of hardware resources.
++      </column>
++
++      <column name="switch_fault_status" key="lr_static_routes_fault">
++        Indicates that the switch has been unable to create the static routes
++        requested by the NVC due to conflicting configurations or a lack of
++        hardware resources.
++      </column>
++
++      <column name="switch_fault_status" key="lr_creation_fault">
++        Indicates that the switch has been unable to create the logical router
++        requested by the NVC due to conflicting configurations or a lack of
++        hardware resources.
++      </column>
++
++      <column name="switch_fault_status" key="lr_support_fault">
++        Indicates that the switch does not support logical routing.
++      </column>
++
+       <column name="switch_fault_status" key="unspecified_fault">
+         Indicates that an error has occurred in the switch but that no
+         more specific information is available.
+       </column>
++    </group>
++
++    <group title="Common Column">
++      The overall purpose of this column is described under <code>Common
++      Column</code> at the beginning of this document.
+
++      <column name="other_config"/>
+     </group>
++
+   </table>
+
+   <table name="Tunnel" title="A tunnel created by a physical switch.">
+@@ -603,6 +653,13 @@
+       </column>
+     </group>
+
++    <group title="Common Column">
++      The overall purpose of this column is described under <code>Common
++      Column</code> at the beginning of this document.
++
++      <column name="other_config"/>
++    </group>
++
+   </table>
+
+   <table name="Logical_Binding_Stats" title="Statistics for a VLAN on a physical port bound to a logical network.">
+@@ -689,9 +746,10 @@
+         </p>
+
+         <p>
+-          For <code>vxlan_over_ipv4</code> encapsulation, this column
+-          is the VXLAN VNI that identifies a logical switch.  It must
+-          be in the range 0 to 16,777,215.
++          For <code>vxlan_over_ipv4</code> encapsulation, when the tunnel key
++          per <ref table="Logical_Switch"/> model is in use, this column is the
++          VXLAN VNI that identifies a logical switch.  It must be in the range
++          0 to 16,777,215.
+         </p>
+       </column>
+     </group>
+@@ -706,6 +764,14 @@
+         login banner.
+       </column>
+     </group>
++
++    <group title="Common Column">
++      The overall purpose of this column is described under <code>Common
++      Column</code> at the beginning of this document.
++
++      <column name="other_config"/>
++    </group>
++
+   </table>
+
+   <table name="Ucast_Macs_Local" title="Unicast MACs (local)">
+@@ -918,6 +984,13 @@
+       </column>
+     </group>
+
++    <group title="Common Column">
++      The overall purpose of this column is described under <code>Common
++      Column</code> at the beginning of this document.
++
++      <column name="other_config"/>
++    </group>
++
+   </table>
+
+   <table name="Arp_Sources_Local" title="ARP source addresses for logical routers">
+@@ -993,24 +1066,17 @@
+     </p>
+
+     <p>
+-      For the <code>vxlan_over_ipv4</code> encapsulation, the only
+-      encapsulation defined so far, all endpoints associated with a given <ref
+-      table="Logical_Switch"/> must use a common tunnel key, which is carried
+-      in the <ref table="Logical_Switch" column="tunnel_key"/> column of <ref
+-      table="Logical_Switch"/>.
+-    </p>
+-
+-    <p>
+-      For some encapsulations yet to be defined, we expect <ref
+-      table="Physical_Locator"/> to identify both an endpoint and a tunnel key.
+-      When the first such encapsulation is defined, we expect to add a
+-      ``tunnel_key'' column to <ref table="Physical_Locator"/> to allow the
+-      tunnel key to be defined.
+-    </p>
+-
+-    <p>
+-      See the ``Per Logical-Switch Tunnel Key'' section in the <ref
+-      table="Logical_Switch"/> table for further discussion of the model.
++      The <code>vxlan_over_ipv4</code> encapsulation, the only encapsulation
++      defined so far, can use either tunnel key model described in the ``Per
++      Logical-Switch Tunnel Key'' section in the <ref table="Logical_Switch"/>
++      table.  When the tunnel key per <ref table="Logical_Switch"/> model is in
++      use, the <ref table="Logical_Switch" column="tunnel_key"/> column in the
++      <ref table="Logical_Switch"/> table is filled with a VNI and the <ref
++      column="tunnel_key"/> column in this table is empty; in the
++      key-per-tunnel model, the opposite is true.  The former model is older,
++      and thus likely to be more widely supported.  See the ``Per
++      Logical-Switch Tunnel Key'' section in the <ref table="Logical_Switch"/>
++      table for further discussion of the model.
+     </p>
+
+     <column name="encapsulation_type">
+@@ -1029,6 +1095,21 @@
+       </p>
+     </column>
+
++    <column name="tunnel_key">
++      <p>
++        This column is used only in the tunnel key per <ref
++        table="Logical_Switch"/>+<ref table="Physical_Locator"/> model (see
++        above).
++      </p>
++
++      <p>
++        For <code>vxlan_over_ipv4</code> encapsulation, when the <ref
++        table="Logical_Switch"/>+<ref table="Physical_Locator"/> model is in
++        use, this column is the VXLAN VNI.  It must be in the range 0 to
++        16,777,215.
++      </p>
++    </column>
++
+   </table>
+   <table name="ACL_entry">
+     <p>
