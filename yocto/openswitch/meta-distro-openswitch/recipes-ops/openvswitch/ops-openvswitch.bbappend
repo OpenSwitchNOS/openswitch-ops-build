@@ -5,7 +5,7 @@ SRC_URI = "git://git.openswitch.net/openswitch/ops-openvswitch;protocol=http;bra
    file://partial-map-updates.patch \
    file://on-demand-fetching.patch \
    file://compound-indexes.patch \
-   file://python_idl_tracking.patch \
+   file://idl_tracking_python.patch \
 "
 
-SRCREV = "623167323abeb42a99a171943e9f9709329f5086"
+SRCREV = "7860929eb0e457cd53bd1c2a9ffa611e2c727d97"
