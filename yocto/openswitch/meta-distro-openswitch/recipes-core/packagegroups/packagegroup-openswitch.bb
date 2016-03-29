@@ -18,8 +18,10 @@ PACKAGES = ' \
             packagegroup-ops-core \
             '
 
+PACKAGES += "${@bb.utils.contains("MACHINE_FEATURES", "ops-kdump", "ops-kdump", "",d)}"
 PACKAGES += "${@bb.utils.contains("IMAGE_FEATURES", "ops-p4", "packagegroup-ops-p4", "", d)}"
 
+#PACKAGES += "${@bb.utils.contains('MACHINE_FEATURES', ‘ ops-kdump', ‘ops-kdump', '',d)}"
 RDEPENDS_packagegroup-ops-base = "\
     os-release \
     i2c-tools \
