@@ -9,10 +9,10 @@ SRC_URI = "git://git.openswitch.net/openswitch/ops-openvswitch;protocol=http \
    file://partial-map-updates.patch \
    file://on-demand-fetching.patch \
    file://compound-indexes.patch \
-   file://python_idl_tracking.patch \
+   file://idl_tracking_python.patch \
 "
 
-SRCREV = "71b2ed16d42f37064878b2db57f5219bbcfb20e5"
+SRCREV = "806e05c698649d62cc7be8585cb055f3ae2316ec"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.
@@ -52,6 +52,7 @@ FILES_${PN} = "${bindir}/ovs-appctl ${bindir}/ovs-pki ${bindir}/ovs-vsctl \
  ${libdir}/libopenvswitch.so.1* \
  ${libdir}/libsflow.so.1* \
  ${libdir}/libplugins.so.1* \
+ ${libdir}/libvtep.so.1* \
 "
 
 USERADD_PACKAGES = "${PN}"
