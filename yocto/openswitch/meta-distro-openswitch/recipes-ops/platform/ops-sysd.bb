@@ -2,14 +2,14 @@ SUMMARY = "OpenSwitch System Daemon (sysd)"
 LICENSE = "Apache-2.0"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/Apache-2.0;md5=89aea4e17d99a7cacdbeed46a0096b10"
 
-DEPENDS = "ops-utils ops-hw-config ops-ovsdb ops-cli"
+DEPENDS = "ops-utils ops-hw-config ops-ovsdb ops-cli ops-supportability"
 RDEPENDS_${PN} = "dmidecode"
 
 SRC_URI = "git://git.openswitch.net/openswitch/ops-sysd;protocol=https \
            file://ops-sysd.service \
 "
 
-SRCREV = "e430cc4a5c3d6c2ce5c703427bf5523ac1681fad"
+SRCREV = "660997ebd85c79b3cb84aae32dc356bed5d62e1c"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.
