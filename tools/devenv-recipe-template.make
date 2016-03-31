@@ -11,6 +11,9 @@
 ##RECIPE##-reconfigure:
 	$(V)$(call BITBAKE, -f -c configure ##RECIPE##)
 
+##RECIPE##-run-ceedling-unit-tests:
+	$(V)$(call BITBAKE, -c generate_project_if_none ##RECIPE##)
+
 ##RECIPE##-sca-analysis:
 	$(V)if ! which $(SCA_TOOL) > /dev/null ; then \
 		$(call FATAL_ERROR,unable to find the tool $(SCA_TOOL) used by the static analysis toolchain ($(SCA_TOOLCHAIN))) ; \
