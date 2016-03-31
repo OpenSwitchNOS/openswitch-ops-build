@@ -11,19 +11,35 @@
 ##RECIPE##-reconfigure:
 	$(V)$(call BITBAKE, -f -c configure ##RECIPE##)
 
+##RECIPE##-run-ceedling-unit-tests:
+	$(V)$(call BITBAKE, -c generate_project_if_none ##RECIPE##)
+	$(V)if [ -e src/##RECIPE##/ops-tests/unit/project.yml ]; then \
+        cd src/##RECIPE##/ops-tests/unit; \
+        $(STAGING_DIR_NATIVE)/usr/bin/rake test:all; \
+    fi
+
+##RECIPE##-run-ceedling-coverage-report:
+	$(V)$(call BITBAKE, -c generate_project_if_none ##RECIPE##)
+	$(V)if [ -e src/##RECIPE##/ops-tests/unit/project.yml ]; then \
+        cd src/##RECIPE##/ops-tests/unit; \
+        $(STAGING_DIR_NATIVE)/usr/bin/rake gcov:all; \
+        $(STAGING_DIR_NATIVE)/usr/bin/rake utils:lcov; \
+        $(STAGING_DIR_NATIVE)/usr/bin/rake utils:html; \
+    fi
+
 ##RECIPE##-sca-analysis:
 	$(V)if ! which $(SCA_TOOL) > /dev/null ; then \
 		$(call FATAL_ERROR,unable to find the tool $(SCA_TOOL) used by the static analysis toolchain ($(SCA_TOOLCHAIN))) ; \
-	 fi
+	fi
 	$(V)$(ECHO) "$(BLUE)Running static analysis ($(SCA_TOOLCHAIN))...$(GRAY)\n"
 	$(V) cd src/##RECIPE## ; $(SCA_TOOL) $(SCA_TOOL_SCAN_CMD)
 
 $(eval $(call PARSE_ARGUMENTS,##RECIPE##-deploy))
 TARGET?=$(EXTRA_ARGS)
 ifneq ($(findstring ##RECIPE##-deploy,$(MAKECMDGOALS)),)
-  ifeq ($(TARGET),)
-    $(error ====== TARGET variable is empty, please specify where to deploy =====)
-  endif
+	ifeq ($(TARGET),)
+		$(error ====== TARGET variable is empty, please specify where to deploy =====)
+	endif
 endif
 ##RECIPE##-deploy:
 	$(V)$(call DEVTOOL, deploy-target -s ##RECIPE## $(TARGET))
@@ -31,9 +47,9 @@ endif
 $(eval $(call PARSE_ARGUMENTS,##RECIPE##-undeploy))
 TARGET?=$(EXTRA_ARGS)
 ifneq ($(findstring ##RECIPE##-undeploy,$(MAKECMDGOALS)),)
-  ifeq ($(TARGET),)
-    $(error ====== TARGET variable is empty, please specify where to undeploy from  =====)
-  endif
+	ifeq ($(TARGET),)
+		$(error ====== TARGET variable is empty, please specify where to undeploy from  =====)
+	endif
 endif
 ##RECIPE##-undeploy:
 	$(V)$(call DEVTOOL, undeploy-target -s ##RECIPE## $(TARGET))
