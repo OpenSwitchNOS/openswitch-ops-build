@@ -69,6 +69,9 @@ SCA_TOOLCHAIN ?= fortify
 SCA_TOOL ?= sourceanalyzer
 SCA_TOOL_SCAN_CMD ?= -scan -b $$(basename $$(pwd)) -f $$(basename $$(pwd)).fpr
 
+# Rake binary path
+RAKE_BIN = $(STAGING_DIR_NATIVE)/usr/bin/rake
+
 # Leave blank to use default location
 SSTATE_DIR?=""
 
