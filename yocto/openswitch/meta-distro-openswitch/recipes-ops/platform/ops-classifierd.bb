@@ -5,11 +5,10 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/Apache-2.0;md5=89aea4e17d99a7ca
 DEPENDS = "ops-hw-config ops-ovsdb ops-cli audit"
 RDEPENDS_${PN} = "audit"
 
-SRC_URI = "git://git.openswitch.net/openswitch/ops-classifierd;protocol=http;branch=feature/copp \
-           file://ops-classifierd.service \
-"
+SRC_URI = "git://git.openswitch.net/openswitch/ops-classifierd;protocol=http \
+           "
 
-SRCREV = "${AUTOREV}"
+SRCREV = "cf5532d59e1ead6baa0d3bc7de31534169e60749"
 
 FILES_${PN} = "${libdir}/openvswitch/plugins ${includedir}/plugins/* ${bindir} ${bindir}/ops-classifierd"
 
