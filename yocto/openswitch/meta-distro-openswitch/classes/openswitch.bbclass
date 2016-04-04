@@ -61,7 +61,7 @@ do_generate_sca_wrappers() {
         mkdir -p ${dir}
         ln -f -s ${STAGING_BINDIR_TOOLCHAIN}/${HOST_PREFIX}${c} ${dir}/${c}
         cat > ${WORKDIR}/fortify-${c} << EOF
-if [ \${!#} = '--version' ] || [ \${!#} = '-v' ]; then
+if [ "\$!#" = '--version' ] || [ "\$!#" = '-v' ]; then
     ${dir}/${c} \${!#}
 else
     sourceanalyzer ${FORTIFY_PARAMETERS} ${dir}/${c} \$@
