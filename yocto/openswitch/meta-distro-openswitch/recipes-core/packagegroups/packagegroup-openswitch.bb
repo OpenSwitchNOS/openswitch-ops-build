@@ -72,6 +72,7 @@ RDEPENDS_packagegroup-ops-base = "\
     ops-stpd \
     nicstat \
     sysstat \
+    ops-rbac \
 "
 
 RDEPENDS_packagegroup-ops-base_append_arm = "\
