@@ -18,6 +18,7 @@ PACKAGES = ' \
             packagegroup-ops-core \
             '
 
+d = "${PACKAGES}"
 PACKAGES += "${@bb.utils.contains("IMAGE_FEATURES", "ops-p4", "packagegroup-ops-p4", "", d)}"
 
 RDEPENDS_packagegroup-ops-base = "\
@@ -72,6 +73,7 @@ RDEPENDS_packagegroup-ops-base = "\
     ops-stpd \
     nicstat \
     sysstat \
+    ${@bb.utils.contains("MACHINE_FEATURES", "ops-kdump", "ops-kdump",  "" ,d)} \
 "
 
 RDEPENDS_packagegroup-ops-base_append_arm = "\
