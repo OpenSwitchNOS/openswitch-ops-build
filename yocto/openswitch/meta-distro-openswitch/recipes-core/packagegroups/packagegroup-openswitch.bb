@@ -75,6 +75,7 @@ RDEPENDS_packagegroup-ops-base = "\
     nicstat \
     sysstat \
     ${@bb.utils.contains("MACHINE_FEATURES", "ops-kdump", "ops-kdump", "", d)} \
+    ops-rbac \
 "
 
 RDEPENDS_packagegroup-ops-base_append_arm = "\
