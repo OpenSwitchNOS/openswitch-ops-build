@@ -8,4 +8,4 @@ SRC_URI = "git://git.openswitch.net/openswitch/ops-openvswitch;protocol=http;bra
    file://idl_tracking_python.patch \
 "
 
-SRCREV = "7860929eb0e457cd53bd1c2a9ffa611e2c727d97"
+SRCREV = "304d052056fa22c11b7a1d13e03410f8667f1567"
