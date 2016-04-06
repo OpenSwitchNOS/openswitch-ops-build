@@ -46,7 +46,7 @@ inherit python-dir useradd
 
 FILES_python-ops-ovsdb = "${PYTHON_SITEPACKAGES_DIR}/ovs"
 
-FILES_${PN} = "${bindir}/ovs-appctl ${bindir}/ovs-pki ${bindir}/ovs-vsctl \
+FILES_${PN} = "${bindir}/ovs-appctl ${bindir}/ovs-pki ${bindir}/ovs-vsctl ${bindir}/ovs-ofctl ${bindir}/ovs-dpctl ${bindir}/ovs-testcontroller \ 
  /var/local/openvswitch \
  ${libdir}/libofproto.so.1* \
  ${libdir}/libopenvswitch.so.1* \
