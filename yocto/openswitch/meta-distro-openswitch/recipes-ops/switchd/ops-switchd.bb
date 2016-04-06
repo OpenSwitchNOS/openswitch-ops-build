@@ -8,9 +8,10 @@ SRC_URI = "git://git.openswitch.net/openswitch/ops-switchd;protocol=http \
    file://switchd_bcm.service \
    file://switchd_sim.service \
    file://switchd_p4sim.service \
+   file://switchd_xpliant.service \
 "
 
-SRCREV = "8a534f9670e2a7d8fdf8995784a1e78c8e9ff576"
+SRCREV = "ab8c6fd4276611662fdab7fa8953195ae9498480"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.
@@ -31,6 +32,8 @@ do_install_append() {
    install -d ${D}${systemd_unitdir}/system
    if ${@bb.utils.contains('MACHINE_FEATURES','broadcom','true','false',d)}; then
       install -m 0644 ${WORKDIR}/switchd_bcm.service ${D}${systemd_unitdir}/system/switchd.service
+   elif ${@bb.utils.contains('MACHINE_FEATURES','xpliant','true','false',d)}; then
+      install -m 0644 ${WORKDIR}/switchd_xpliant.service ${D}${systemd_unitdir}/system/switchd.service
    elif ${@bb.utils.contains('IMAGE_FEATURES','ops-p4','true','false',d)}; then
       install -m 0644 ${WORKDIR}/switchd_p4sim.service ${D}${systemd_unitdir}/system/switchd.service
    elif ${@bb.utils.contains('MACHINE_FEATURES','ops-container','true','false',d)}; then
