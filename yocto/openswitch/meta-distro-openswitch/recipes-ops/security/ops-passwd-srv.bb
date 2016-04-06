@@ -7,9 +7,10 @@ DEPENDS = "ops-ovsdb"
 
 SRC_URI = "git://git.openswitch.net/openswitch/ops-passwd-srv;protocol=http \
            file://ops-passwd-srv.service \
+           file://ops-passwd-srv.ini \
          "
 
-SRCREV="e0c44560fe07f756d68a49ea20a78dcf8d3b0fe8"
+SRCREV="55aa20e8366ceb3b459522c330657c1bbffc12b1"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.
@@ -19,7 +20,9 @@ S = "${WORKDIR}/git"
 
 do_install_prepend() {
      install -d ${D}${systemd_unitdir}/system
+     install -d ${D}/etc/ops-passwd-srv
      install -m 0644 ${WORKDIR}/ops-passwd-srv.service ${D}${systemd_unitdir}/system/
+     install -m 0666 ${WORKDIR}/ops-passwd-srv.ini ${D}/etc/ops-passwd-srv/
 }
 
 SYSTEMD_PACKAGES = "${PN}"
