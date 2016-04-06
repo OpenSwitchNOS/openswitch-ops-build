@@ -11,3 +11,4 @@ RemainAfterExit=yes
 
 [Install]
 WantedBy=multi-user.target
+WantedBy=kdump.target

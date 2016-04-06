@@ -9,7 +9,8 @@
 
 
 #### Global Variables ####
-KDUMP_COMMANDLINE_APPEND="irqpoll nr_cpus=1 reset_devices cgroup_disable=memory mce=off acpi_no_memhotplug"
+# In the meantime that we get a custom initramfs, we should use a custom init unit to just perform the kdump
+KDUMP_COMMANDLINE_APPEND="irqpoll nr_cpus=1 reset_devices cgroup_disable=memory mce=off acpi_no_memhotplug systemd.unit=kdump.target"
 KDUMP_BOOTDIR="/boot"
 KDUMP_IMG="bzImage"
 KDUMP_CONFIG_FILE="/etc/kdump.conf"
@@ -117,7 +118,7 @@ function append_cmdline()
 function prepare_cmdline_parm()
 {
     local cmdline=$(cat /proc/cmdline)
-    cmdline=`remove_cmdline_param "$cmdline" crashkernel mem hugepages hugepagesz`
+    cmdline=`remove_cmdline_param "$cmdline" crashkernel mem hugepages hugepagesz quiet`
     cmdline="${cmdline} ${KDUMP_COMMANDLINE_APPEND}"
     echo $cmdline
 }
