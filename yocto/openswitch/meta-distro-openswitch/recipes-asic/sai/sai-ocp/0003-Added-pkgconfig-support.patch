@@ -1,0 +1,62 @@
+From cb3db50272024d9b2af261ec0b833ded72156155 Mon Sep 17 00:00:00 2001
+From: Oleksandr Ivantsiv <oleksandri@mellanox.com>
+Date: Thu, 17 Mar 2016 16:38:42 +0200
+Subject: [PATCH 3/4] Added pkgconfig support
+
+---
+ mlnx_sai/Makefile.am     |  2 +-
+ mlnx_sai/configure.ac    |  2 +-
+ mlnx_sai/etc/Makefile.am |  2 ++
+ mlnx_sai/etc/sai.pc.in   | 10 ++++++++++
+ 4 files changed, 14 insertions(+), 2 deletions(-)
+ create mode 100644 mlnx_sai/etc/Makefile.am
+ create mode 100644 mlnx_sai/etc/sai.pc.in
+
+diff --git a/mlnx_sai/Makefile.am b/mlnx_sai/Makefile.am
+index 2957bad..ab0188b 100644
+--- a/mlnx_sai/Makefile.am
++++ b/mlnx_sai/Makefile.am
+@@ -2,5 +2,5 @@
+ 
+ # note that order matters: make the lib first then use it
+ 
+-SUBDIRS = src
++SUBDIRS = src etc
+ DIST_SUBDIRS = src
+diff --git a/mlnx_sai/configure.ac b/mlnx_sai/configure.ac
+index b44330e..e04bf6f 100644
+--- a/mlnx_sai/configure.ac
++++ b/mlnx_sai/configure.ac
+@@ -103,4 +103,4 @@ CFLAGS_SAI_INTERFACE_COMMON="-Wall -Wswitch -Wunused -Werror -fPIC -fno-strict-a
+ AC_SUBST(CFLAGS_SAI_INTERFACE_COMMON)
+ 
+ dnl Create the following Makefiles
+-AC_OUTPUT([Makefile src/Makefile])
++AC_OUTPUT([Makefile src/Makefile etc/sai.pc etc/Makefile])
+diff --git a/mlnx_sai/etc/Makefile.am b/mlnx_sai/etc/Makefile.am
+new file mode 100644
+index 0000000..36df61f
+--- /dev/null
++++ b/mlnx_sai/etc/Makefile.am
+@@ -0,0 +1,2 @@
++pkgconfigdir = $(libdir)/pkgconfig
++pkgconfig_DATA= sai.pc
+diff --git a/mlnx_sai/etc/sai.pc.in b/mlnx_sai/etc/sai.pc.in
+new file mode 100644
+index 0000000..956822c
+--- /dev/null
++++ b/mlnx_sai/etc/sai.pc.in
+@@ -0,0 +1,10 @@
++prefix=@prefix@
++exec_prefix=@exec_prefix@
++libdir=@libdir@
++includedir=@includedir@
++
++Name: SAI
++Description: SAI API provider
++Version: @VERSION@
++Libs: -L${libdir} -lsai @LIBS@
++Cflags: -I${includedir}/sai
+-- 
+1.9.1
+

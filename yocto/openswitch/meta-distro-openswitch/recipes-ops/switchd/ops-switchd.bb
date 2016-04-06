@@ -8,6 +8,7 @@ SRC_URI = "git://git.openswitch.net/openswitch/ops-switchd;protocol=http \
    file://switchd_bcm.service \
    file://switchd_sim.service \
    file://switchd_p4sim.service \
+   file://switchd_sai.service \
 "
 
 SRCREV = "0d7d1889716b5491142ab3dd970e2fbee9d2a4e2"
@@ -35,6 +36,8 @@ do_install_append() {
       install -m 0644 ${WORKDIR}/switchd_p4sim.service ${D}${systemd_unitdir}/system/switchd.service
    elif ${@bb.utils.contains('MACHINE_FEATURES','ops-container','true','false',d)}; then
       install -m 0644 ${WORKDIR}/switchd_sim.service ${D}${systemd_unitdir}/system/switchd.service
+   elif ${@bb.utils.contains('MACHINE_FEATURES','ops-sai','true','false',d)}; then
+      install -m 0644 ${WORKDIR}/switchd_sai.service ${D}${systemd_unitdir}/system/switchd.service
    fi
 }
 
