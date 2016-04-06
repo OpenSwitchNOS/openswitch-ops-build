@@ -1,0 +1,13 @@
+diff --git a/stub/configure.ac b/stub/configure.ac
+index ac61fd3..35ac301 100644
+--- a/stub/configure.ac
++++ b/stub/configure.ac
+@@ -13,7 +13,7 @@ dnl Defines the Language - we need gcc linker ...
+ AC_LANG_C
+ 
+ dnl Auto make
+-AM_INIT_AUTOMAKE
++AM_INIT_AUTOMAKE([foreign])
+ 
+ dnl Provides control over re-making of all auto files
+ AM_MAINTAINER_MODE
