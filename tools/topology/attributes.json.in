@@ -1,6 +1,6 @@
 [
     {
-        "files": ["*"],
+        "files": ["**/*"],
         "modifiers": [
             {
                 "nodes": ["type=openswitch"],
