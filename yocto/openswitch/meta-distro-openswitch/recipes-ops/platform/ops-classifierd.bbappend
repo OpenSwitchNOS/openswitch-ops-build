@@ -4,7 +4,7 @@ SRC_URI = "git://git.openswitch.net/openswitch/ops-classifierd;protocol=http;bra
            file://ops-classifierd.service \
            "
 
-SRCREV = "545e37305dc0ccde8ebe920777c5da1de4a6050d"
+SRCREV = "7ce9a45b767f0af4c8c235564a8397cbea0fbd22"
 
 
 DEPENDS = "ops-hw-config ops-ovsdb ops-cli"
