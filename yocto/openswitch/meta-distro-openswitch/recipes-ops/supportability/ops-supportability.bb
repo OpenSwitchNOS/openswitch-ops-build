@@ -16,6 +16,8 @@ SRCREV = "57a5b92577308d26f5fb64dcd20958136ca327d3"
 
 S = "${WORKDIR}/git"
 
+CFLAGS+="-O1"
+
 # Mixing of two classes, the build happens on the source directory.
 inherit openswitch cmake setuptools systemd
 
