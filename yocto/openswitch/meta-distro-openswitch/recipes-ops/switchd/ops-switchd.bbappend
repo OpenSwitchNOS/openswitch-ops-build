@@ -6,4 +6,4 @@ SRC_URI = "git://git.openswitch.net/openswitch/ops-switchd;protocol=http;branch=
    file://switchd_p4sim.service \
 "
 
-SRCREV = "7364db068878c38f8d7d00bb99ddc7b582fb0fe0"
+SRCREV = "7399aeee218a78ac89c04808e8037ecf735668cd"
