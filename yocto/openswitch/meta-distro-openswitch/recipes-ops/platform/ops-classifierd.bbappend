@@ -4,10 +4,12 @@ SRC_URI = "git://git.openswitch.net/openswitch/ops-classifierd;protocol=http;bra
            file://ops-classifierd.service \
            "
 
-SRCREV = "3a371a1ed3b8c892eb27722ebbc19cf0a10c2d0f"
+SRCREV = "6b727d0eacbad54ddfccbc6060152dbb5a120482"
 
 
-DEPENDS = "ops-hw-config ops-ovsdb ops-cli ops-switchd"
+DEPENDS = "ops-hw-config ops-ovsdb ops-cli ops-switchd ops-utils audit"
+
+RDEPENDS_${PN} = "audit"
 
 FILES_${PN} = "${libdir}/openvswitch/plugins ${includedir}/plugins/* ${bindir} ${bindir}/ops-classifierd"
 
