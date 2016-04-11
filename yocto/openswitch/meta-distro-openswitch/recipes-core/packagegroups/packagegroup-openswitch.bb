@@ -59,7 +59,8 @@ RDEPENDS_packagegroup-ops-base = "\
     ops-cli ops-restd ops-webui \
     ops-portd ops-quagga \
     ops-aaa-utils \
-    ${@bb.utils.contains('MACHINE_FEATURES', 'ops-container', '', 'ops-bufmond',d)} \
+    ops-bufmond \
+    ops-sysmond \
     ops-broadview \
     ops-mgmt-intf \
     dnsmasq \
