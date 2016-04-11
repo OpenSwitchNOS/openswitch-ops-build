@@ -10,6 +10,7 @@ SRC_URI = "git://git.openswitch.net/openswitch/ops-openvswitch;protocol=http \
    file://on-demand-fetching.patch \
    file://compound-indexes.patch \
    file://idl_tracking_python.patch \
+   file://json.py.patch \
 "
 
 SRCREV = "20cdf72f988d3d72c703974986451f83425180c0"
