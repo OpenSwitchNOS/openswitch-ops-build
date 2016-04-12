@@ -20,8 +20,8 @@ PV = "git${SRCPV}"
 S = "${WORKDIR}/git"
 
 do_install_append() {
-    install -d ${D}${systemd_unitdir}/system
-    install -m 0644 ${WORKDIR}/ops-classifierd.service ${D}${systemd_unitdir}/system/
+#    install -d ${D}${systemd_unitdir}/system
+#    install -m 0644 ${WORKDIR}/ops-classifierd.service ${D}${systemd_unitdir}/system/
 
     # Added for rest custom validators
     install -d ${D}/usr/share/opsplugins
@@ -32,7 +32,7 @@ do_install_append() {
 
 FILES_${PN} += "/usr/share/opsplugins"
 FILES_${PN} += "/usr/lib/cli/plugins/"
-SYSTEMD_PACKAGES = "${PN}"
-SYSTEMD_SERVICE_${PN} = "ops-classifierd.service"
+#SYSTEMD_PACKAGES = "${PN}"
+#SYSTEMD_SERVICE_${PN} = "ops-classifierd.service"
 
 inherit openswitch cmake pkgconfig systemd
