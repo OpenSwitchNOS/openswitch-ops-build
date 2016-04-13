@@ -1,4 +1,7 @@
 inherit core-image extrausers
+
+GROUPADD_PARAM_${PN} += "-g 1000 shadow-user"
+
 EXTRA_USERS_PARAMS = "\
          useradd -N -M -r opsd; \
          usermod -s /bin/false opsd;\
@@ -10,6 +13,8 @@ EXTRA_USERS_PARAMS = "\
          usermod -G ovsdb-client netop;\
          usermod -s /bin/bash admin;\
          usermod -s /usr/bin/vtysh netop;\
+         useradd -N -M -r opsrestd; \
+         usermod -a -G ovsdb-client,shadow-user opsrestd;\
          "
 IMAGE_FEATURES += "ssh-server-openssh"
 
