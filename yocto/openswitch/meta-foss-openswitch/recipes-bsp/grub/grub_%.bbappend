@@ -24,7 +24,7 @@ NFS_SERVER_PATH ??= "/srv/nfsroot-${MACHINE}"
 do_install_append () {
     install -d ${D}/boot/grub
     cat ${WORKDIR}/*.cfg > ${D}/boot/grub/grub.cfg
-    sed -i -e "s?@@NFSROOTIP@@?${NFS_SERVER_IP}?" -e "s?@@NFSROOTPATH@@?${NFS_SERVER_PATH}?" \
+    sed -i -e "s?@@NFSROOTIP@@?${NFS_SERVER_IP}?" -e  "s?@@DISTRO@@?${DISTRO_NAME}?"  -e "s?@@NFSROOTPATH@@?${NFS_SERVER_PATH}?" \
       ${D}/boot/grub/grub.cfg
 }
 
