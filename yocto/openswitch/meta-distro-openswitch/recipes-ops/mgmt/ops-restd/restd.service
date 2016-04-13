@@ -6,9 +6,13 @@ After=cfgd.service
 
 [Service]
 Type=simple
-ExecStartPre=/bin/rm -f /var/run/restd.pid
-ExecStart=/usr/bin/restd
-PIDFile=/var/run/restd.pid
+ExecStartPre=/bin/chmod 440 /etc/shadow
+ExecStartPre=/bin/chgrp shadow-user /etc/shadow
+ExecStartPre=/bin/chgrp -R log-readers /run/log
+ExecStartPre=/usr/sbin/setcap cap_audit_write,cap_net_admin,cap_net_bind_service+eip /usr/bin/python2.7
+ExecStart=/usr/bin/firejail --user=opsrestd --force --users.keep=all --groups.keep=all --shell=none --name=restd -- /usr/bin/restd
+ExecStartPost=/bin/sleep 1
+ExecStartPost=/usr/sbin/setcap -r /usr/bin/python2.7
 
 [Install]
 WantedBy=multi-user.target

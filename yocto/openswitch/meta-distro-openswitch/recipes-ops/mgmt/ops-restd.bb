@@ -4,10 +4,11 @@ LIC_FILES_CHKSUM = "file://setup.py;beginline=1;endline=15;md5=718b8f9952f79dfe2
 
 DEPENDS = "python-inflect-native python-tornado-native ops-openvswitch ops-ovsdb ops-supportability"
 
-RDEPENDS_${PN} = "python-argparse python-json python-ops-ovsdb python-distribute python-tornado python-html python-pkgutil python-subprocess python-numbers python-inflect python-xml ops-restapi python-unixadmin python-jsonschema python-jsonpatch ops-aaa-utils ops-passwd-srv python-pycrypto"
+RDEPENDS_${PN} = "python-argparse python-json python-ops-ovsdb python-distribute python-tornado python-html python-pkgutil python-subprocess python-numbers python-inflect python-xml ops-restapi python-unixadmin python-jsonschema python-jsonpatch firejail ops-aaa-utils ops-passwd-srv python-pycrypto"
 
 SRC_URI = "git://git.openswitch.net/openswitch/ops-restd;protocol=http \
            file://restd.service \
+           file://restd.profile \
 "
 
 SRCREV = "ab3599a0b8b4df99c35b3f99de6948b2c41630d5"
@@ -34,8 +35,10 @@ do_install_append () {
       install -d ${D}/etc/ssl/certs
       cp ${S}/server.crt ${D}/etc/ssl/certs
       cp ${S}/server-private.key ${D}/etc/ssl/certs
-}
 
+      install -d ${D}/etc/firejail/
+      install -m 0644 ${WORKDIR}/restd.profile ${D}/etc/firejail/
+}
 
 SYSTEMD_PACKAGES = "${PN}"
 SYSTEMD_SERVICE_${PN} = "restd.service"
@@ -44,4 +47,5 @@ inherit openswitch setuptools systemd pythonnative
 
 FILES_${PN} += "/srv/www/api/ops-restapi.json \
                 /etc/ssl/certs \
+                /etc/firejail/restd.profile \
 "
