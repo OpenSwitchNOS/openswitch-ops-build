@@ -7,7 +7,7 @@ EXTRA_USERS_PARAMS = "\
          useradd -N -P admin admin; \
          usermod -g ops_admin admin;\
          usermod -g ops_netop netop;\
-         usermod -G ovsdb-client netop;\
+         usermod -G ovsdb-client,ops_coredump netop;\
          usermod -s /bin/bash admin;\
          usermod -s /usr/bin/vtysh netop;\
          "

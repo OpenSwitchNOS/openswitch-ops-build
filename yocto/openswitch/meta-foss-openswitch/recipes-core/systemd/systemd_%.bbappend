@@ -19,9 +19,10 @@ inherit pythonnative python-dir
 SRC_URI += "file://systemctl-alias.sh \
     file://silent-fsck-on-boot.patch \
     file://revert-ipv6ll-address-setting.patch \
+    file://systemd-coredump-groupname.patch \
+    file://systemd-coredump-conf.patch \
     file://system.conf \
 "
-
 # We remove the dependency from os-release to avoid rebuilding constantly
 RRECOMMENDS_${PN}_remove = "os-release"
 
