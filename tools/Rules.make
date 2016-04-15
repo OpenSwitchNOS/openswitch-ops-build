@@ -169,6 +169,7 @@ build/conf/local.conf: .platform
 
 header:: build/conf/site.conf build/conf/local.conf
 
+include tools/Rules-coverage.make
 -include yocto/*/meta-platform-$(DISTRO)-$(CONFIGURED_PLATFORM)/Rules.make
 export PLATFORM_DTS_FILE
 
