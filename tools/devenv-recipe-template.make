@@ -44,5 +44,13 @@ endif
 ##RECIPE##-nfs-undeploy:
 	$(V)$(call DEVTOOL, undeploy-target -s ##RECIPE## localhost:$(NFSROOTPATH))
 
+##RECIPE##-generate_coverage_report:
+	$(V)echo "===================  Generating Coverage Report  =================== "
+	# TODO: - Somewhere the repo needs to be added to the devenv, but:
+	#       - We should create this make target as a addition to the repo,
+	#         i.e.: have the user run make ops-repo-coverage
+	#         instead of adding the module to devenv and calling this target
+	$(V) $(BUILD_ROOT)/tools/bin/generate_coverage_report.sh $(RECIPE)
+
 -include src/##RECIPE##/Rules-ops-build.make
 #END_##RECIPE##
