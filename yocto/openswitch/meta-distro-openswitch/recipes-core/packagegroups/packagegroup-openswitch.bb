@@ -54,9 +54,10 @@ RDEPENDS_packagegroup-ops-base = "\
     ops-hw-config \
     ops-cfgd ops-fand ops-ledd ops-pmd ops-powerd ops-sysd ops-tempd \
     ops-dhcp-tftp \
-    ops-intfd ops-lacpd ops-lldpd ops-vland ops-arpmgrd \
+    ops-intfd ops-lacpd ops-lldpd ops-vland ops-arpmgrd ops-passwd-srv \
     ops-script-utils \
     ops-cli ops-restd ops-webui \
+    ops-classifierd \
     ops-portd ops-quagga \
     ops-aaa-utils \
     ${@bb.utils.contains('MACHINE_FEATURES', 'ops-container', '', 'ops-bufmond',d)} \
@@ -73,6 +74,8 @@ RDEPENDS_packagegroup-ops-base = "\
     ops-stpd \
     nicstat \
     sysstat \
+    ${@bb.utils.contains("MACHINE_FEATURES", "ops-kdump", "ops-kdump", "", d)} \
+    ops-snmpd \
 "
 
 RDEPENDS_packagegroup-ops-base_append_arm = "\
