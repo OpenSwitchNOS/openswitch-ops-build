@@ -8,9 +8,10 @@ SRC_URI = "git://git.openswitch.net/openswitch/ops-switchd;protocol=http \
    file://switchd_bcm.service \
    file://switchd_sim.service \
    file://switchd_p4sim.service \
+   file://switchd_xpliant.service \
 "
 
-SRCREV = "f628df6507b4574f05aec5740edfcd82ef8fbdff"
+SRCREV = "b05bbeac0fdf2a2bd8d4e0c33bf8205b096f7249"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.
@@ -25,12 +26,17 @@ RDEPENDS_${PN} = "openssl procps util-linux-uuidgen util-linux-libuuid coreutils
   ops-openvswitch ops-ovsdb \
   ${@bb.utils.contains('MACHINE_FEATURES', 'ops-container', 'openvswitch-sim-switch', '',d)} \
 "
+
+RDEPENDS_${PN}_remove := "${@bb.utils.contains("IMAGE_FEATURES", "ops-p4", "openvswitch-sim-switch", "",d)}"
+
 FILES_${PN} = "${sbindir}/ops-switchd ${libdir}/libswitchd_plugins.so.1*"
 
 do_install_append() {
    install -d ${D}${systemd_unitdir}/system
    if ${@bb.utils.contains('MACHINE_FEATURES','broadcom','true','false',d)}; then
       install -m 0644 ${WORKDIR}/switchd_bcm.service ${D}${systemd_unitdir}/system/switchd.service
+   elif ${@bb.utils.contains('MACHINE_FEATURES','xpliant','true','false',d)}; then
+      install -m 0644 ${WORKDIR}/switchd_xpliant.service ${D}${systemd_unitdir}/system/switchd.service
    elif ${@bb.utils.contains('IMAGE_FEATURES','ops-p4','true','false',d)}; then
       install -m 0644 ${WORKDIR}/switchd_p4sim.service ${D}${systemd_unitdir}/system/switchd.service
    elif ${@bb.utils.contains('MACHINE_FEATURES','ops-container','true','false',d)}; then

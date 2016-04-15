@@ -15,6 +15,7 @@ def enable_devenv_debugging(d):
     return "0"
 
 DEBUG_BUILD = "${@enable_devenv_debugging(d)}"
+TOPDIR[vardepvalue] = ""
 
 # Enable profiling for devenv recipes (meaning they are in external src)
 def enable_devenv_profiling(d):
@@ -27,6 +28,7 @@ def enable_devenv_profiling(d):
         # Inside the devenv, we need symbol remmaping to get the split debug packages to work properly
         return "-fdebug-prefix-map=${@d.getVar('S')}=/usr/src/debug/${BPN}/${PV}-${PR}"
     return ""
+enable_devenv_profiling[vardepsexclude] = "TOPDIR S"
 
 python profile_compile_prefunc() {
     bb.warn('Profiling enabled for package %s on the devenv' % (d.getVar('PN', True)))
@@ -60,15 +62,21 @@ do_generate_sca_wrappers() {
         mkdir -p ${dir}
         ln -f -s ${STAGING_BINDIR_TOOLCHAIN}/${HOST_PREFIX}${c} ${dir}/${c}
         cat > ${WORKDIR}/fortify-${c} << EOF
-if [ \${!#} = '--version' ] || [ \${!#} = '-v' ]; then
+#!/bin/bash
+if [ "\${!#}" = '--version' ] || [ "\${!#}" = '-v' ]; then
     ${dir}/${c} \${!#}
 else
-    sourceanalyzer ${FORTIFY_PARAMETERS} ${dir}/${c} \$@
+    inc_flags="\$(${dir}/${c} -E --sysroot=${STAGING_DIR_TARGET} -x c /dev/null -o /dev/null -v 2>&1 |
+        sed -n '/search starts here/,/End of search list./p' |
+        sed -n 's/^ / -I/p')"
+    sourceanalyzer ${FORTIFY_PARAMETERS} ${dir}/${c} -nostdinc \${inc_flags} "\$@"
+    ${dir}/${c} "\$@"
 fi
 EOF
         chmod +x ${WORKDIR}/fortify-${c}
     done
 }
+generate_sca_wrappers[vardepsexclude] = "TOPDIR"
 
 addtask generate_sca_wrappers after do_patch before do_configure
 
@@ -78,6 +86,7 @@ def get_cmake_c_compiler(d):
         if os.path.isfile(os.path.join(d.getVar('TOPDIR', True), 'devenv-sca-enabled')):
             return "${WORKDIR}/fortify-gcc"
     return "${CCACHE}${HOST_PREFIX}gcc"
+get_cmake_c_compiler[vardepsexclude] = "TOPDIR"
 
 def get_cmake_cxx_compiler(d):
     externalsrc = d.getVar('EXTERNALSRC', True)
@@ -85,6 +94,7 @@ def get_cmake_cxx_compiler(d):
         if os.path.isfile(os.path.join(d.getVar('TOPDIR', True), 'devenv-sca-enabled')):
             return "${WORKDIR}/fortify-g++"
     return "${CCACHE}${HOST_PREFIX}g++"
+get_cmake_cxx_compiler[vardepsexclude] = "TOPDIR"
 
 export CC = "${@get_cmake_c_compiler(d)} ${HOST_CC_ARCH}${TOOLCHAIN_OPTIONS}"
 export CXX = "${@get_cmake_cxx_compiler(d)} ${HOST_CC_ARCH}${TOOLCHAIN_OPTIONS}"
