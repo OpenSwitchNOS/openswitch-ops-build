@@ -1,0 +1,10 @@
+# OpenSwitch password server configuration file
+---
+files:
+  - type: SOCKET
+    path: '/var/run/ops-passwd-srv/ops-passwd-srv.sock'
+    description: 'File path for password server socket'
+
+  - type: PUB_KEY
+    path: '/var/run/ops-passwd-srv/ops-passwd-srv-pub.pem'
+    description: 'Public key location to encrypt message'

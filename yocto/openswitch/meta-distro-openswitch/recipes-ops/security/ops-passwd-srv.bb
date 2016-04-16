@@ -7,6 +7,7 @@ DEPENDS = "ops-ovsdb"
 
 SRC_URI = "git://git.openswitch.net/openswitch/ops-passwd-srv;protocol=http \
            file://ops-passwd-srv.service \
+           file://ops-passwd-srv.yaml \
          "
 
 SRCREV="55aa20e8366ceb3b459522c330657c1bbffc12b1"
@@ -19,7 +20,9 @@ S = "${WORKDIR}/git"
 
 do_install_prepend() {
      install -d ${D}${systemd_unitdir}/system
+     install -d ${D}/etc/ops-passwd-srv
      install -m 0644 ${WORKDIR}/ops-passwd-srv.service ${D}${systemd_unitdir}/system/
+     install -m 0644 ${WORKDIR}/ops-passwd-srv.yaml ${D}/etc/ops-passwd-srv/
 }
 
 SYSTEMD_PACKAGES = "${PN}"
