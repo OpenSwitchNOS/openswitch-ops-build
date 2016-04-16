@@ -2,14 +2,14 @@ SUMMARY = "OpenSwitch Network Time Protocol Daemon"
 LICENSE = "Apache-2.0"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/Apache-2.0;md5=89aea4e17d99a7cacdbeed46a0096b10"
 
-DEPENDS = "ops-utils ops-ovsdb ops-cli"
+DEPENDS = "ops-utils ops-ovsdb ops-cli ops-supportability"
 
 RDEPENDS_${PN} = "ntp"
 SRC_URI = "git://git.openswitch.net/openswitch/ops-ntpd;protocol=http \
            file://ops-ntpd.service \
 "
 
-SRCREV = "9a4aea3681740cfe523e3dd568936814844363c6"
+SRCREV = "93ac85827ddfdaf2511131c62b47e36f49e3c063"
 
 # Mixing of two classes, the build happens on the source directory.
 inherit openswitch cmake setuptools systemd

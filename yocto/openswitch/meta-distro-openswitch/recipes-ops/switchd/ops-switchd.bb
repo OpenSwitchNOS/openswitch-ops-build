@@ -11,7 +11,7 @@ SRC_URI = "git://git.openswitch.net/openswitch/ops-switchd;protocol=http \
    file://switchd_xpliant.service \
 "
 
-SRCREV = "947e69621a32abd842d7e43c9f81f862cc0a26ed"
+SRCREV = "1adda0face42e7073d9454855c126397472c060b"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.
@@ -26,6 +26,9 @@ RDEPENDS_${PN} = "openssl procps util-linux-uuidgen util-linux-libuuid coreutils
   ops-openvswitch ops-ovsdb \
   ${@bb.utils.contains('MACHINE_FEATURES', 'ops-container', 'openvswitch-sim-switch', '',d)} \
 "
+
+RDEPENDS_${PN}_remove := "${@bb.utils.contains("IMAGE_FEATURES", "ops-p4", "openvswitch-sim-switch", "",d)}"
+
 FILES_${PN} = "${sbindir}/ops-switchd ${libdir}/libswitchd_plugins.so.1*"
 
 do_install_append() {
