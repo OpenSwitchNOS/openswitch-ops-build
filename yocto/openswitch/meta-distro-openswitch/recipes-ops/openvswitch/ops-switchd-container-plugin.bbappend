@@ -3,4 +3,4 @@
 SRC_URI = "git://git.openswitch.net/openswitch/ops-switchd-container-plugin;protocol=http;branch=feature/acl \
 "
 
-SRCREV = "9c8595c61208d54f90483f9501e0b5eea6a727b8"
+SRCREV = "503796727cbf5e6e31b2565fd95a90be872d7d34"
