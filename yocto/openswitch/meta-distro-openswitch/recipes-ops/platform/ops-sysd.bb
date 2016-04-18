@@ -9,7 +9,7 @@ SRC_URI = "git://git.openswitch.net/openswitch/ops-sysd;protocol=https \
            file://ops-sysd.service \
 "
 
-SRCREV = "d52839129c5f63278c6a6093c71739ac409e0857"
+SRCREV = "8f233c9816a99b46df7a49afa08223f09039974d"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.
@@ -25,5 +25,7 @@ do_install_append() {
 FILES_${PN} += "/usr/lib/cli/plugins/"
 SYSTEMD_PACKAGES = "${PN}"
 SYSTEMD_SERVICE_${PN} = "ops-sysd.service"
+
+EXTRA_OECMAKE+="${@bb.utils.contains('MACHINE_FEATURES', 'ops-container', '-DUSE_SW_FRU=ON', '',d)}"
 
 inherit openswitch cmake systemd pkgconfig

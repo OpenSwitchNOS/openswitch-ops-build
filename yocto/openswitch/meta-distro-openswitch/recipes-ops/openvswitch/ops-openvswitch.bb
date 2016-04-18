@@ -10,9 +10,11 @@ SRC_URI = "git://git.openswitch.net/openswitch/ops-openvswitch;protocol=http \
    file://on-demand-fetching.patch \
    file://compound-indexes.patch \
    file://idl_tracking_python.patch \
+   file://smap-shash-add-numeric-and-flexible-sort.patch \
+   file://json.py.patch \
 "
 
-SRCREV = "0d50803f70419dc37a0f55f5e9b81efbfe152562"
+SRCREV = "7322f396e8b75f8c59cc1f129ca32098d0e12853"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.
@@ -27,6 +29,9 @@ RDEPENDS_${PN} = "openssl procps util-linux-uuidgen util-linux-libuuid coreutils
   python perl perl-module-strict sed gawk grep ops-ovsdb \
   ${@bb.utils.contains('MACHINE_FEATURES', 'ops-container', 'openvswitch-sim-switch', '',d)} \
 "
+
+RDEPENDS_${PN}_remove := "${@bb.utils.contains("IMAGE_FEATURES", "ops-p4", "openvswitch-sim-switch", "",d)}"
+
 RDEPENDS_ops-ovsdb = "ops"
 
 RDEPENDS_python-ops-ovsdb = "python-io python-netclient python-datetime \
