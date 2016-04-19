@@ -1,0 +1,13 @@
+diff -uNPr ntp-4.2.8p4/ntpd/ntpd.c ntp-4.2.8p4_revised/ntpd/ntpd.c
+--- ntp-4.2.8p4/ntpd/ntpd.c	2016-04-18 16:23:17.868205689 -0700
++++ ntp-4.2.8p4_revised/ntpd/ntpd.c	2016-04-18 22:21:04.704011000 -0700
+@@ -590,9 +590,6 @@
+	uid = getuid();
+ 	if (uid && !HAVE_OPT( SAVECONFIGQUIT )) {
+ 		msyslog_term = TRUE;
+-		msyslog(LOG_ERR,
+-			"must be run as root, not uid %ld", (long)uid);
+-		exit(1);
+ 	}
+ # endif
+
