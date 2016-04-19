@@ -134,7 +134,6 @@ RDEPENDS_packagegroup-ops-config = "\
     dnsmasq \
     ops-checkmk-agent \
     ops-ansible \
-    ops-ntpd \
     ops-supportability \
     strongswan \
 "
