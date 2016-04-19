@@ -1,0 +1,13 @@
+--- ntp-4.2.8p4/ntpd/ntpd.c	2016-04-18 20:50:05.987886332 -0700
++++ /home/srinsriv/ref/ntp-4.2.8p4/ntpd/ntpd.c	2016-04-18 16:23:17.868205689 -0700
+@@ -591,8 +591,8 @@
+ 	if (uid && !HAVE_OPT( SAVECONFIGQUIT )) {
+ 		msyslog_term = TRUE;
+ 		msyslog(LOG_ERR,
+-			"WARNING: must be run as root, not uid %ld", (long)uid);
+-		//exit(1);
++			"must be run as root, not uid %ld", (long)uid);
++		exit(1);
+ 	}
+ # endif
+ 
