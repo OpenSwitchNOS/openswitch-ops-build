@@ -11,6 +11,7 @@ SRC_URI = "git://git.openswitch.net/openswitch/ops-openvswitch;protocol=http \
    file://compound-indexes.patch \
    file://idl_tracking_python.patch \
    file://smap-shash-add-numeric-and-flexible-sort.patch \
+   file://json.py.patch \
 "
 
 SRCREV = "7322f396e8b75f8c59cc1f129ca32098d0e12853"
@@ -105,6 +106,8 @@ do_install_append() {
     install -m 0644 ${WORKDIR}/ovsdb-server.service ${D}${systemd_unitdir}/system/
     install -d ${D}${sysconfdir}/tmpfiles.d
     echo "d /run/openvswitch/ 0770 - ovsdb-client -" > ${D}${sysconfdir}/tmpfiles.d/openswitch.conf
+    echo "a+ /run/log/journal/%m - - - - d:group:ops_netop:r-x" >> ${D}${sysconfdir}/tmpfiles.d/openswitch.conf
+    echo "A+ /run/log/journal/%m - - - - group:ops_netop:r-x" >> ${D}${sysconfdir}/tmpfiles.d/openswitch.conf
     install -d ${D}${PYTHON_SITEPACKAGES_DIR}
     mv ${D}/${prefix}/share/openvswitch/python/ovs ${D}${PYTHON_SITEPACKAGES_DIR}
 }
