@@ -54,7 +54,7 @@ RDEPENDS_packagegroup-ops-base = "\
     ops-cfgd ops-fand ops-ledd ops-pmd ops-powerd ops-sysd ops-tempd \
     ops-dhcp-tftp \
     ops-intfd ops-lacpd ops-lldpd ops-vland ops-arpmgrd ops-passwd-srv \
-    ops-script-utils \
+    ops-script-utils ops-ipsecd\
     ops-cli ops-restd ops-webui \
     ops-classifierd \
     ops-portd ops-quagga \
