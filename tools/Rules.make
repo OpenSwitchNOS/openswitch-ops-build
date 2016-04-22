@@ -636,6 +636,7 @@ testenv_run: _testenv_header
 	 done
 	$(V) docker rmi $(TOPOLOGY_TEST_IMAGE) > /dev/null 2>&1 || true
 	$(V) $(MAKE) export_docker_image $(TOPOLOGY_TEST_IMAGE)
+	$(V) docker tag $(TOPOLOGY_TEST_IMAGE) topology/ops
 	$(V) $(SUDO) rm -Rf $(BUILDDIR)/test/$(TESTSUITE)
 	$(V) $(MAKE) _testenv_rerun
 	$(V) $(SUDO) modprobe bonding
