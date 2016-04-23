@@ -12,8 +12,8 @@ DEPENDS = "libevent libenv-perl libcap"
 RDEPENDS_${PN} += "perl"
 
 SRC_URI = "http://www.eecis.udel.edu/~ntp/ntp_spool/ntp4/ntp-4.2/ntp-${PV}.tar.gz"
-SRC_URI[md5sum] = "6af96862b09324a8ef965ca76b759c8b"
-SRC_URI[sha256sum] = "0d6961572548d2c4af96f58f763e22ac620f5afef717384ddc317a0e365cfdb9"
+SRC_URI[md5sum] = "60049f51e9c8305afe30eb22b711c5c6"
+SRC_URI[sha256sum] = "583d0e1c573ace30a9c6afbea0fc52cae9c8c916dbc15c026e485a0dda4ba048"
 
 inherit autotools pkgconfig
 
