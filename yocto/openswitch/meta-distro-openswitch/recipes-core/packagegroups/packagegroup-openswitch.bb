@@ -71,6 +71,7 @@ RDEPENDS_packagegroup-ops-base = "\
     strongswan \
     firejail \
     ops-ipapps \
+    ops-vrfmgrd \
     ops-stpd \
     ops-sysmond \
     nicstat \
