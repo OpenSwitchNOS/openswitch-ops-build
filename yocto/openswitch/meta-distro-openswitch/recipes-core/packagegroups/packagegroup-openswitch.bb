@@ -77,6 +77,7 @@ RDEPENDS_packagegroup-ops-base = "\
     sysstat \
     ${@bb.utils.contains("MACHINE_FEATURES", "ops-kdump", "ops-kdump", "", d)} \
     ops-snmpd \
+    ptpd \
 "
 
 RDEPENDS_packagegroup-ops-base_append_arm = "\
