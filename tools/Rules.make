@@ -743,6 +743,9 @@ _testenv_rerun:
 	      $(MAKE) devenv_ct_test PY_TEST_ARGS="$(TESTENV_EXTRA_PARAMETERS) --exitfirst --junitxml=$(BUILDDIR)/test/$(TESTSUITE)/test-results.xml $(BUILDDIR)/test/$(TESTSUITE)/code_under_test" || exit 1 ; \
 	    done ; \
 	  else \
+	    if [[ tools/topology/requirements.txt -nt $(BUILDDIR)/test/$(TESTSUITE)/.tox ]] ; then \
+	      rm -Rf $(BUILDDIR)/test/$(TESTSUITE)/.tox ; \
+	    fi ; \
             $(ECHO) "\nIterating the tests $(TESTENV_ITERATIONS) times\n" ; \
 	    for iteration in $$(seq 1 $(TESTENV_ITERATIONS)) ; do \
 	      $(ECHO) "\nRunning the testsuite on iteration $$iteration" ; \
