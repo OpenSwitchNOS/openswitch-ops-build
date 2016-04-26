@@ -1,3 +1,5 @@
+# Recipe variable overrides for feature/acl branch
+
 SRC_URI = "git://git.openswitch.net/openswitch/ops;protocol=https;branch=feature/acl"
 
-SRCREV = "6f19a2a4b60ed95def5f564eec94f019fe4df698"
+SRCREV = "8136e9f73dd28c8edeaaf498aba0e637182ef832"
