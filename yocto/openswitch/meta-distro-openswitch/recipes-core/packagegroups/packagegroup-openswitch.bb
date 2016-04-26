@@ -72,10 +72,12 @@ RDEPENDS_packagegroup-ops-base = "\
     firejail \
     ops-ipapps \
     ops-stpd \
+    ops-sysmond \
     nicstat \
     sysstat \
     ${@bb.utils.contains("MACHINE_FEATURES", "ops-kdump", "ops-kdump", "", d)} \
     ops-snmpd \
+    ops-l2macd \
 "
 
 RDEPENDS_packagegroup-ops-base_append_arm = "\
@@ -86,6 +88,9 @@ RDEPENDS_packagegroup-ops-base_append_arm = "\
 RDEPENDS_packagegroup-ops-min = "\
     python \
     python-pyroute2 \
+    python-paramiko \
+    python-netclient \
+    python-netserver \
     yaml-cpp \
     libevent \
     util-linux \

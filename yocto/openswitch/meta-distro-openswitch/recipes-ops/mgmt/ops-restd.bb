@@ -10,7 +10,7 @@ SRC_URI = "git://git.openswitch.net/openswitch/ops-restd;protocol=http \
            file://restd.service \
 "
 
-SRCREV = "ab3599a0b8b4df99c35b3f99de6948b2c41630d5"
+SRCREV = "ef92e5232bb5e3e9dd805ca8ce48f78f55b7c983"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.
@@ -34,6 +34,11 @@ do_install_append () {
       install -d ${D}/etc/ssl/certs
       cp ${S}/server.crt ${D}/etc/ssl/certs
       cp ${S}/server-private.key ${D}/etc/ssl/certs
+
+      install -d ${D}/usr/share/opsplugins
+      for plugin in $(find ${S}/opsplugins -name "*.py"); do \
+        install -m 0644 ${plugin} ${D}/usr/share/opsplugins
+      done
 }
 
 
@@ -44,4 +49,5 @@ inherit openswitch setuptools systemd pythonnative
 
 FILES_${PN} += "/srv/www/api/ops-restapi.json \
                 /etc/ssl/certs \
+                /usr/share/opsplugins \
 "
