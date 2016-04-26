@@ -45,6 +45,7 @@ do_install_append(){
 
    install -c -m 0644 ${WORKDIR}/ops-supportability.service ${D}${systemd_unitdir}/system/
    install -c -m 0644 ${S}/conf/*.yaml ${D}/etc/openswitch/supportability/
+   install -c -m 0644 ${S}/conf/ops_journal.conf ${D}/etc/openswitch/supportability/ops_journal.conf
    install -c -m 0444 ${S}/conf/ops_showtech.yaml ${D}/etc/openswitch/supportability/ops_showtech.defaults.yaml
    install -c -m 0644 ${S}/conf/ops_coredump.conf ${D}${libdir}/sysusers.d/ops_coredump.conf
    install -c -m 0644 ${S}/conf/ops_supportability_dir.conf  ${D}${sysconfdir}/tmpfiles.d/ops_supportability_dir.conf
