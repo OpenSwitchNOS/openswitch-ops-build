@@ -1,0 +1,49 @@
+commit 35f1b4e96b9258a3668872b1139c51e5a23eb876
+Author: Michal Kubeček <mkubecek@suse.cz>
+Date:   Mon May 18 20:53:55 2015 +0200
+
+    ipv6: do not delete previously existing ECMP routes if add fails
+    
+    If adding a nexthop of an IPv6 multipath route fails, comment in
+    ip6_route_multipath() says we are going to delete all nexthops already
+    added. However, current implementation deletes even the routes it
+    hasn't even tried to add yet. For example, running
+    
+      ip route add 1234:5678::/64 \
+          nexthop via fe80::aa dev dummy1 \
+          nexthop via fe80::bb dev dummy1 \
+          nexthop via fe80::cc dev dummy1
+    
+    twice results in removing all routes first command added.
+    
+    Limit the second (delete) run to nexthops that succeeded in the first
+    (add) run.
+    
+    Fixes: 51ebd3181572 ("ipv6: add support of equal cost multipath (ECMP)")
+    Signed-off-by: Michal Kubecek <mkubecek@suse.cz>
+    Acked-by: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+    Signed-off-by: David S. Miller <davem@davemloft.net>
+
+diff --git a/net/ipv6/route.c b/net/ipv6/route.c
+index d358888..3821a35 100644
+--- a/net/ipv6/route.c
++++ b/net/ipv6/route.c
+@@ -2504,9 +2504,9 @@ static int ip6_route_multipath(struct fib6_config *cfg, int add)
+ 	int attrlen;
+ 	int err = 0, last_err = 0;
+ 
++	remaining = cfg->fc_mp_len;
+ beginning:
+ 	rtnh = (struct rtnexthop *)cfg->fc_mp;
+-	remaining = cfg->fc_mp_len;
+ 
+ 	/* Parse a Multipath Entry */
+ 	while (rtnh_ok(rtnh, remaining)) {
+@@ -2536,6 +2536,7 @@ beginning:
+ 				 * next hops that have been already added.
+ 				 */
+ 				add = 0;
++				remaining = cfg->fc_mp_len - remaining;
+ 				goto beginning;
+ 			}
+ 		}
