@@ -11,8 +11,13 @@ PV = "${KERNEL_RELEASE}"
 
 SRC_URI = "http://archive.openswitch.net/linux-3.9.11.tar.xz;name=kernel \
     file://fix-make-headers-install-when-path-too-long.patch \
+    file://only-static-routes-qualify-for-equal-cost-multipathing.patch \
+    file://fix-ecmp-lookup-when-oif-is-specified.patch \
+    file://fix-route-selection-if-kernel-not-complied-with-CONFIG_IPV6_ROUTER_PREF-modified.patch \
+    file://do-not-delete-previously-existing-ECMP-routes-if-add-fails.patch \
+    file://replacing-a-rt6_info-needs-to-purge-possible-propagated-rt6_infos-too.patch \
+    file://fix-ECMP-route-replacement.patch \
 "
-
 SRC_URI[kernel.md5sum] = "edbf88eb7f7d34dbd5d3887726790755"
 SRC_URI[kernel.sha256sum] = "d4b9e522925d9b1b3fd130c8b7690ef6af4faf118fc4c5e28dfcbb18de3cb234"
 
