@@ -11,7 +11,7 @@ SRC_URI = "git://git.openswitch.net/openswitch/ops-switchd;protocol=http \
    file://switchd_xpliant.service \
 "
 
-SRCREV = "808c38b10bffd7d7e3ba6ccf50d609c4db0368aa"
+SRCREV = "ad9d33be56df4360560ffc998ce4eae9272fb88c"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.
@@ -42,7 +42,13 @@ do_install_append() {
    elif ${@bb.utils.contains('MACHINE_FEATURES','ops-container','true','false',d)}; then
       install -m 0644 ${WORKDIR}/switchd_sim.service ${D}${systemd_unitdir}/system/switchd.service
    fi
+
+   install -d ${D}/usr/share/opsplugins
+   for plugin in $(find ${S}/opsplugins -name "*.py"); do \
+      install -m 0644 ${plugin} ${D}/usr/share/opsplugins
+   done
 }
+FILES_${PN} += "/usr/share/opsplugins"
 
 SYSTEMD_PACKAGES = "${PN}"
 SYSTEMD_SERVICE_${PN} = "switchd.service"
