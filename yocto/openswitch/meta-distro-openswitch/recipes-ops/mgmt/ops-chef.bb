@@ -4,7 +4,7 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/Apache-2.0;md5=89aea4e17d99a7ca
 
 RDEPENDS_${PN} = "ruby"
 
-SRC_URI = "git://git.openswitch.net/openswitch/ops-chef;protocol=http"
+SRC_URI = "${OPS_REPO_BASE_URL}/ops-chef;protocol=${OPS_REPO_PROTOCOL};branch=${OPS_REPO_BRANCH}"
 SRCREV = "96053a098716220fb4d484bc321b84dc2087cbd8"
 PV = "git${SRCPV}"
 

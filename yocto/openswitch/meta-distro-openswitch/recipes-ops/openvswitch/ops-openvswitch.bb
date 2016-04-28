@@ -4,7 +4,7 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda
 
 DEPENDS = "openssl python perl systemd libtool libyaml jemalloc ops"
 
-SRC_URI = "git://git.openswitch.net/openswitch/ops-openvswitch;protocol=http \
+SRC_URI = "${OPS_REPO_BASE_URL}/ops-openvswitch;protocol=${OPS_REPO_PROTOCOL};branch=${OPS_REPO_BRANCH} \
    file://ovsdb-server.service \
    file://partial-map-updates.patch \
    file://on-demand-fetching.patch \
