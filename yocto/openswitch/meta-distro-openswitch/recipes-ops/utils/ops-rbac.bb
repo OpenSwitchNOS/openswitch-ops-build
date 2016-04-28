@@ -4,7 +4,7 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/Apache-2.0;md5=89aea4e17d99a7ca
 
 DEPENDS = ""
 
-SRC_URI = "git://git.openswitch.net/openswitch/ops-rbac;protocol=http"
+SRC_URI = "${OPS_REPO_BASE_URL}/ops-rbac;protocol=${OPS_REPO_PROTOCOL};branch=${OPS_REPO_BRANCH}"
 
 SRCREV = "9f551b08c5fb2c717cba50d79ce695b158f781af"
 

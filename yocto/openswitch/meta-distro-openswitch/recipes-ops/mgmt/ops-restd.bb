@@ -6,7 +6,7 @@ DEPENDS = "python-inflect-native python-tornado-native ops-openvswitch ops-ovsdb
 
 RDEPENDS_${PN} = "python-argparse python-json python-ops-ovsdb python-distribute python-tornado python-html python-pkgutil python-subprocess python-numbers python-inflect python-xml ops-restapi python-unixadmin python-jsonschema python-jsonpatch ops-aaa-utils ops-passwd-srv python-pycrypto"
 
-SRC_URI = "git://git.openswitch.net/openswitch/ops-restd;protocol=http \
+SRC_URI = "${OPS_REPO_BASE_URL}/ops-restd;protocol=${OPS_REPO_PROTOCOL};branch=${OPS_REPO_BRANCH} \
            file://restd.service \
 "
 
