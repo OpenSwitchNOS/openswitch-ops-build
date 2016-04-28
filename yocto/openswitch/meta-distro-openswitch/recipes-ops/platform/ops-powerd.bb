@@ -6,6 +6,7 @@ DEPENDS = "ops-hw-config ops-ovsdb ops-cli ops-supportability"
 
 SRC_URI = "git://git.openswitch.net/openswitch/ops-powerd;protocol=http \
            file://ops-powerd.service \
+           branch=rel/dill \
 "
 
 SRCREV = "724778ac98d8710513cf5ec1a08a02148780c471"

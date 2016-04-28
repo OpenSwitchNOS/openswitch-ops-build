@@ -8,6 +8,7 @@ SRC_URI = "git://git.openswitch.net/openswitch/ops-checkmk-agent;protocol=http \
            file://checkmk-agent.sh \
            file://checkmk-agent@.service \
            file://checkmk-agent.socket \
+           branch=rel/dill \
 "
 
 SRCREV = "fa07cae60254093ff8ee166cd2cd251fe33808a5"

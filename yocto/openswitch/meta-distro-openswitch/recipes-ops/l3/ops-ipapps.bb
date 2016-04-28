@@ -5,7 +5,9 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/Apache-2.0;md5=89aea4e17d99a7ca
 DEPENDS = "ops-utils ops-ovsdb ops-cli"
 
 SRC_URI = "git://git.openswitch.net/openswitch/ops-ipapps;protocol=http\
-           file://ops-udpfwd.service"
+           file://ops-udpfwd.service \
+           branch=rel/dill \
+           "
 
 SRCREV = "d3e6787a7994a4af35c4de65975b141898490e3a"
 

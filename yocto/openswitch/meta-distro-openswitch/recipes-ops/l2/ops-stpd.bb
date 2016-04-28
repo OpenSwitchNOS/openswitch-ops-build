@@ -6,7 +6,9 @@ DEPENDS = "ops-utils ops-ovsdb ops-cli ops-switchd"
 FILES_${PN} += "/usr/lib/cli/plugins/"
 
 SRC_URI = "git://git.openswitch.net/openswitch/ops-stpd;protocol=http\
-           file://ops-stpd.service"
+           file://ops-stpd.service
+           branch=rel/dill \
+           "
 
 SRCREV = "20d5da0cc37941c3b76c3220789eac7506194be7"
 

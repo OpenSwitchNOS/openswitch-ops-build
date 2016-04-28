@@ -7,6 +7,7 @@ RDEPENDS_${PN} = "audit"
 
 SRC_URI = "git://git.openswitch.net/openswitch/ops-classifierd;protocol=http \
            file://ops-classifierd.service \
+           branch=rel/dill \
 "
 
 SRCREV = "c8d87fcbb31e35a994b65cf486ed6899d09533be"

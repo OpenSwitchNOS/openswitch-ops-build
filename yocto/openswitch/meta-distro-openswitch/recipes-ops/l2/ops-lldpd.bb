@@ -6,6 +6,7 @@ DEPENDS = "ops-utils ops-hw-config ops-ovsdb libevent openssl ops-supportability
 
 SRC_URI = "git://git.openswitch.net/openswitch/ops-lldpd;protocol=http \
           file://ops-lldpd.service \
+          branch=rel/dill \
 "
 
 SRCREV = "e097d0db5b4c592fa46d2e8fa638641d9ac74f09"

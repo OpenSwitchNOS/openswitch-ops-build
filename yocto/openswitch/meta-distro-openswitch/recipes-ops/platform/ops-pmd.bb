@@ -6,6 +6,7 @@ DEPENDS = "ops-hw-config ops-ovsdb ops-supportability"
 
 SRC_URI = "git://git.openswitch.net/openswitch/ops-pmd;protocol=http \
            file://ops-pmd.service \
+           branch=rel/dill \
 "
 
 SRCREV = "df28fc2accbd1425dd503609da037bbb940bd825"

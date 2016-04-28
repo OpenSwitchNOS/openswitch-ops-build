@@ -7,6 +7,7 @@ RDEPENDS_${PN} = "dmidecode"
 
 SRC_URI = "git://git.openswitch.net/openswitch/ops-sysd;protocol=https \
            file://ops-sysd.service \
+           branch=rel/dill \
 "
 
 SRCREV = "b5145947517f989f58eefc4d0a95fd374d2fc35c"

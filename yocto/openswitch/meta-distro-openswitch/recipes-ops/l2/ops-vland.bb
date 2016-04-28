@@ -6,6 +6,7 @@ DEPENDS = "ops-ovsdb ops-cli"
 
 SRC_URI = "git://git.openswitch.net/openswitch/ops-vland;protocol=http \
            file://ops-vland.service \
+           branch=rel/dill \
 "
 
 SRCREV = "8d1a1196813e36d6e325dab3fe1ade9d12d9c7b3"

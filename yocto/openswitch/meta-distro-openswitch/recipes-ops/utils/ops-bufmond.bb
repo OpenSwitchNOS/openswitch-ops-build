@@ -8,6 +8,7 @@ RDEPENDS_${PN} = "python-argparse python-json python-ops-ovsdb python-distribute
 
 SRC_URI = "git://git.openswitch.net/openswitch/ops-bufmond;protocol=https \
     file://bufmond.service \
+    branch=rel/dill \
 "
 
 SRCREV = "b613b71d57449e44dd6f2abc4981df00c768aca0"

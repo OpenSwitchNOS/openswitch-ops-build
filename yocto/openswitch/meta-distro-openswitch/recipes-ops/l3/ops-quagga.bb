@@ -10,6 +10,7 @@ RDEPENDS_${PN} += "iproute2"
 
 SRC_URI = "git://git.openswitch.net/openswitch/ops-quagga;protocol=http \
     file://ops-zebra.service file://ops-bgpd.service file://ops-ospfd.service \
+    branch=rel/dill \
 "
 
 SRCREV = "925d7938b0df6181be036b351fe95bcd7a471d9e"

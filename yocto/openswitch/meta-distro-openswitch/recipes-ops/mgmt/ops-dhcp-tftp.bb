@@ -7,6 +7,7 @@ DEPENDS = "ops-cli"
 
 SRC_URI = "git://git.openswitch.net/openswitch/ops-dhcp-tftp;protocol=http \
            file://dhcp_tftp.service \
+           branch=rel/dill \
 "
 
 SRCREV = "806a118d67b29a5a060d0f13670c594b18847f2b"

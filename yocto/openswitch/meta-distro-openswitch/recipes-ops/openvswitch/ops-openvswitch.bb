@@ -12,6 +12,7 @@ SRC_URI = "git://git.openswitch.net/openswitch/ops-openvswitch;protocol=http \
    file://idl_tracking_python.patch \
    file://smap-shash-add-numeric-and-flexible-sort.patch \
    file://json.py.patch \
+   branch=rel/dill \
 "
 
 SRCREV = "d542b8a5d660a9c67bb8107279ab1e7cdf8ade1b"

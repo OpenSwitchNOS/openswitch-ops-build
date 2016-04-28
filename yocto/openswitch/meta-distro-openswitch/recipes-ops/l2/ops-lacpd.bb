@@ -6,6 +6,7 @@ DEPENDS = "ops-ovsdb ops-utils ops-cli ops-supportability"
 
 SRC_URI = "git://git.openswitch.net/openswitch/ops-lacpd;protocol=http\
            file://ops-lacpd.service \
+           branch=rel/dill \
 "
 
 SRCREV = "e717c01e2f84b64ac014fe98f37a6a8f4c9f415f"

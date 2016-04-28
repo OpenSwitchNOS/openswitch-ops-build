@@ -9,6 +9,7 @@ RDEPENDS_${PN} = "python-argparse python-json python-ops-ovsdb python-distribute
 
 SRC_URI = "git://git.openswitch.net/openswitch/ops-mgmt-intf;protocol=http \
            file://mgmt-intf.service \
+           branch=rel/dill \
          "
 
 SRCREV = "d35edaddf92506a6714fc97079bc5098a2003691"

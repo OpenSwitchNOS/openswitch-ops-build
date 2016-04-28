@@ -7,6 +7,8 @@ DEPENDS = "ops-ovsdb"
 
 SRC_URI = "git://git.openswitch.net/openswitch/ops-passwd-srv;protocol=http \
            file://ops-passwd-srv.service \
+           branch=rel/dill \
+           branch=rel/dill \
          "
 
 SRCREV="d882cd77a045d76c49abc561c436a6c338a32a1d"

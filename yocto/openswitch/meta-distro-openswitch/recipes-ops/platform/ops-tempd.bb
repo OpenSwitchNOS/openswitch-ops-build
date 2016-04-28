@@ -6,6 +6,7 @@ DEPENDS = "ops-hw-config ops-ovsdb ops-cli ops-supportability"
 
 SRC_URI = "git://git.openswitch.net/openswitch/ops-tempd;protocol=http \
            file://ops-tempd.service \
+           branch=rel/dill \
 "
 
 SRCREV = "94a05bffb1daa6e90fa419cdd4eb7d303e45984c"

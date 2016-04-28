@@ -15,6 +15,7 @@ SRC_URI = "git://git.openswitch.net/openswitch/ops-aaa-utils;protocol=http \
            file://aaautils.service \
            file://server \
            file://useradd \
+           branch=rel/dill \
          "
 
 SRCREV = "c6341d86c8af333374ba55cfd8aa9fd7b68f1773"

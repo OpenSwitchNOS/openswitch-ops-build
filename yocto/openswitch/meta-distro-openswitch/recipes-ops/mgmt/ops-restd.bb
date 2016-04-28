@@ -8,6 +8,7 @@ RDEPENDS_${PN} = "python-argparse python-json python-ops-ovsdb python-distribute
 
 SRC_URI = "git://git.openswitch.net/openswitch/ops-restd;protocol=http \
            file://restd.service \
+           branch=rel/dill \
 "
 
 SRCREV = "bcf646367c940589919e8873c816230f9d8e1825"

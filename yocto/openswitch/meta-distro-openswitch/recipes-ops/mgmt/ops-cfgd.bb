@@ -6,6 +6,7 @@ RDEPENDS_${PN} = "python-argparse python-json python-ops-ovsdb python-distribute
 
 SRC_URI = "git://git.openswitch.net/openswitch/ops-cfgd;protocol=http \
            file://cfgd.service \
+           branch=rel/dill \
 "
 
 SRCREV = "bb41ea9297aa2b3b13b115f6f9d8d0677bebac9a"

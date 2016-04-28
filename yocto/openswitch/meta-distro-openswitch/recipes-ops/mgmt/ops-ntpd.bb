@@ -7,6 +7,7 @@ DEPENDS = "ops-utils ops-ovsdb ops-cli ops-supportability"
 RDEPENDS_${PN} = "ntp"
 SRC_URI = "git://git.openswitch.net/openswitch/ops-ntpd;protocol=http \
            file://ops-ntpd.service \
+           branch=rel/dill \
 "
 
 SRCREV = "ec71e8bc28c47cd065958767f64b127a922ebaa4"
