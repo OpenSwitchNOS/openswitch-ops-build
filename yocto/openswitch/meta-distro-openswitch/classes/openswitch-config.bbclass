@@ -22,7 +22,19 @@ def get_ops_config_symbols(d):
     debug_file_path = d.getVar("TOPDIR") + "/ops-mod-config.log"
     ops_feature = ""
 
-    # Debug log file
+    #
+    # A note about logging:
+    #
+    # Apparently Python "logging" availability in yocto is under works:
+    # https://bugzilla.yoctoproject.org/show_bug.cgi?id=2375
+    #
+    # bb.debug/warn/error/fatal/note are provided in logging.bbclass. But
+    # they have limitations: can't handle arguments, interfere with regular
+    # build console logs and they easily get lost in huge yocto build logs.
+    #
+    # So as of now creating a separate log file and dumping all relevant info
+    # into it till a better way comes along.
+    #
     debug_file = open(debug_file_path, "w")
     debug_file.write('==== Start OPS Modular Configuration logging ====\n')
     debug_file.write('DISTRO: ' + d.getVar("DISTRO") + '\n')

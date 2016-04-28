@@ -22,20 +22,20 @@ PACKAGES = ' \
 PACKAGES += "${@bb.utils.contains("IMAGE_FEATURES", "ops-p4", "packagegroup-ops-p4", "", d)}"
 
 #
-# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-# !!!!!!!!!! ATTENTION !!!!!!!!!!
-# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+# Following scheme is to address backward compatibility issue as not all
+# platforms and features are integrated immediately into OpenSwitch Modular
+# Configuration framework.
 #
-# For new platforms, do not include packagegroup-ops-base.
-# Instead, integrate the platform with OPS Modular Config system (Kconfig)
-# and include packagegroup-ops-config.
-# At some point in future, packagegroup-ops-base will be removed.
-# But as long as packagegroup-ops-base remains, add new packages to
-# packagegroup-ops-base (and to packagegroup-ops-config if the feature is not
-# integrated with Kconfig).
+# Adding a new feature into OPS Mod Config framework:
+# Include package associated with the feature to packagegroup-ops-base
 #
-# The above scheme is to address backaward compatibility till all platforms
-# are integrated with Kconfig.
+# Porting an existing feature into OPS Mod Config framework:
+# Remove package associated with the feature from packagegroup-ops-config
+#
+# Adding a new platform or porting an existing platform into OPS Mod Config framework:
+# Include packagegroup-ops-config instead of packagegroup-ops-base
+#
+# Eventually, packagegroup-ops-base will go away
 #
 RDEPENDS_packagegroup-ops-base = "\
     os-release \
@@ -86,12 +86,6 @@ RDEPENDS_packagegroup-ops-base = "\
     strongswan \
 "
 
-#
-# This package group replaces packagegroup-ops-base on platforms that are
-# integrated with OPS Modular Configuration using Kconfig.
-# As and when a feature is integrated with OPS Modular Configuration,
-# associated packages should be removed from packagegroup-ops-config.
-#
 RDEPENDS_packagegroup-ops-config = "\
     os-release \
     i2c-tools \
