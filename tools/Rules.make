@@ -633,7 +633,11 @@ export CONFIGURED_PLATFORM
 .PHONY: menuconfig
 
 $(BUILDDIR)/.ops-config:
-	$(V) ln -sf .ops-config-$(CONFIGURED_PLATFORM) $@
+	$(V) for repo in yocto/*/meta-platform-$(DISTRO)-* ; do \
+	  [[ "$$repo" =~ "^yocto/poky" ]] && continue ; \
+	  ln -sf $(BUILD_ROOT)/$$repo/.ops-config build/.ops-config-$${repo##*platform-$(DISTRO)-} ; \
+	done ; \
+	ln -sf .ops-config-$(CONFIGURED_PLATFORM) $@
 
 menuconfig: header $(BUILDDIR)/.ops-config
 	$(V) if [ ! -f $(KCONFIG_MCONF_NATIVE) ] ; then \
