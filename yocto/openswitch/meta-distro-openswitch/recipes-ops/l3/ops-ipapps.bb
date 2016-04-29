@@ -5,7 +5,7 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/Apache-2.0;md5=89aea4e17d99a7ca
 DEPENDS = "ops-utils ops-ovsdb ops-cli"
 
 SRC_URI = "git://git.openswitch.net/openswitch/ops-ipapps;protocol=http\
-           file://ops-udpfwd.service"
+           file://ops-relay.service"
 
 SRCREV = "d3e6787a7994a4af35c4de65975b141898490e3a"
 
@@ -17,11 +17,11 @@ S = "${WORKDIR}/git"
 
 do_install_append() {
      install -d ${D}${systemd_unitdir}/system
-     install -m 0644 ${WORKDIR}/ops-udpfwd.service ${D}${systemd_unitdir}/system/
+     install -m 0644 ${WORKDIR}/ops-relay.service ${D}${systemd_unitdir}/system/
 }
 
 FILES_${PN} += "/usr/lib/cli/plugins/"
 SYSTEMD_PACKAGES = "${PN}"
-SYSTEMD_SERVICE_${PN} = "ops-udpfwd.service"
+SYSTEMD_SERVICE_${PN} = "ops-relay.service"
 
 inherit openswitch cmake systemd
