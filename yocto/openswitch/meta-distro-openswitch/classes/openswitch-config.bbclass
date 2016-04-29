@@ -16,9 +16,13 @@
 # Current limitations of parser logic:
 #  - Symbols of type 'tristate' (modules) are not supported
 #
+
+
 def get_ops_config_symbols(d):
     config_file_path = d.getVar("TOPDIR") + "/.ops-config"
-    devenv_conf_file_path = d.getVar("BUILD_ROOT") + "/yocto/openswitch/meta-distro-openswitch/devenv.conf"
+    devenv_conf_file_path = \
+        d.getVar("BUILD_ROOT") + \
+        "/yocto/openswitch/meta-distro-openswitch/devenv.conf"
     debug_file_path = d.getVar("TOPDIR") + "/ops-mod-config.log"
     ops_feature = ""
 
@@ -45,7 +49,8 @@ def get_ops_config_symbols(d):
     try:
         config_file = open(config_file_path, "r")
     except IOError:
-        debug_file.write('Failed to open config file: ' + config_file_path + '\n')
+        debug_file.write('Failed to open config file: ' +
+                         config_file_path + '\n')
         debug_file.close()
         return ops_feature
 
@@ -53,7 +58,8 @@ def get_ops_config_symbols(d):
     try:
         devenv_conf_file = open(devenv_conf_file_path, "r")
     except IOError:
-        debug_file.write('Failed to open devenv.conf file: ' + devenv_conf_path + '\n')
+        debug_file.write('Failed to open devenv.conf file: ' +
+                         devenv_conf_path + '\n')
         config_file.close()
         debug_file.close()
         return ops_feature
@@ -83,7 +89,8 @@ def get_ops_config_symbols(d):
                 debug_file.write('Feature: ' + config_symbol + '\n')
 
                 # Map Kconfig feature symbol to package
-                ops_package = "ops-" + config_symbol.lower()
+                ops_package = config_symbol.lower()
+                ops_package = ops_package.replace('_', '-')
                 devenv_conf_file.seek(1)
                 if ops_package not in devenv_conf_file.read():
                     ops_package = ""
@@ -91,18 +98,21 @@ def get_ops_config_symbols(d):
                 # Create empty FEATURE_PACKAGES for enabled symbols
                 feature_package = "FEATURE_PACKAGES_" + config_symbol
                 d.appendVar(feature_package, ops_package)
-                debug_file.write('Package: ' + feature_package + ' ' + ops_package + '\n')
+                debug_file.write('Package: ' + feature_package + ' ' +
+                                 ops_package + '\n')
             else:
                 # Key value pair. Add to data store
                 config_symbol = config_param[0].split('_', 2)[2]
                 d.setVar(config_symbol, config_param[1])
-                debug_file.write('Key Value: ' + config_symbol + '=' + d.getVar(config_symbol) + '\n')
+                debug_file.write('Key Value: ' + config_symbol + '=' +
+                                 d.getVar(config_symbol) + '\n')
 
     debug_file.write('Full feature list: ' + ops_feature + '\n')
     config_file.close()
     devenv_conf_file.close()
     debug_file.close()
     return ops_feature
+
 
 #
 # Return full path to .ops-config that can be readily used by SRC_URI
@@ -112,6 +122,8 @@ def get_ops_config_symbols(d):
 # Typically used by platform conf files to update IMAGE_FEATURES if there is
 # any change in configuration
 #
+
+
 def get_ops_config_file(d):
     config_file_path = d.getVar("TOPDIR") + "/.ops-config"
     if os.path.isfile(config_file_path):

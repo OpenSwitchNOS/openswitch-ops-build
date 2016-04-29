@@ -3,12 +3,12 @@
 #
 menu "General Setup"
 
-config HAVE_BUFMOND
+config HAVE_OPS_BUFMOND
 	def_bool n
 
-config BUFMOND
+config OPS_BUFMOND
 	bool "Buffer Monitor"
-	depends on HAVE_BUFMOND
+	depends on HAVE_OPS_BUFMOND
 	default y
 	---help---
 	  Buffers Monitoring is a feature that provides OpenSwitch users the ability

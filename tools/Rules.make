@@ -636,10 +636,10 @@ $(BUILDDIR)/.ops-config:
 	$(V) ln -sf .ops-config-$(CONFIGURED_PLATFORM) $@
 
 menuconfig: header $(BUILDDIR)/.ops-config
-	if [-f $(KCONFIG_MCONF_NATIVE)]; then \
-	  $(V) $(call BITBAKE,kconfig-frontends-native); \
+	$(V) if [ ! -f $(KCONFIG_MCONF_NATIVE) ] ; then \
+	  $(call BITBAKE,kconfig-frontends-native) ; \
 	fi
-	$(KCONFIG_MCONF_NATIVE) Kconfig
+	$(V) $(KCONFIG_MCONF_NATIVE) Kconfig
 
 ## Support commands
 ## Use with caution!!!!

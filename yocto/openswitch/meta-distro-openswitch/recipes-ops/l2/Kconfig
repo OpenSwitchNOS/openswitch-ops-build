@@ -3,7 +3,7 @@
 #
 menu "Layer 2 Features"
 
-config KEY-VALUE-EXAMPLE-NUM_PORTS
+config KEY_VALUE_EXAMPLE_NUM_PORTS
 	int "Example: Number of physical ports"
 	default 64
 	range 8 256

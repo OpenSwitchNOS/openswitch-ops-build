@@ -1,13 +1,13 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# OpenSwitch 0.3.0 Configuration for "appliance" Platform
+# OpenSwitch Configuration for "appliance" Platform
 #
 OPS_CONFIG_APPLIANCE=y
 
 #
 # General Setup
 #
-# OPS_CONFIG_HAVE_BUFMOND is not set
+# OPS_CONFIG_HAVE_OPS_BUFMOND is not set
 
 #
 # Platform (Simulation) Options
@@ -16,7 +16,7 @@ OPS_CONFIG_APPLIANCE=y
 #
 # Layer 2 Features
 #
-OPS_CONFIG_KEY-VALUE-EXAMPLE-NUM_PORTS=64
+OPS_CONFIG_KEY_VALUE_EXAMPLE_NUM_PORTS=8
 
 #
 # Layer 3 and above Features
@@ -25,4 +25,4 @@ OPS_CONFIG_KEY-VALUE-EXAMPLE-NUM_PORTS=64
 #
 # Management Interface Options
 #
-OPS_CONFIG_NTPD=y
+OPS_CONFIG_OPS_NTPD=y

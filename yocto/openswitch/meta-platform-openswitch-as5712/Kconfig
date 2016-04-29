@@ -3,7 +3,7 @@ config AS5712
 	default y
 
 	# Please add new selects below by sorting them alphabetically
-	select HAVE_BUFMOND
+	select HAVE_OPS_BUFMOND
 	# Please add new selects above by sorting them alphabetically
 
 	---help---

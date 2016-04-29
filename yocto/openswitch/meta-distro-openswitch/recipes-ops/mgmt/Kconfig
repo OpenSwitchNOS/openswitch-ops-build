@@ -3,7 +3,7 @@
 #
 menu "Management Interface Options"
 
-config NTPD
+config OPS_NTPD
         bool "Network Time Protocol (NTP) Client"
         default y
         ---help---

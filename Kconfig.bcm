@@ -3,9 +3,9 @@
 #
 menu "Forwarding ASIC (Broadcom) Features"
 
-config BROADVIEW
+config OPS_BROADVIEW
 	bool "Broadview"
-	depends on BUFMOND
+	depends on OPS_BUFMOND
 	default y
 	---help---
 	  BroadView Instrumentation exposes various instrumentation
