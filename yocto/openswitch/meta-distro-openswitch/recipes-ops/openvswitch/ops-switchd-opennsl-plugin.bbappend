@@ -2,4 +2,4 @@
 
 SRC_URI = "git://git.openswitch.net/openswitch/ops-switchd-opennsl-plugin;protocol=http;branch=feature/acl"
 
-SRCREV = "c973d0cc019c503732bf4ceeba8e864ffd05710d"
+SRCREV = "84af0daa3d176dc6b99e68c3a1f59f46f4be10e1"
