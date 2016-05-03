@@ -1,0 +1,9 @@
+Verified+1: Zuul <zuul@lists.openswitch.net>
+Code-Review+2: Sagar Bhanagay <sagar.bhanagay@hpe.com>
+Verified+2: Sagar Bhanagay <sagar.bhanagay@hpe.com>
+Workflow+1: Sagar Bhanagay <sagar.bhanagay@hpe.com>
+Submitted-by: Sagar Bhanagay <sagar.bhanagay@hpe.com>
+Submitted-at: Tue, 03 May 2016 08:52:55 +0000
+Reviewed-on: https://review.openswitch.net/8213
+Project: openswitch/ops-build
+Branch: refs/heads/feature/ops_config
