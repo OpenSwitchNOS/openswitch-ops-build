@@ -18,10 +18,15 @@ OPS_SCHEMA_PATH="${S}/schema"
 
 do_compile() {
   echo ${IMAGE_FEATURES} > ${TOPDIR}/image_features
-  ${PYTHON} ${OPS_SCHEMA_PATH}/schemaprune_xml.py -i ${OPS_SCHEMA_PATH}/vswitch.xml -o ${OPS_SCHEMA_PATH}/vswitch.untag.xml -f ${TOPDIR}/image_features -l ${TOPDIR}/vswitch.xml.schemaprune.log -L INFO -S False
-  ${PYTHON} ${OPS_SCHEMA_PATH}/schemaprune_xml.py -i ${OPS_SCHEMA_PATH}/dhcp_leases.xml -o ${OPS_SCHEMA_PATH}/dhcp_leases.untag.xml -f ${TOPDIR}/image_features -l ${TOPDIR}/dhcp_leases.xml.schemaprune.log -L INFO -S False
-  ${PYTHON} ${OPS_SCHEMA_PATH}/schemaprune_json.py -i ${OPS_SCHEMA_PATH}/vswitch.extschema -o ${OPS_SCHEMA_PATH}/vswitch.untag.extschema -f ${TOPDIR}/image_features -l ${TOPDIR}/vswitch.extschema.schemaprune.log -L INFO -S False
-  ${PYTHON} ${OPS_SCHEMA_PATH}/schemaprune_json.py -i ${OPS_SCHEMA_PATH}/dhcp_leases.extschema -o ${OPS_SCHEMA_PATH}/dhcp_leases.untag.extschema -f ${TOPDIR}/image_features -l ${TOPDIR}/dhcp_leases.extschema.schemaprune.log -L INFO -S False
+  SANITIZE_ONLY=TRUE
+  if [ -f ${TOPDIR}/.ops-config-${MACHINE} ]
+  then
+      SANITIZE_ONLY=FALSE
+  fi
+  ${PYTHON} ${OPS_SCHEMA_PATH}/schemaprune_xml.py -i ${OPS_SCHEMA_PATH}/vswitch.xml -o ${OPS_SCHEMA_PATH}/vswitch.untag.xml -f ${TOPDIR}/image_features -l ${TOPDIR}/vswitch.xml.schemaprune.log -L INFO -S $SANITIZE_ONLY
+  ${PYTHON} ${OPS_SCHEMA_PATH}/schemaprune_xml.py -i ${OPS_SCHEMA_PATH}/dhcp_leases.xml -o ${OPS_SCHEMA_PATH}/dhcp_leases.untag.xml -f ${TOPDIR}/image_features -l ${TOPDIR}/dhcp_leases.xml.schemaprune.log -L INFO -S $SANITIZE_ONLY
+  ${PYTHON} ${OPS_SCHEMA_PATH}/schemaprune_json.py -i ${OPS_SCHEMA_PATH}/vswitch.extschema -o ${OPS_SCHEMA_PATH}/vswitch.untag.extschema -f ${TOPDIR}/image_features -l ${TOPDIR}/vswitch.extschema.schemaprune.log -L INFO -S $SANITIZE_ONLY
+  ${PYTHON} ${OPS_SCHEMA_PATH}/schemaprune_json.py -i ${OPS_SCHEMA_PATH}/dhcp_leases.extschema -o ${OPS_SCHEMA_PATH}/dhcp_leases.untag.extschema -f ${TOPDIR}/image_features -l ${TOPDIR}/dhcp_leases.extschema.schemaprune.log -L INFO -S $SANITIZE_ONLY
   ${PYTHON} ${OPS_SCHEMA_PATH}/sanitize.py ${OPS_SCHEMA_PATH}/vswitch.untag.extschema ${OPS_SCHEMA_PATH}/vswitch.ovsschema
   ${PYTHON} ${OPS_SCHEMA_PATH}/sanitize.py ${OPS_SCHEMA_PATH}/dhcp_leases.untag.extschema ${OPS_SCHEMA_PATH}/dhcp_leases.ovsschema
 }
