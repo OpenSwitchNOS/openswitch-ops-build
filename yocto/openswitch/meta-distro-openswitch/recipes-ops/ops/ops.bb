@@ -19,7 +19,7 @@ OPS_SCHEMA_PATH="${S}/schema"
 do_compile() {
   echo ${IMAGE_FEATURES} > ${TOPDIR}/image_features
   SANITIZE_ONLY=TRUE
-  if [ -f ${TOPDIR}/.ops-config-${MACHINE} ]
+  if [ -f ${TOPDIR}/.ops-config ]
   then
       SANITIZE_ONLY=FALSE
   fi
