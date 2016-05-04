@@ -8,11 +8,13 @@ DEPENDS = "ops-utils ops-ovsdb ncurses perl-native openssl ops-supportability"
 # the "ip" command from busybox is not sufficient (flush by protocol flushes all routes)
 RDEPENDS_${PN} += "iproute2"
 
-SRC_URI = "git://git.openswitch.net/openswitch/ops-quagga;protocol=http \
+BRANCH ?= "${OPS_REPO_BRANCH}"
+
+SRC_URI = "${OPS_REPO_BASE_URL}/ops-quagga;protocol=${OPS_REPO_PROTOCOL};branch=${BRANCH} \
     file://ops-zebra.service file://ops-bgpd.service file://ops-ospfd.service \
 "
 
-SRCREV = "925d7938b0df6181be036b351fe95bcd7a471d9e"
+SRCREV = "72728be2e5321a45c056249e870ec15276a3a3da"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.

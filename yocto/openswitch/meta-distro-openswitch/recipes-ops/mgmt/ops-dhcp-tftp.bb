@@ -5,11 +5,13 @@ LIC_FILES_CHKSUM = "file://setup.py;beginline=1;endline=15;md5=66f387680cedd92d8
 RDEPENDS_${PN} = "python-argparse python-json python-ops-ovsdb python-distribute"
 DEPENDS = "ops-cli"
 
-SRC_URI = "git://git.openswitch.net/openswitch/ops-dhcp-tftp;protocol=http \
+BRANCH ?= "${OPS_REPO_BRANCH}"
+
+SRC_URI = "${OPS_REPO_BASE_URL}/ops-dhcp-tftp;protocol=${OPS_REPO_PROTOCOL};branch=${BRANCH} \
            file://dhcp_tftp.service \
 "
 
-SRCREV = "806a118d67b29a5a060d0f13670c594b18847f2b"
+SRCREV = "6f25ce651a60c3c2fb54a632e2b8bab62e37b978"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.
