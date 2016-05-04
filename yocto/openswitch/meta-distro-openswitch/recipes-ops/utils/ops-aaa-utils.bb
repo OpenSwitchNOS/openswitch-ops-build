@@ -7,17 +7,17 @@ PACKAGES += "ops-librbac ops-librbac-dev"
 FILES_ops-librbac = "/usr/lib/librbac.so.*.*.*"
 FILES_ops-librbac-dev = "/usr/lib/pkgconfig/rbac.pc /usr/lib/librbac.so*"
 
-DEPENDS = "ops-ovsdb ops-cli"
+DEPENDS = "ops-ovsdb ops-cli ops-supportability"
 
 RDEPENDS_${PN} = "python-argparse python-json python-ops-ovsdb python-distribute python-pam pam-plugin-radius-auth pam-plugin-radius-chap-auth"
 
-SRC_URI = "git://git.openswitch.net/openswitch/ops-aaa-utils;protocol=http \
+SRC_URI = "git://git.openswitch.net/openswitch/ops-aaa-utils;protocol=http;branch=rel/dill \
            file://aaautils.service \
            file://server \
            file://useradd \
          "
 
-SRCREV = "5593927aedff37f0c7f2e822de0829555f3d3460"
+SRCREV = "c6341d86c8af333374ba55cfd8aa9fd7b68f1773"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.

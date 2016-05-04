@@ -9,10 +9,12 @@ SRC_URI = "git://git.openswitch.net/openswitch/ops-openvswitch;protocol=http;bra
    file://partial-map-updates.patch \
    file://on-demand-fetching.patch \
    file://compound-indexes.patch \
-   file://python_idl_tracking.patch \
+   file://idl_tracking_python.patch \
+   file://smap-shash-add-numeric-and-flexible-sort.patch \
+   file://json.py.patch \
 "
 
-#SRCREV = "9a49144aa6ddee3b938aeeb094cc170125a3ecb7"
+#SRCREV = "d542b8a5d660a9c67bb8107279ab1e7cdf8ade1b"
 SRCREV = "${AUTOREV}"
 
 # When using AUTOREV, we need to force the package version to the revision of git
@@ -28,6 +30,9 @@ RDEPENDS_${PN} = "openssl procps util-linux-uuidgen util-linux-libuuid coreutils
   python perl perl-module-strict sed gawk grep ops-ovsdb \
   ${@bb.utils.contains('MACHINE_FEATURES', 'ops-container', 'openvswitch-sim-switch', '',d)} \
 "
+
+RDEPENDS_${PN}_remove := "${@bb.utils.contains("IMAGE_FEATURES", "ops-p4", "openvswitch-sim-switch", "",d)}"
+
 RDEPENDS_ops-ovsdb = "ops"
 
 RDEPENDS_python-ops-ovsdb = "python-io python-netclient python-datetime \
@@ -53,6 +58,7 @@ FILES_${PN} = "${bindir}/ovs-appctl ${bindir}/ovs-pki ${bindir}/ovs-vsctl \
  ${libdir}/libopenvswitch.so.1* \
  ${libdir}/libsflow.so.1* \
  ${libdir}/libplugins.so.1* \
+ ${libdir}/libvtep.so.1* \
 "
 
 USERADD_PACKAGES = "${PN}"
@@ -96,12 +102,13 @@ do_install_append() {
     install -m 0644 lib/libopenvswitch.pc ${D}/${libdir}/pkgconfig/
     install -m 0644 ofproto/libofproto.pc ${D}/${libdir}/pkgconfig/
     install -m 0644 ovsdb/libovsdb.pc ${D}/${libdir}/pkgconfig/
-    install -m 0644 plugins/libplugins.pc ${D}/${libdir}/pkgconfig/
     install -d ${D}${systemd_unitdir}/system
     install -d ${D}/var/local/openvswitch
     install -m 0644 ${WORKDIR}/ovsdb-server.service ${D}${systemd_unitdir}/system/
     install -d ${D}${sysconfdir}/tmpfiles.d
     echo "d /run/openvswitch/ 0770 - ovsdb-client -" > ${D}${sysconfdir}/tmpfiles.d/openswitch.conf
+    echo "a+ /run/log/journal/%m - - - - d:group:ops_netop:r-x" >> ${D}${sysconfdir}/tmpfiles.d/openswitch.conf
+    echo "A+ /run/log/journal/%m - - - - group:ops_netop:r-x" >> ${D}${sysconfdir}/tmpfiles.d/openswitch.conf
     install -d ${D}${PYTHON_SITEPACKAGES_DIR}
     mv ${D}/${prefix}/share/openvswitch/python/ovs ${D}${PYTHON_SITEPACKAGES_DIR}
 }

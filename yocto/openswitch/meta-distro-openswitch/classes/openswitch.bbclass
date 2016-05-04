@@ -15,8 +15,7 @@ def enable_devenv_debugging(d):
     return "0"
 
 DEBUG_BUILD = "${@enable_devenv_debugging(d)}"
-
-ORIG_DEBUG_FLAGS := "${DEBUG_FLAGS}"
+TOPDIR[vardepvalue] = ""
 
 # Enable profiling for devenv recipes (meaning they are in external src)
 def enable_devenv_profiling(d):
@@ -25,7 +24,7 @@ def enable_devenv_profiling(d):
         if os.path.isfile(os.path.join(d.getVar('TOPDIR', True), 'devenv-coverage-enabled')):
             d.setVar("INHIBIT_PACKAGE_STRIP", "1")
             d.prependVarFlag('do_compile', 'prefuncs', "profile_compile_prefunc ")
-            return "-fprofile-arcs -ftest-coverage"
+            return "-fprofile-arcs -ftest-coverage -fdebug-prefix-map=${@d.getVar('S')}=/usr/src/debug/${BPN}/${PV}-${PR} "
         # Inside the devenv, we need symbol remmaping to get the split debug packages to work properly
         return "-fdebug-prefix-map=${@d.getVar('S')}=/usr/src/debug/${BPN}/${PV}-${PR}"
     return ""
@@ -36,13 +35,14 @@ python profile_compile_prefunc() {
 }
 
 # Debug flags is used by DEBUG_OPTIMIZATION that is used by SELECTED_OPTIMIZATION when DEBUG_BUILD is 1
-DEBUG_FLAGS = "${@enable_devenv_profiling(d)}"
+DEBUG_FLAGS += "${@enable_devenv_profiling(d)}"
 
 # Support for static analysis using HP Fortify
 inherit python-dir
 
 #-Dcom.fortify.sca.compilers.${HOST_PREFIX}gcc=com.fortify.sca.util.compilers.GccCompiler -Dcom.fortify.sca.compilers.${HOST_PREFIX}g++=com.fortify.sca.util.compilers.GppCompiler
-FORTIFY_PARAMETERS = "-b ${PN} -python-path ${STAGING_DIR_TARGET}${PYTHON_SITEPACKAGES_DIR}  "
+FORTIFY_PARAMETERS="-b ${PN} "
+FORTIFY_PARAMETERS_FOR_PYTHON="-b ${PN} -python-path ${STAGING_DIR_TARGET}${PYTHON_SITEPACKAGES_DIR} "
 
 do_generate_sca_wrappers() {
     if which sourceanalyzer > /dev/null && [ -f "${TOPDIR}/devenv-sca-enabled" ] ; then
@@ -58,20 +58,30 @@ do_generate_sca_wrappers() {
         fi
     fi
 
-    for c in gcc g++ ar ld; do
+    for c in gcc g++; do
+        case $c in
+            gcc) lang=c ;;
+            g++) lang=c++ ;;
+        esac
         dir=${WORKDIR}/bin/${HOST_PREFIX}
         mkdir -p ${dir}
         ln -f -s ${STAGING_BINDIR_TOOLCHAIN}/${HOST_PREFIX}${c} ${dir}/${c}
         cat > ${WORKDIR}/fortify-${c} << EOF
-if [ \${!#} = '--version' ] || [ \${!#} = '-v' ]; then
+#!/bin/bash -x
+if [ "\${!#}" = '--version' ] || [ "\${!#}" = '-v' ]; then
     ${dir}/${c} \${!#}
 else
-    sourceanalyzer ${FORTIFY_PARAMETERS} ${dir}/${c} \$@
+    inc_flags="\$(${dir}/${c} -E --sysroot=${STAGING_DIR_TARGET} -x ${lang} /dev/null -o /dev/null -v 2>&1 |
+        sed -n '/search starts here/,/End of search list./p' |
+        sed -n 's/^ / -I/p')"
+    sourceanalyzer ${FORTIFY_PARAMETERS} ${dir}/${c} -nostdinc \${inc_flags} "\$@"
+    ${dir}/${c} "\$@"
 fi
 EOF
         chmod +x ${WORKDIR}/fortify-${c}
     done
 }
+generate_sca_wrappers[vardepsexclude] = "TOPDIR"
 
 addtask generate_sca_wrappers after do_patch before do_configure
 
@@ -174,13 +184,13 @@ do_coverage_report() {
     mkdir -p ${COVERAGE_REPORT_DIR}/html
     genhtml ${COVERAGE_REPORT_DIR}/${MODULE_NAME} -o ${COVERAGE_REPORT_DIR}/html --demangle-cpp --branch-coverage
     #This is not visible on the developer console due to our version of open embedded
-    bbplain "Coverage report is at ${COVERAGE_REPORT_DIR}/html/index.html"
+    bbplain "Unit Test coverage report is at ${COVERAGE_REPORT_DIR}/html/index.html"
 }
 
 #Workaround for bbplain not showing on the console when executed from a shell task
 python do_show_coverage_report() {
     if os.path.isfile(os.path.join(d.getVar('TOPDIR', True), 'devenv-coverage-enabled')):
-        bb.plain('Coverage report is at %s/coverage/html/index.html' % (d.getVar('B', True)))
+        bb.plain('Unit Test coverage report is at %s/coverage/html/index.html' % (d.getVar('B', True)))
 }
 
 # Enable unit tests and coverage for devenv recipes (meaning they are in external src)

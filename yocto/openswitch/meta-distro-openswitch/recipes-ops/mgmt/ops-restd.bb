@@ -2,15 +2,15 @@ SUMMARY = "OpenSwitch REST Service Daemon"
 LICENSE = "Apache-2.0"
 LIC_FILES_CHKSUM = "file://setup.py;beginline=1;endline=15;md5=718b8f9952f79dfe2d10ad2e7e01f255"
 
-DEPENDS = "python-inflect-native python-tornado-native ops-openvswitch ops-ovsdb"
+DEPENDS = "python-inflect-native python-tornado-native ops-openvswitch ops-ovsdb ops-supportability"
 
-RDEPENDS_${PN} = "python-argparse python-json python-ops-ovsdb python-distribute python-tornado python-html python-pkgutil python-subprocess python-numbers python-inflect python-xml ops-restapi python-unixadmin python-jsonschema python-jsonpatch"
+RDEPENDS_${PN} = "python-argparse python-json python-ops-ovsdb python-distribute python-tornado python-html python-pkgutil python-subprocess python-numbers python-inflect python-xml ops-restapi python-unixadmin python-jsonschema python-jsonpatch ops-aaa-utils ops-passwd-srv python-pycrypto"
 
-SRC_URI = "git://git.openswitch.net/openswitch/ops-restd;protocol=http \
+SRC_URI = "git://git.openswitch.net/openswitch/ops-restd;protocol=http;branch=rel/dill \
            file://restd.service \
 "
 
-SRCREV = "101d599c5a9ad2fc060b093acfd96987b1b2a8b2"
+SRCREV = "bcf646367c940589919e8873c816230f9d8e1825"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.
@@ -34,6 +34,11 @@ do_install_append () {
       install -d ${D}/etc/ssl/certs
       cp ${S}/server.crt ${D}/etc/ssl/certs
       cp ${S}/server-private.key ${D}/etc/ssl/certs
+
+      install -d ${D}/usr/share/opsplugins
+      for plugin in $(find ${S}/opsplugins -name "*.py"); do \
+        install -m 0644 ${plugin} ${D}/usr/share/opsplugins
+      done
 }
 
 
@@ -44,4 +49,5 @@ inherit openswitch setuptools systemd pythonnative
 
 FILES_${PN} += "/srv/www/api/ops-restapi.json \
                 /etc/ssl/certs \
+                /usr/share/opsplugins \
 "

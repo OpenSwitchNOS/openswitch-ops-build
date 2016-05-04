@@ -3,16 +3,16 @@ LICENSE = "GPL-2.0 & LGPL-2.0"
 LIC_FILES_CHKSUM = "file://COPYING;md5=81bcece21748c91ba9992349a91ec11d\
                     file://COPYING.LIB;md5=01ef24401ded36cd8e5d18bfe947240c"
 
-DEPENDS = "ops-utils ops-ovsdb ncurses perl-native openssl"
+DEPENDS = "ops-utils ops-ovsdb ncurses perl-native openssl ops-supportability"
 
 # the "ip" command from busybox is not sufficient (flush by protocol flushes all routes)
 RDEPENDS_${PN} += "iproute2"
 
-SRC_URI = "git://git.openswitch.net/openswitch/ops-quagga;protocol=http \
+SRC_URI = "git://git.openswitch.net/openswitch/ops-quagga;protocol=http;branch=rel/dill \
     file://ops-zebra.service file://ops-bgpd.service file://ops-ospfd.service \
 "
 
-SRCREV = "fb19434fcbd8633e9678d55e6bd1201c034bccaf"
+SRCREV = "925d7938b0df6181be036b351fe95bcd7a471d9e"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.

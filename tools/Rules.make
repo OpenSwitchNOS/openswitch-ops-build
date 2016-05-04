@@ -63,6 +63,8 @@ TARGET_INTERPRETER=$(STAGING_DIR_TARGET)/lib/ld-linux-x86-64.so.2
 
 UUIDGEN_NATIVE=$(STAGING_DIR_NATIVE)/usr/bin/uuidgen
 PYTEST_NATIVE=$(STAGING_DIR_NATIVE)/usr/bin/py.test
+# Rake binary path
+RAKE_NATIVE = $(STAGING_DIR_NATIVE)/usr/bin/rake
 
 # Static Code Analysis tool. Right now we support Fortify, but others like coverity could be added
 SCA_TOOLCHAIN ?= fortify
@@ -460,6 +462,10 @@ devenv_clean: dev_header
 
 DEVENV_BRANCH?=*auto*
 
+define QUERY_RECIPE
+	echo "$(2) `query-recipe.py --var $(1) $(2)`";
+endef
+
 define DEVENV_ADD
 	if ! grep -q '^$(1)$$' .devenv 2>/dev/null ; then \
 	  $(call DEVTOOL, modify --extract $(1) $(BUILD_ROOT)/src/$(1)) ; \
@@ -505,6 +511,22 @@ ifneq ($(findstring devenv_add,$(MAKECMDGOALS)),)
 endif
 devenv_add: dev_header
 	$(V)$(foreach P, $(PACKAGE), $(call DEVENV_ADD,$(P)))
+
+.PHONY: query_recipe
+
+$(eval $(call PARSE_ARGUMENTS,query_recipe))
+ifneq ($(findstring query_recipe,$(MAKECMDGOALS)),)
+  ifeq ($(VAR),)
+   $(error ====== VAR variable is empty, please specify which variable to query (VAR=SRCREV, VAR=SRC_URI, etc.) =====)
+  endif
+  PACKAGE?=$(EXTRA_ARGS)
+  ifeq ($(PACKAGE),)
+   $(error ====== PACKAGE variable is empty, please specify which package(s) you want  =====)
+  endif
+endif
+
+query_recipe:
+	@$(foreach P, $(PACKAGE), $(call QUERY_RECIPE,$(VAR),$(P)))
 
 ifeq (devenv_import,$(firstword $(MAKECMDGOALS)))
   $(eval $(call PARSE_TWO_ARGUMENTS,devenv_import))
@@ -591,7 +613,10 @@ _testenv_header: header
 testenv_init: dev_header
 	$(V) if ! which tox > /dev/null ; then \
 		$(call FATAL_ERROR,Python's tox is not installed. Please use your package manager to install it:\n\n  Hint: on Debian/Ubuntu systems you can install it with: 'sudo apt-get install python-tox') ; \
-	 fi
+	 fi ; \
+	 if ! which python3-config > /dev/null ; then \
+	        $(call FATAL_ERROR,Python's 3 development package is not installed and is required.\n  Hint: on Debian/Ubuntu systems you can install it with: 'sudo apt-get install python3-dev') ; \
+	 fi ;
 	$(V) if ! [ -f /etc/sudoers.d/topology ] ; then \
 	     $(ECHO) "$(BLUE) Setting up sudoer permissions for the topology framework... $(GRAY)\n" ; \
 		 echo "$(USER) ALL = (root) NOPASSWD: /sbin/ip, /bin/mkdir -p /var/run/netns, /bin/rm /var/run/netns/*, /bin/ln -s /proc/*/ns/net /var/run/netns/*" | \
@@ -603,6 +628,11 @@ testenv_init: dev_header
 
 
 TOPOLOGY_TEST_IMAGE?=ops_$(USER)$(subst /,_,$(BUILD_ROOT))
+
+# TOPOLOGY_TEST_COV_DIR: directory in the local system that contains the gcov gcno (coverage notes) files.
+# The attributes.json expects this directory.
+# In the current implementation, this directory is shared between the host and the container using Docker volumes to collect the coverage data (gcda) files.
+TOPOLOGY_TEST_COV_DIR?=$(BUILD_ROOT)/src
 
 ifeq (testenv_run,$(firstword $(MAKECMDGOALS)))
   $(eval $(call PARSE_TWO_ARGUMENTS,testenv_run))
@@ -626,6 +656,7 @@ testenv_run: _testenv_header
 	$(V) $(MAKE) export_docker_image $(TOPOLOGY_TEST_IMAGE)
 	$(V) $(SUDO) rm -Rf $(BUILDDIR)/test/$(TESTSUITE)
 	$(V) $(MAKE) _testenv_rerun
+	$(V) $(SUDO) modprobe bonding
 
 ifeq (testenv_rerun,$(firstword $(MAKECMDGOALS)))
   $(eval $(call PARSE_TWO_ARGUMENTS,testenv_rerun))
@@ -691,19 +722,30 @@ define TESTENV_PREPARE
 	   else \
 		 cp tools/topology/tox.ini $(BUILDDIR)/test/$(TESTSUITE)/ ; \
 	   fi ; \
+	   output_attr_json=$(BUILDDIR)/test/$(TESTSUITE)/attributes.json ; \
 	   if [ -f $(BUILDDIR)/test/$(TESTSUITE)/code_under_test/$(1)/attributes.json.in ] ; then \
-		 $(call WARNING,Overriding the global attributes.json with the one from $(1)) ; \
+		 $(call WARNING, Overriding the global attributes.json with the one from $(1)) ; \
 		 sed -e 's?@TEST_IMAGE@?$(TOPOLOGY_TEST_IMAGE):latest?' \
 		   $(BUILDDIR)/test/$(TESTSUITE)/code_under_test/$(1)/attributes.json.in \
-		   > $(BUILDDIR)/test/$(TESTSUITE)/attributes.json ; \
+		   > $$output_attr_json ; \
+		 sed -i 's?@TEST_COV_DIR@?$(TOPOLOGY_TEST_COV_DIR)?g' $$output_attr_json ; \
 	   else \
 		 sed -e 's?@TEST_IMAGE@?$(TOPOLOGY_TEST_IMAGE):latest?' \
-		   tools/topology/attributes.json.in \
-		   > $(BUILDDIR)/test/$(TESTSUITE)/attributes.json ; \
+		   tools/topology/attributes.json.in > $$output_attr_json ; \
+		 sed -i 's?@TEST_COV_DIR@?$(TOPOLOGY_TEST_COV_DIR)?g' $$output_attr_json ; \
 	   fi ; \
 	 fi
 
 endef
+
+ifneq ($(TESTENV_STRESS),)
+# If not specified, run at least 3 iterations and max 13
+TESTENV_ITERATIONS?=$(shell echo $$(expr $$RANDOM % 10 + 3))
+TESTENV_EXTRA_PARAMETERS=$(if $(VERBOSE),-vv,) -k '$(TESTENV_STRESS)'
+else
+TESTENV_EXTRA_PARAMETERS=$(if $(VERBOSE),-vv,)
+endif
+TESTENV_ITERATIONS?=1
 
 _testenv_rerun:
 	$(V) $(SUDO) rm -Rf $(BUILDDIR)/test/$(TESTSUITE)/code_under_test
@@ -714,9 +756,21 @@ _testenv_rerun:
 	$(V) \
 	  if [ "$(TESTSUITE)" == "legacy" ] ; then \
 	    export VSI_IMAGE_NAME=$(TOPOLOGY_TEST_IMAGE) ;\
-	    $(MAKE) devenv_ct_test PY_TEST_ARGS="--exitfirst --junitxml=$(BUILDDIR)/test/$(TESTSUITE)/test-results.xml $(BUILDDIR)/test/$(TESTSUITE)/code_under_test" ; \
+            $(ECHO) "\nIterating the tests $(TESTENV_ITERATIONS) times\n" ; \
+	    export VSI_COV_DATA_DIR=$(TOPOLOGY_TEST_COV_DIR) ;\
+	    for iteration in $$(seq 1 $(TESTENV_ITERATIONS)) ; do \
+	      $(ECHO) "\nRunning the testsuite on iteration $$iteration" ; \
+	      $(MAKE) devenv_ct_test PY_TEST_ARGS="$(TESTENV_EXTRA_PARAMETERS) --exitfirst --junitxml=$(BUILDDIR)/test/$(TESTSUITE)/test-results.xml $(BUILDDIR)/test/$(TESTSUITE)/code_under_test" || exit 1 ; \
+	    done ; \
 	  else \
-	    cd $(BUILDDIR)/test/$(TESTSUITE) ; unset CURL_CA_BUNDLE; tox ; \
+	    if [[ tools/topology/requirements.txt -nt $(BUILDDIR)/test/$(TESTSUITE)/.tox ]] ; then \
+	      rm -Rf $(BUILDDIR)/test/$(TESTSUITE)/.tox ; \
+	    fi ; \
+            $(ECHO) "\nIterating the tests $(TESTENV_ITERATIONS) times\n" ; \
+	    for iteration in $$(seq 1 $(TESTENV_ITERATIONS)) ; do \
+	      $(ECHO) "\nRunning the testsuite on iteration $$iteration" ; \
+	      cd $(BUILDDIR)/test/$(TESTSUITE) ; unset CURL_CA_BUNDLE; export TESTENV_EXTRA_PARAMETERS='$(TESTENV_EXTRA_PARAMETERS)' ; tox || exit 1 ; \
+            done ; \
 	  fi
 
 # We try to export this symbol only when the target is invoked, since the expansion
@@ -812,6 +866,7 @@ _devenv_ct_init:
 	$(V) if [ ! -f .sandbox_uuid ] ; then \
 	  echo "$$($(UUIDGEN_NATIVE) -t)" >.sandbox_uuid; \
 	fi
+	$(V) $(SUDO) modprobe bonding
 
 # Sandbox unique ID is used as a prefix to the name
 # while creating docker instances to run tests.
@@ -830,7 +885,7 @@ devenv_ct_clean:
 	$(V) SBOX_UUID=$$(cat .sandbox_uuid | cut -d '-' -f 5) ; \
 	for name in `docker ps -a -q --filter="name=$$SBOX_UUID"`; do \
 	  echo "Cleaning the docker container with id $$SBOX_UUID" ; \
-	  docker stop $$name >/dev/null ; \
+	  docker stop --time=5 $$name >/dev/null ; \
 	  docker rm -f $$name >/dev/null ; \
 	done
 	$(V) rm -rf .sandbox_uuid

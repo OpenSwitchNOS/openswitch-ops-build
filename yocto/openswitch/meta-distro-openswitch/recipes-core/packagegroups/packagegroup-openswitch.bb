@@ -19,6 +19,7 @@ PACKAGES = ' \
             '
 
 PACKAGES += "${@bb.utils.contains("IMAGE_FEATURES", "ops-p4", "packagegroup-ops-p4", "", d)}"
+PACKAGES += "${@bb.utils.contains("MACHINE_FEATURES", "ops-container", "packagegroup-ops-container", "", d)}"
 
 RDEPENDS_packagegroup-ops-base = "\
     os-release \
@@ -39,6 +40,7 @@ RDEPENDS_packagegroup-ops-base = "\
     pwauth \
     shadow \
     cronie \
+    systemd-analyze \
     auditd audispd-plugins audit-python \
     inetutils-hostname inetutils-ifconfig \
     inetutils-tftp inetutils-traceroute inetutils-ftp inetutils-telnet \
@@ -52,12 +54,13 @@ RDEPENDS_packagegroup-ops-base = "\
     ops-hw-config \
     ops-cfgd ops-fand ops-ledd ops-pmd ops-powerd ops-sysd ops-tempd \
     ops-dhcp-tftp \
-    ops-intfd ops-lacpd ops-lldpd ops-vland ops-arpmgrd ops-hw-vtep \
+    ops-intfd ops-lacpd ops-lldpd ops-vland ops-arpmgrd ops-passwd-srv \
     ops-script-utils \
     ops-cli ops-restd ops-webui \
+    ops-classifierd \
     ops-portd ops-quagga \
     ops-aaa-utils \
-    ops-bufmond \
+    ${@bb.utils.contains('MACHINE_FEATURES', 'ops-container', '', 'ops-bufmond',d)} \
     ops-broadview \
     ops-mgmt-intf \
     dnsmasq \
@@ -69,6 +72,12 @@ RDEPENDS_packagegroup-ops-base = "\
     firejail \
     ops-ipapps \
     ops-stpd \
+    ops-sysmond \
+    nicstat \
+    sysstat \
+    ${@bb.utils.contains("MACHINE_FEATURES", "ops-kdump", "ops-kdump", "", d)} \
+    ops-snmpd \
+    ops-l2macd \
 "
 
 RDEPENDS_packagegroup-ops-base_append_arm = "\
@@ -79,6 +88,9 @@ RDEPENDS_packagegroup-ops-base_append_arm = "\
 RDEPENDS_packagegroup-ops-min = "\
     python \
     python-pyroute2 \
+    python-paramiko \
+    python-netclient \
+    python-netserver \
     yaml-cpp \
     libevent \
     util-linux \
@@ -97,4 +109,8 @@ RDEPENDS_packagegroup-ops-p4 = "\
     ops-switchd-p4switch-plugin \
     ops-p4dp \
     ops-p4c \
+    "
+
+RDEPENDS_packagegroup-ops-container = "\
+    host-sflow \
     "
