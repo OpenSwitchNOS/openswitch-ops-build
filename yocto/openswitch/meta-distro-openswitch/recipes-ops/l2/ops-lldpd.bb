@@ -1,15 +1,14 @@
-
 SUMMARY = "OpenSwitch LLDP Daemon"
 LICENSE = "ISC"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/Apache-2.0;md5=89aea4e17d99a7cacdbeed46a0096b10"
 
-DEPENDS = "net-snmp ops-utils ops-config-yaml ops-ovsdb libevent openssl ops-supportability ops-cli"
+DEPENDS = "ops-utils ops-hw-config ops-ovsdb libevent openssl ops-supportability ops-cli ops-snmpd"
 
-SRC_URI = "git://git.openswitch.net/openswitch/ops-lldpd;protocol=http \
+SRC_URI = "git://git.openswitch.net/openswitch/ops-lldpd;protocol=http;branch=rel/dill \
           file://ops-lldpd.service \
 "
 
-SRCREV = "846377109ffa02cb8f1d7df255f2577ce6906466"
+SRCREV = "e097d0db5b4c592fa46d2e8fa638641d9ac74f09"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.

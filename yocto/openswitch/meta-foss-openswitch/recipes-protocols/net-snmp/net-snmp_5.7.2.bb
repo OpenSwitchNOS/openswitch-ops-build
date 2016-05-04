@@ -34,6 +34,10 @@ EXTRA_OECONF = "--disable-embedded-perl \
                 --enable-shared \
                 --disable-manuals \
                 --with-defaults \
+                --with-out-mib-modules="ucd_snmp target agent_mibs\
+                  disman/event disman/schedule utilities host mibII \
+                  notification notification-log-mib" \
+                --with-mib-modules="mibII/system_mib agentx mibII/vacm_conf snmpv3mibs" \
                 ${@base_conditional('SITEINFO_ENDIANNESS', 'le', '--with-endianness=little', '--with-endianness=big', d)}"
 
 do_install_append() {
@@ -94,8 +98,8 @@ SYSTEMD_SERVICE_${PN}-server-snmptrapd =  "snmptrapd.service"
 RDEPENDS_${PN}-server-snmpd += "net-snmp-mibs"
 RDEPENDS_${PN}-server-snmptrapd += "net-snmp-server-snmpd"
 RDEPENDS_${PN}-server += "net-snmp-server-snmpd net-snmp-server-snmptrapd"
-RDEPENDS_${PN}-client += "net-snmp-mibs"
-RDEPENDS_${PN}-dev = "net-snmp-client (= ${EXTENDPKGV}) net-snmp-server (= ${EXTENDPKGV})"
+RDEPENDS_${PN}-client += "perl net-snmp-mibs"
+RDEPENDS_${PN}-dev = "perl net-snmp-client (= ${EXTENDPKGV}) net-snmp-server (= ${EXTENDPKGV})"
 RRECOMMENDS_${PN}-dbg = "net-snmp-client (= ${EXTENDPKGV}) net-snmp-server (= ${EXTENDPKGV})"
 
 RPROVIDES_${PN}-server-snmpd += "${PN}-server-snmpd-systemd"

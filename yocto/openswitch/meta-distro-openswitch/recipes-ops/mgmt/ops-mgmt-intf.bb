@@ -7,11 +7,11 @@ DEPENDS = "ops-utils ops-ovsdb ops-cli"
 
 RDEPENDS_${PN} = "python-argparse python-json python-ops-ovsdb python-distribute"
 
-SRC_URI = "git://git.openswitch.net/openswitch/ops-mgmt-intf;protocol=http \
+SRC_URI = "git://git.openswitch.net/openswitch/ops-mgmt-intf;protocol=http;branch=rel/dill \
            file://mgmt-intf.service \
          "
 
-SRCREV = "1c15749773001675e6e9a7e2bee4588247114676"
+SRCREV = "d35edaddf92506a6714fc97079bc5098a2003691"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.
