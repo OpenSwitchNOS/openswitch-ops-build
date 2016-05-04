@@ -73,11 +73,13 @@ RDEPENDS_packagegroup-ops-base = "\
     ops-ipapps \
     ops-stpd \
     ops-sysmond \
+    ops-vrfmgrd \
     nicstat \
     sysstat \
     ${@bb.utils.contains("MACHINE_FEATURES", "ops-kdump", "ops-kdump", "", d)} \
     ops-snmpd \
     ops-l2macd \
+    ops-rbac \
 "
 
 RDEPENDS_packagegroup-ops-base_append_arm = "\

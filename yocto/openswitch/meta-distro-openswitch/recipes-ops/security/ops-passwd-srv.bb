@@ -5,11 +5,13 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/Apache-2.0;md5=89aea4e17d99a7ca
 
 DEPENDS = "ops-ovsdb"
 
-SRC_URI = "git://git.openswitch.net/openswitch/ops-passwd-srv;protocol=http \
+BRANCH ?= "${OPS_REPO_BRANCH}"
+
+SRC_URI = "${OPS_REPO_BASE_URL}/ops-passwd-srv;protocol=${OPS_REPO_PROTOCOL};branch=${BRANCH} \
            file://ops-passwd-srv.service \
          "
 
-SRCREV="d882cd77a045d76c49abc561c436a6c338a32a1d"
+SRCREV="a322b0f2343568318432a26ebd192c8e8d4d6e3c"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.

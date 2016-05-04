@@ -6,11 +6,13 @@ DEPENDS = "python-inflect-native python-tornado-native ops-openvswitch ops-ovsdb
 
 RDEPENDS_${PN} = "python-argparse python-json python-ops-ovsdb python-distribute python-tornado python-html python-pkgutil python-subprocess python-numbers python-inflect python-xml ops-restapi python-unixadmin python-jsonschema python-jsonpatch ops-aaa-utils ops-passwd-srv python-pycrypto"
 
-SRC_URI = "git://git.openswitch.net/openswitch/ops-restd;protocol=http \
+BRANCH ?= "${OPS_REPO_BRANCH}"
+
+SRC_URI = "${OPS_REPO_BASE_URL}/ops-restd;protocol=${OPS_REPO_PROTOCOL};branch=${BRANCH} \
            file://restd.service \
 "
 
-SRCREV = "bcf646367c940589919e8873c816230f9d8e1825"
+SRCREV = "f1188dcf1bb103ea6735d2ae12ee9caf1a91c319"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.

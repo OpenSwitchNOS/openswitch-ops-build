@@ -7,11 +7,21 @@ PACKAGES += "ops-librbac ops-librbac-dev"
 FILES_ops-librbac = "/usr/lib/librbac.so.*.*.*"
 FILES_ops-librbac-dev = "/usr/lib/pkgconfig/rbac.pc /usr/lib/librbac.so*"
 
+SSTATE_DUPWHITELIST = \
+     "${STAGING_DIR_TARGET}/usr/include/rbac.h \
+      ${STAGING_DIR_TARGET}/usr/lib/librbac.so.0.1.0 \
+      ${STAGING_DIR_TARGET}/usr/lib/librbac.so \
+      ${STAGING_DIR_TARGET}/usr/lib/python2.7/site-packages/rbac.py \
+      ${STAGING_DIR_TARGET}/usr/lib/python2.7/site-packages/rbac.pyc"
+
+
 DEPENDS = "ops-ovsdb ops-cli ops-supportability"
 
 RDEPENDS_${PN} = "python-argparse python-json python-ops-ovsdb python-distribute python-pam pam-plugin-radius-auth pam-plugin-radius-chap-auth"
 
-SRC_URI = "git://git.openswitch.net/openswitch/ops-aaa-utils;protocol=http \
+BRANCH ?= "${OPS_REPO_BRANCH}"
+
+SRC_URI = "${OPS_REPO_BASE_URL}/ops-aaa-utils;protocol=${OPS_REPO_PROTOCOL};branch=${BRANCH} \
            file://aaautils.service \
            file://server \
            file://useradd \

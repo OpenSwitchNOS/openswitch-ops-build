@@ -4,10 +4,13 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/Apache-2.0;md5=89aea4e17d99a7ca
 
 DEPENDS = "ops-utils ops-hw-config ops-ovsdb ops-cli ops-supportability ops-snmpd"
 
-SRC_URI = "git://git.openswitch.net/openswitch/ops-intfd;protocol=http\
-           file://ops-intfd.service"
+BRANCH ?= "${OPS_REPO_BRANCH}"
 
-SRCREV = "7f2380638c8aa8de651193ce9f24e7368c34f81a"
+SRC_URI = "${OPS_REPO_BASE_URL}/ops-intfd;protocol=${OPS_REPO_PROTOCOL};branch=${BRANCH} \
+           file://ops-intfd.service \
+           "
+
+SRCREV = "f51ba9e21a505c6dbe7043648d89a1ec65673c68"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.
