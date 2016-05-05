@@ -79,7 +79,7 @@ configure_systemd() {
     fi
 
 #    rm -f ${rootfs}/etc/systemd/system/default.target
-    rm -f ${rootfs}/etc/systemd/system/getty.target.wants/serial-getty@ttyS0.service
+#    rm -f ${rootfs}/etc/systemd/system/getty.target.wants/serial-getty@ttyS0.service
 #    touch ${rootfs}/etc/fstab
 #    chroot ${rootfs} ln -s /dev/null /etc/systemd/system/udev.service
 #    chroot ${rootfs} ln -s /dev/null /etc/systemd/system/systemd-udevd.service
