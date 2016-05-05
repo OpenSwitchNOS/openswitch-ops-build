@@ -4,4 +4,4 @@ SRC_URI = "git://git.openswitch.net/openswitch/ops-classifierd;protocol=http;bra
            file://ops-classifierd.service \
            "
 
-SRCREV = "8651f105d66db7b2527794cf9304cfd5ee6e1155"
+SRCREV = "ca90e3a8b00c44f8c63b7c57041b38dccc2fc0fb"
