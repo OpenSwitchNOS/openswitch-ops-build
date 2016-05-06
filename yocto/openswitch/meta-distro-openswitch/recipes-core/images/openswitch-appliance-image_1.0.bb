@@ -14,9 +14,11 @@ IMAGE_ROOTFS_SIZE = "1015808"
 FINAL_ROOTFS_SIZE = "1048576"
 
 # Do a quiet boot with limited console messages
-APPEND += "quiet rootfstype=ext4"
-SYSLINUX_PROMPT ?= "0"
-SYSLINUX_TIMEOUT ?= "0"
+APPEND += "quiet"
+AUTO_SYSLINUXMENU = "0"
+SYSLINUX_PROMPT = "0"
+SYSLINUX_TIMEOUT = "0"
+ROOT_VM = "root=PARTUUID=${DISK_SIGNATURE}-02 rootfstype=ext4 "
 
 DEPENDS = "tar-native qemu-native"
 IMAGE_FSTYPES = "vmdk tar.gz"
@@ -88,7 +90,7 @@ python do_bundle_files() {
 }
 
 addtask align_directdisk after do_bootdirectdisk before do_vmdkimg
-addtask bundle_files after do_vmdkimg before do_build
+addtask bundle_files after do_vmimg before do_build
 #do_bundle_files[nostamp] = "1"
 
 inherit openswitch-image

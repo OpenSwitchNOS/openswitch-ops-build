@@ -53,7 +53,7 @@ BASE_SIMPLEIMAGE_INITRAMFS_FILE = $(BUILDDIR)/tmp/deploy/images/$(CONFIGURED_PLA
 BASE_VMLINUX_FILE = $(BUILDDIR)/tmp/deploy/images/$(CONFIGURED_PLATFORM)/vmlinux
 BASE_CPIO_FS_FILE = $(BUILDDIR)/tmp/deploy/images/$(CONFIGURED_PLATFORM)/$(DISTRO_FS_TARGET)-$(CONFIGURED_PLATFORM).cpio.gz
 BASE_TARGZ_FS_FILE = $(BUILDDIR)/tmp/deploy/images/$(CONFIGURED_PLATFORM)/$(DISTRO_FS_TARGET)-$(CONFIGURED_PLATFORM).tar.gz
-BASE_TARGZ_DBG_FS_FILE = $(BUILDDIR)/tmp/deploy/images/$(CONFIGURED_PLATFORM)/$(DISTRO_FS_TARGET)-$(CONFIGURED_PLATFORM).dbg.tar.gz
+BASE_TARGZ_DBG_FS_FILE = $(BUILDDIR)/tmp/deploy/images/$(CONFIGURED_PLATFORM)/$(DISTRO_FS_TARGET)-$(CONFIGURED_PLATFORM)-dbg.tar.gz
 BASE_HDDIMG_FS_FILE = $(BUILDDIR)/tmp/deploy/images/$(CONFIGURED_PLATFORM)/$(DISTRO_FS_TARGET)-$(CONFIGURED_PLATFORM).hddimg
 BASE_OVA_FILE = $(BUILDDIR)/tmp/deploy/images/$(CONFIGURED_PLATFORM)/$(DISTRO_FS_TARGET)-$(CONFIGURED_PLATFORM).ova
 BASE_BOX_FILE = $(BUILDDIR)/tmp/deploy/images/$(CONFIGURED_PLATFORM)/$(DISTRO_FS_TARGET)-$(CONFIGURED_PLATFORM).box
@@ -170,7 +170,10 @@ build/conf/local.conf: .platform
       fi \
     fi
 
-header:: build/conf/site.conf build/conf/local.conf
+build/conf/templateconf.cfg:
+	$(V)echo "meta-poky/conf" > $@
+
+header:: build/conf/site.conf build/conf/local.conf build/conf/templateconf.cfg
 
 -include yocto/*/meta-platform-$(DISTRO)-$(CONFIGURED_PLATFORM)/Rules.make
 export PLATFORM_DTS_FILE
@@ -530,7 +533,7 @@ ifeq (devenv_import,$(firstword $(MAKECMDGOALS)))
   endif
 endif
 devenv_import:
-	$(V) grep  -q $(PACKAGE) .devenv 2>/dev/null || $(call DEVTOOL, modify $(PACKAGE) $(IMPORTED_SRC)) && \
+	$(V) grep  -q $(PACKAGE) .devenv 2>/dev/null || $(call DEVTOOL, modify --no-extract $(PACKAGE) $(IMPORTED_SRC)) && \
 	mkdir -p $(BUILD_ROOT)/src && \
 	sed -e "s/##RECIPE##/$(PACKAGE)/g" $(BUILD_ROOT)/tools/devenv-recipe-template.make >> $(BUILD_ROOT)/src/Rules.make && \
 	echo $(PACKAGE) >> $(BUILD_ROOT)/.devenv
