@@ -661,6 +661,10 @@ endif
 testenv_rerun: _testenv_header
 	$(V) $(MAKE) _testenv_rerun
 
+
+TESTENV_ABORT_IF_NOT_FOUND?=true
+TESTENV_IGNORE?=false
+
 define TESTENV_PREPARE
 	$(V) # Find if the component is on the devenv
 	$(V) \
@@ -671,9 +675,16 @@ define TESTENV_PREPARE
 	  if [ -f .devenv ] && [ -d src/$(1) ] ; then \
 	   $(ECHO) "$(1): using tests from devenv..." ; \
 	   if ! [ -d src/$(1)/$$test_source_path ] ; then \
-		 $(call FATAL_ERROR, No testsuite found at src/$(1)/$$test_source_path); \
+                 if [ "$(TESTENV_ABORT_IF_NOT_FOUND)" = "true" ] ; then \
+		  $(call FATAL_ERROR, No testsuite found at src/$(1)/$$test_source_path); \
+                 else \
+                  $(call WARNING, No testsuite found at src/$(1)/$$test_source_path); \
+                  TESTENV_IGNORE=true; \
+                 fi ; \
 	   fi ; \
-	   ln -sf $(BUILD_ROOT)/src/$(1)/$$test_source_path $(BUILDDIR)/test/$(TESTSUITE)/code_under_test/$(1) ; \
+           if [ "$(TESTENV_IGNORE)" = "false" ] ; then \
+	     ln -sf $(BUILD_ROOT)/src/$(1)/$$test_source_path $(BUILDDIR)/test/$(TESTSUITE)/code_under_test/$(1) ; \
+           fi ; \
 	 else \
 	   $(ECHO) "$(1): fetching tests from git..." ; \
 	   $$(query-recipe.py -s -v SRCREV --gitrepo --gitbranch $(1)) ; \
