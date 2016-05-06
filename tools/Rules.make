@@ -668,10 +668,14 @@ define TESTENV_PREPARE
 	  if [ "$(TESTSUITE)" = "legacy" ] ; then \
 	    test_source_path="tests" ; \
 	  fi ; \
-	  if [ -f .devenv ] && [ -d src/$(1) ] ; then \
+	 if [ -f .devenv ] && [ -d src/$(1) ] ; then \
 	   $(ECHO) "$(1): using tests from devenv..." ; \
 	   if ! [ -d src/$(1)/$$test_source_path ] ; then \
-		 $(call FATAL_ERROR, No testsuite found at src/$(1)/$$test_source_path); \
+            if [ "$(TESTENV_ABORT_IF_NOT_FOUND)" = "true"]; then
+              $(call FATAL_ERROR, No testsuite found at src/$(1)/$$test_source_path); \
+            else
+              $(call WARNING, No testsuite found at src/$(1)/$$test_source_path); \
+            fi
 	   fi ; \
 	   ln -sf $(BUILD_ROOT)/src/$(1)/$$test_source_path $(BUILDDIR)/test/$(TESTSUITE)/code_under_test/$(1) ; \
 	 else \
@@ -689,7 +693,11 @@ define TESTENV_PREPARE
 	   git reset $$SRCREV --hard ; \
 	   popd > /dev/null ; \
 	   if ! [ -d $(BUILDDIR)/test/$(TESTSUITE)/downloads/$(1)/git/$$test_source_path ] ; then \
-		 $(call FATAL_ERROR, No testsuite found at '/$$test_source_path' inside the git repo $$gitrepo); \
+            if [ "$(TESTENV_ABORT_IF_NOT_FOUND)" = "true"]; then
+              $(call FATAL_ERROR, No testsuite found at '/$$test_source_path' inside the git repo $$gitrepo); \
+            else
+              $(call WARNING, No testsuite found at '/$$test_source_path' inside the git repo $$gitrepo); \
+            fi
 	   fi ; \
 	   ln -sf $(BUILDDIR)/test/$(TESTSUITE)/downloads/$(1)/git/$$test_source_path \
 		 $(BUILDDIR)/test/$(TESTSUITE)/code_under_test/$(1) ; \
@@ -735,6 +743,7 @@ else
 TESTENV_EXTRA_PARAMETERS=$(if $(VERBOSE),-vv,)
 endif
 TESTENV_ITERATIONS?=1
+TESTENV_ABORT_IF_NOT_FOUND?=true
 
 _testenv_rerun:
 	$(V) $(SUDO) rm -Rf $(BUILDDIR)/test/$(TESTSUITE)/code_under_test
