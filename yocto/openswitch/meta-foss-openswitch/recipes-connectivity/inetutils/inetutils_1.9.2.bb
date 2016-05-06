@@ -15,6 +15,7 @@ SRC_URI = "${GNU_MIRROR}/inetutils/inetutils-${PV}.tar.gz \
            file://inetutils-1.9-PATH_PROCNET_DEV.patch \
            file://inetutils-1.9.2-traceroute.patch \
            file://inetutils-1.9.2-0001-traceroute.patch \
+           file://inetutils-only-check-pam_appl.h-when-pam-enabled.patch \
 "
 
 SRC_URI[md5sum] = "aa1a9a132259db83e66c1f3265065ba2"
@@ -25,9 +26,12 @@ inherit autotools gettext update-alternatives texinfo
 SRC_URI += "${@base_contains('DISTRO_FEATURES', 'ipv6', '', 'file://fix-disable-ipv6.patch', d)}"
 noipv6="${@base_contains('DISTRO_FEATURES', 'ipv6', '', '--disable-ipv6 gl_cv_socket_ipv6=no', d)}"
 
-PACKAGECONFIG ??= "ftp uucpd"
+PACKAGECONFIG ??= "ftp uucpd \
+                   ${@bb.utils.contains('DISTRO_FEATURES', 'pam', 'pam', '', d)} \
+"
 PACKAGECONFIG[ftp] = "--enable-ftp,--disable-ftp,readline"
 PACKAGECONFIG[uucpd] = "--enable-uucpd,--disable-uucpd,readline"
+PACKAGECONFIG[pam] = "--with-pam,--without-pam,libpam"
 
 EXTRA_OECONF = "--with-ncurses-include-dir=${STAGING_INCDIR} \
         ${noipv6} \
