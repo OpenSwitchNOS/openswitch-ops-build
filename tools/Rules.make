@@ -661,6 +661,9 @@ endif
 testenv_rerun: _testenv_header
 	$(V) $(MAKE) _testenv_rerun
 
+
+TESTENV_ABORT_IF_NOT_FOUND?=true
+
 define TESTENV_PREPARE
 	$(V) # Find if the component is on the devenv
 	$(V) \
@@ -668,61 +671,78 @@ define TESTENV_PREPARE
 	  if [ "$(TESTSUITE)" = "legacy" ] ; then \
 	    test_source_path="tests" ; \
 	  fi ; \
-	  if [ -f .devenv ] && [ -d src/$(1) ] ; then \
+	 testenv_abort=false;
+         if [ -f .devenv ] && [ -d src/$(1) ] ; then \
 	   $(ECHO) "$(1): using tests from devenv..." ; \
 	   if ! [ -d src/$(1)/$$test_source_path ] ; then \
-		 $(call FATAL_ERROR, No testsuite found at src/$(1)/$$test_source_path); \
+                 if [ "$(TESTENV_ABORT_IF_NOT_FOUND)" = "true" ] ; then \
+		  $(call FATAL_ERROR, No testsuite found at src/$(1)/$$test_source_path); \
+                 else \
+                  $(call WARNING, No testsuite found at src/$(1)/$$test_source_path); \
+                  testenv_abort=true; \
+                 fi ; \
 	   fi ; \
-	   ln -sf $(BUILD_ROOT)/src/$(1)/$$test_source_path $(BUILDDIR)/test/$(TESTSUITE)/code_under_test/$(1) ; \
+           if [ $$(testenv_abort) =="false" ] ; then \
+	     ln -sf $(BUILD_ROOT)/src/$(1)/$$test_source_path $(BUILDDIR)/test/$(TESTSUITE)/code_under_test/$(1) ; \
+           fi ; \
 	 else \
+           testenv_abort=false;
 	   $(ECHO) "$(1): fetching tests from git..." ; \
 	   $$(query-recipe.py -s -v SRCREV --gitrepo --gitbranch $(1)) ; \
-	   if [ -z "$$gitrepo" ] ; then $(call FATAL_ERROR, Unable to find the recipe for $(COMPONENT)) ; fi ; \
-	   rm -Rf $(BUILDDIR)/test/$(TESTSUITE)/downloads/$(1)/git ; \
-	   if ! git clone -q --single-branch -b $$gitbranch $$gitrepo $(BUILDDIR)/test/$(TESTSUITE)/downloads/$(1)/git ; then \
-	    $(call FATAL_ERROR, Unable to clone the required version of the code) ; \
-	   fi ; \
-	   pushd . >/dev/null ; \
-	   if ! cd $(BUILDDIR)/test/$(TESTSUITE)/downloads/$(1)/git ; then \
-	     $(call FATAL_ERROR, Unable to find the cloned code) ; \
-	   fi ; \
-	   git reset $$SRCREV --hard ; \
-	   popd > /dev/null ; \
+	   if [ -z "$$gitrepo" ] ; then
+             if [ "$(TESTENV_ABORT_IF_NOT_FOUND)" = "true" ] ; then \
+               $(call FATAL_ERROR, Unable to find the recipe for $(COMPONENT)) ;
+             else \
+               $(call WARNING, Unable to find the recipe for $(COMPONENT)); \
+               testenv_abort=true; \
+           fi ; \
+           if [ $$(testenv_abort) =="false" ] ; then \
+             rm -Rf $(BUILDDIR)/test/$(TESTSUITE)/downloads/$(1)/git ; \
+	     if ! git clone -q --single-branch -b $$gitbranch $$gitrepo $(BUILDDIR)/test/$(TESTSUITE)/downloads/$(1)/git ; then \
+	      $(call FATAL_ERROR, Unable to clone the required version of the code) ; \
+	     fi ; \
+	     pushd . >/dev/null ; \
+	     if ! cd $(BUILDDIR)/test/$(TESTSUITE)/downloads/$(1)/git ; then \
+	       $(call FATAL_ERROR, Unable to find the cloned code) ; \
+	     fi ; \
+	     git reset $$SRCREV --hard ; \
+	     popd > /dev/null ; \
 	   if ! [ -d $(BUILDDIR)/test/$(TESTSUITE)/downloads/$(1)/git/$$test_source_path ] ; then \
 		 $(call FATAL_ERROR, No testsuite found at '/$$test_source_path' inside the git repo $$gitrepo); \
 	   fi ; \
 	   ln -sf $(BUILDDIR)/test/$(TESTSUITE)/downloads/$(1)/git/$$test_source_path \
 		 $(BUILDDIR)/test/$(TESTSUITE)/code_under_test/$(1) ; \
-	 fi ; \
-	 if [ "$(TESTSUITE)" = "legacy" ] ; then \
-	   cp tools/pytest.ini $(BUILDDIR)/test/$(TESTSUITE)/pytest.ini ; \
-	 else \
-	   if [ -f $(BUILDDIR)/test/$(TESTSUITE)/code_under_test/$(1)/requirements.txt ] ; then \
-		 $(call WARNING,Overriding the global requirements.txt with the one from $(1)) ; \
-		 cp $(BUILDDIR)/test/$(TESTSUITE)/code_under_test/$(1)/requirements.txt \
-		   $(BUILDDIR)/test/$(TESTSUITE)/ ; \
-	   else \
-		 cp tools/topology/requirements.txt $(BUILDDIR)/test/$(TESTSUITE)/ ; \
 	   fi ; \
-	   if [ -f $(BUILDDIR)/test/$(TESTSUITE)/code_under_test/$(1)/tox.ini ] ; then \
-	     $(call WARNING,Overriding the global tox.ini with the one from $(1)) ; \
-		 cp $(BUILDDIR)/test/$(TESTSUITE)/code_under_test/$(1)/tox.ini \
-		   $(BUILDDIR)/test/$(TESTSUITE)/ ; \
+	   if [ "$(TESTSUITE)" = "legacy" ] ; then \
+	     cp tools/pytest.ini $(BUILDDIR)/test/$(TESTSUITE)/pytest.ini ; \
 	   else \
+	     if [ -f $(BUILDDIR)/test/$(TESTSUITE)/code_under_test/$(1)/requirements.txt ] ; then \
+                   $(call WARNING,Overriding the global requirements.txt with the one from $(1)) ; \
+		   cp $(BUILDDIR)/test/$(TESTSUITE)/code_under_test/$(1)/requirements.txt \
+		     $(BUILDDIR)/test/$(TESTSUITE)/ ; \
+	     else \
+		   cp tools/topology/requirements.txt $(BUILDDIR)/test/$(TESTSUITE)/ ; \
+	     fi ; \
+	     if [ -f $(BUILDDIR)/test/$(TESTSUITE)/code_under_test/$(1)/tox.ini ] ; then \
+	       $(call WARNING,Overriding the global tox.ini with the one from $(1)) ; \
+                   cp $(BUILDDIR)/test/$(TESTSUITE)/code_under_test/$(1)/tox.ini \
+		     $(BUILDDIR)/test/$(TESTSUITE)/ ; \
+	     else \
 		 cp tools/topology/tox.ini $(BUILDDIR)/test/$(TESTSUITE)/ ; \
-	   fi ; \
-	   output_attr_json=$(BUILDDIR)/test/$(TESTSUITE)/attributes.json ; \
-	   if [ -f $(BUILDDIR)/test/$(TESTSUITE)/code_under_test/$(1)/attributes.json.in ] ; then \
+	     fi ; \
+	     output_attr_json=$(BUILDDIR)/test/$(TESTSUITE)/attributes.json ; \
+	     if [ -f $(BUILDDIR)/test/$(TESTSUITE)/code_under_test/$(1)/attributes.json.in ] ; then \
 		 $(call WARNING, Overriding the global attributes.json with the one from $(1)) ; \
 		 sed -e 's?@TEST_IMAGE@?$(TOPOLOGY_TEST_IMAGE):latest?' \
 		   $(BUILDDIR)/test/$(TESTSUITE)/code_under_test/$(1)/attributes.json.in \
 		   > $$output_attr_json ; \
 		 sed -i 's?@TEST_COV_DIR@?$(TOPOLOGY_TEST_COV_DIR)?g' $$output_attr_json ; \
-	   else \
+	     else \
 		 sed -e 's?@TEST_IMAGE@?$(TOPOLOGY_TEST_IMAGE):latest?' \
 		   tools/topology/attributes.json.in > $$output_attr_json ; \
 		 sed -i 's?@TEST_COV_DIR@?$(TOPOLOGY_TEST_COV_DIR)?g' $$output_attr_json ; \
-	   fi ; \
+	     fi ; \
+           fi ; \
 	 fi
 
 endef
