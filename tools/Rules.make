@@ -661,6 +661,8 @@ endif
 testenv_rerun: _testenv_header
 	$(V) $(MAKE) _testenv_rerun
 
+TESTENV_ABORT_IF_NOT_FOUND?=true;
+
 define TESTENV_PREPARE
 	$(V) # Find if the component is on the devenv
 	$(V) \
@@ -668,12 +670,20 @@ define TESTENV_PREPARE
 	  if [ "$(TESTSUITE)" = "legacy" ] ; then \
 	    test_source_path="tests" ; \
 	  fi ; \
+	  testenv_abort=true ; \
 	  if [ -f .devenv ] && [ -d src/$(1) ] ; then \
 	   $(ECHO) "$(1): using tests from devenv..." ; \
 	   if ! [ -d src/$(1)/$$test_source_path ] ; then \
-		 $(call FATAL_ERROR, No testsuite found at src/$(1)/$$test_source_path); \
+	     if [ "$(TESTENV_ABORT_IF_NOT_FOUND)"="true" ] ; then \
+	       $(call FATAL_ERROR, No testsuite found at src/$(1)/$$test_source_path); \
+	     else \
+	       $(call WARNING, No testsuite found at src/$(1)/$$test_source_path); \
+	       testenv_abort = false ; \
+	     fi ; \
 	   fi ; \
-	   ln -sf $(BUILD_ROOT)/src/$(1)/$$test_source_path $(BUILDDIR)/test/$(TESTSUITE)/code_under_test/$(1) ; \
+	   if [! testenv_abort ]; then \
+	     ln -sf $(BUILD_ROOT)/src/$(1)/$$test_source_path $(BUILDDIR)/test/$(TESTSUITE)/code_under_test/$(1) ; \
+	   fi ; \
 	 else \
 	   $(ECHO) "$(1): fetching tests from git..." ; \
 	   $$(query-recipe.py -s -v SRCREV --gitrepo --gitbranch $(1)) ; \
@@ -689,10 +699,17 @@ define TESTENV_PREPARE
 	   git reset $$SRCREV --hard ; \
 	   popd > /dev/null ; \
 	   if ! [ -d $(BUILDDIR)/test/$(TESTSUITE)/downloads/$(1)/git/$$test_source_path ] ; then \
-		 $(call FATAL_ERROR, No testsuite found at '/$$test_source_path' inside the git repo $$gitrepo); \
+	     if [ "$(TESTENV_ABORT_IF_NOT_FOUND)"="true" ] ; then \
+	       $(call FATAL_ERROR, No testsuite found at '/$$test_source_path' inside the git repo $$gitrepo); \
+	     else \
+	       $(call WARNING, No testsuite found at '/$$test_source_path' inside the git repo $$gitrepo); \
+	       testenv_abort = false ; \
+	     fi ; \
 	   fi ; \
-	   ln -sf $(BUILDDIR)/test/$(TESTSUITE)/downloads/$(1)/git/$$test_source_path \
+	   if [! testenv_abort ]; then \
+	     ln -sf $(BUILDDIR)/test/$(TESTSUITE)/downloads/$(1)/git/$$test_source_path \
 		 $(BUILDDIR)/test/$(TESTSUITE)/code_under_test/$(1) ; \
+	   fi ; \
 	 fi ; \
 	 if [ "$(TESTSUITE)" = "legacy" ] ; then \
 	   cp tools/pytest.ini $(BUILDDIR)/test/$(TESTSUITE)/pytest.ini ; \
