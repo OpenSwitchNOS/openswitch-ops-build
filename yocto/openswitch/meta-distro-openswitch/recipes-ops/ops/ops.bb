@@ -18,6 +18,13 @@ FILES_${PN} = "/usr/share/openvswitch/ /usr/share/openvswitch/*.extschema /usr/s
 
 OPS_SCHEMA_PATH="${S}/schema"
 
+EXTRA_OEMAKE = "-e TOPDIR=${TOPDIR} BUILD_ROOT=${BUILD_ROOT} MACHINE=${MACHINE} PYTHON=${PYTHON}"
+do_compile_prepend() {
+  rm -rf ${BUILD_ROOT}/images/image_features.${MACHINE} ${BUILD_ROOT}/images/image_features
+  echo ${IMAGE_FEATURES} > ${BUILD_ROOT}/images/image_features.${MACHINE}
+  ln -s ${BUILD_ROOT}/images/image_features.${MACHINE} ${BUILD_ROOT}/images/image_features
+}
+
 do_install() {
 	oe_runmake install DESTDIR=${D} PREFIX=${prefix}
 }
