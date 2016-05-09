@@ -3,3 +3,10 @@
 PR_append = "_appliance"
 
 FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}:"
+
+do_install_append() {
+    if ${@bb.utils.contains('IMAGE_FEATURES','ops-p4','true','false',d)}; then
+        sed -i -e '4i/sbin/ip netns add emulns' ${D}${sbindir}/ops-init
+        sed -i -e 's/netns swns/netns emulns/g' ${D}${sbindir}/ops-init
+    fi
+}

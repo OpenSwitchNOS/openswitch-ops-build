@@ -6,8 +6,7 @@ After=ops-init.service
 
 [Service]
 ExecStartPre=-/bin/rm -f /var/run/simple_switch.pid
-ExecStartPre=-/sbin/ip netns del emulns
-ExecStartPre=/sbin/ip netns add emulns
+ExecStartPre=-/sbin/ip netns add emulns
 ExecStartPre=/sbin/ip netns exec emulns ip link add veth250 type veth peer name veth251
 ExecStartPre=/sbin/ip netns exec emulns ip link set dev lo up
 ExecStartPre=/sbin/ip netns exec emulns ip link set dev veth250 up
