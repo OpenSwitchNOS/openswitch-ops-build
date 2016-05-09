@@ -1,0 +1,15 @@
+#
+# Switch Management features
+#
+menu "Management Interface Options"
+
+config OPS_NTPD
+        bool "Network Time Protocol (NTP) Client"
+        default y
+        ---help---
+          The NTP client feature provides the Network Time Protocol client
+          functionality which synchronizes information from NTP servers.
+          For more details, please visit:
+            http://openswitch.net/documents/dev/ops-ntpd/design
+
+endmenu

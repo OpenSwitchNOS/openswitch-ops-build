@@ -16,11 +16,28 @@ PACKAGES = ' \
             packagegroup-ops-min \
             packagegroup-ops-min-debug \
             packagegroup-ops-core \
+            packagegroup-ops-config \
             '
 
 PACKAGES += "${@bb.utils.contains("IMAGE_FEATURES", "ops-p4", "packagegroup-ops-p4", "", d)}"
 PACKAGES += "${@bb.utils.contains("MACHINE_FEATURES", "ops-container", "packagegroup-ops-container", "", d)}"
 
+#
+# Following scheme is to address backward compatibility issue as not all
+# platforms and features are integrated immediately into OpenSwitch Modular
+# Configuration framework.
+#
+# Adding a new feature into OPS Mod Config framework:
+# Include package associated with the feature to packagegroup-ops-base
+#
+# Porting an existing feature into OPS Mod Config framework:
+# Remove package associated with the feature from packagegroup-ops-config
+#
+# Adding a new platform or porting an existing platform into OPS Mod Config framework:
+# Include packagegroup-ops-config instead of packagegroup-ops-base
+#
+# Eventually, packagegroup-ops-base will go away
+#
 RDEPENDS_packagegroup-ops-base = "\
     os-release \
     i2c-tools \
@@ -67,6 +84,64 @@ RDEPENDS_packagegroup-ops-base = "\
     ops-checkmk-agent \
     ops-ansible \
     ops-ntpd \
+    ops-supportability \
+    strongswan \
+    firejail \
+    ops-ipapps \
+    ops-stpd \
+    ops-sysmond \
+    ops-vrfmgrd \
+    nicstat \
+    sysstat \
+    ${@bb.utils.contains("MACHINE_FEATURES", "ops-kdump", "ops-kdump", "", d)} \
+    ops-snmpd \
+    ops-l2macd \
+    ops-rbac \
+"
+
+RDEPENDS_packagegroup-ops-config = "\
+    os-release \
+    i2c-tools \
+    mtd-utils \
+    gptfdisk \
+    packagegroup-base-serial \
+    lttng-tools lttng-modules lttng-ust babeltrace \
+    kexec kdump \
+    rsyslog \
+    iproute2 dhcp-client\
+    vim \
+    tzdata-posix \
+    valgrind \
+    valgrind-memcheck \
+    valgrind-helgrind \
+    sudo \
+    pwauth \
+    shadow \
+    cronie \
+    systemd-analyze \
+    auditd audispd-plugins audit-python \
+    inetutils-hostname inetutils-ifconfig \
+    inetutils-tftp inetutils-traceroute inetutils-ftp inetutils-telnet \
+    iputils-traceroute6 iputils-ping iputils-ping6 \
+    wget curl \
+    libcap-bin \
+    ops-init \
+    virtual/switchd \
+    virtual/ops-switchd-switch-api-plugin \
+    ops-ovsdb \
+    ops-hw-config \
+    ops-cfgd ops-fand ops-ledd ops-pmd ops-powerd ops-sysd ops-tempd \
+    ops-dhcp-tftp \
+    ops-intfd ops-lacpd ops-lldpd ops-vland ops-arpmgrd ops-passwd-srv \
+    ops-script-utils \
+    ops-cli ops-restd ops-webui \
+    ops-classifierd \
+    ops-portd ops-quagga \
+    ops-aaa-utils \
+    ops-mgmt-intf \
+    dnsmasq \
+    ops-checkmk-agent \
+    ops-ansible \
     ops-supportability \
     strongswan \
     firejail \

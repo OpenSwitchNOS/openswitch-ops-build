@@ -1,0 +1,21 @@
+#
+# Tools and utilities
+#
+menu "General Setup"
+
+config HAVE_OPS_BUFMOND
+	def_bool n
+
+config OPS_BUFMOND
+	bool "Buffer Monitor"
+	depends on HAVE_OPS_BUFMOND
+	default y
+	---help---
+	  Buffers Monitoring is a feature that provides OpenSwitch users the ability
+	  to monitor buffer space consumption inside the ASIC. It's useful for
+	  troubleshooting complex performance problems in the data center networking
+	  environment.
+	  For more details, please visit:
+	    http://openswitch.net/documents/dev/ops-bufmond/design
+
+endmenu

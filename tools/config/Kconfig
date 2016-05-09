@@ -1,0 +1,23 @@
+#
+# For a description of the syntax of this configuration file,
+# see https://www.kernel.org/doc/Documentation/kbuild/kconfig-language.txt
+#
+mainmenu "OpenSwitch Configuration for \"$CONFIGURED_PLATFORM\" Platform"
+
+# Currently configured platform
+config CONFIGURED_PLATFORM
+        string
+        option env="CONFIGURED_PLATFORM"
+
+# Location of ops-build
+config BUILD_ROOT
+	string
+	option env="BUILD_ROOT"
+
+# Current distro
+config DISTRO
+	string
+	option env="DISTRO"
+
+# Include platform specific Kconfig file
+source "$BUILD_ROOT/yocto/$DISTRO/meta-platform-$DISTRO-$CONFIGURED_PLATFORM/Kconfig"

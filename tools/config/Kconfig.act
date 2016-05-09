@@ -1,0 +1,6 @@
+#
+# Vendor specific features
+#
+menu "Platform (Accton) Options"
+
+endmenu

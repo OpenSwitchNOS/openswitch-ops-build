@@ -64,6 +64,7 @@ TARGET_INTERPRETER=$(STAGING_DIR_TARGET)/lib/ld-linux-x86-64.so.2
 
 UUIDGEN_NATIVE=$(STAGING_DIR_NATIVE)/usr/bin/uuidgen
 PYTEST_NATIVE=$(STAGING_DIR_NATIVE)/usr/bin/py.test
+KCONFIG_MCONF_NATIVE=$(STAGING_DIR_NATIVE)/usr/bin/kconfig-mconf
 # Rake binary path
 RAKE_NATIVE = $(STAGING_DIR_NATIVE)/usr/bin/rake
 
@@ -923,6 +924,30 @@ git_pull: header
 	 else \
 	  $(ECHO) "\n$(PURPLE)Update completed$(GRAY)" ; \
 	 fi
+
+## Modular config commands
+KCONFIG_CONFIG?=$(BUILDDIR)/.ops-config
+KCONFIG_OVERWRITECONFIG=yes
+CONFIG_=OPS_CONFIG_
+export KCONFIG_CONFIG
+export KCONFIG_OVERWRITECONFIG
+export CONFIG_
+export CONFIGURED_PLATFORM
+
+.PHONY: menuconfig
+
+$(BUILDDIR)/.ops-config:
+	$(V) for repo in yocto/*/meta-platform-$(DISTRO)-* ; do \
+	  [[ "$$repo" =~ "^yocto/poky" ]] && continue ; \
+	  ln -sf $(BUILD_ROOT)/$$repo/.ops-config build/.ops-config-$${repo##*platform-$(DISTRO)-} ; \
+	done ; \
+	ln -sf .ops-config-$(CONFIGURED_PLATFORM) $@
+
+menuconfig: header $(BUILDDIR)/.ops-config
+	$(V) if [ ! -f $(KCONFIG_MCONF_NATIVE) ] ; then \
+	  $(call BITBAKE,kconfig-frontends-native) ; \
+	fi
+	$(V) $(KCONFIG_MCONF_NATIVE) $(BUILD_ROOT)/tools/config/Kconfig
 
 ## Support commands
 ## Use with caution!!!!
