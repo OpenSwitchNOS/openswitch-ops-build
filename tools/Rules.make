@@ -502,6 +502,12 @@ endif
 devenv_add: dev_header
 	$(V)$(foreach P, $(PACKAGE), $(call DEVENV_ADD,$(P)))
 
+$(eval $(call PARSE_ARGUMENTS, devtool))
+ARGS?=$(EXTRA_ARGS)
+.PHONY: devtool
+devtool:
+	$(call DEVTOOL, $(ARGS))
+
 .PHONY: query_recipe
 
 $(eval $(call PARSE_ARGUMENTS,query_recipe))

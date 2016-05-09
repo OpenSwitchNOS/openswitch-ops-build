@@ -1,0 +1,69 @@
+#!/bin/bash
+
+# $1 - name of recipe, like ops-classifier.bb
+# $2 - where to deploy to, like root@172.17.0.2
+
+# Attempts to deploy source code corresponding to the deployable object bits of a recipe
+
+if [ $# -ne 2 ]
+then
+   echo "Usage: $0 <recipe> <deploy_dest>" 1>&2
+   echo "To be run from BUILD_ROOT" 1>&2
+   echo "Ex: $0 ops-classifierd root@172.17.0.2" 1>&2
+   exit 1
+fi
+
+# check for dwarfdump
+which dwarfdump 1>/dev/null
+if [ $? -ne 0 ]
+then
+   echo "This program requires dwarfdump in order to function" 1>&2
+   echo "Install with - sudo apt-get install dwarfdump" 1>&2
+   exit 1
+fi
+
+echo "Sit tight, this will be slow "
+
+# TBD - maybe we can egrep so we only setup tinfoil once
+# otherwise it takes approximate 5-6 seconds to get each of outdir/sourcedir
+
+# query_recipe is broken since it doesn't factor externalsrc hacks
+# and deploy.py doesn't have anything to print that out currently
+# filtering 16K lines of environment is not ideal, but we'll live with it for now
+# since it seems like the main problems are parsing the python stuff anyway
+recipe_outdir=$(make bake RECIPE="-e $1" | grep ^D= | awk -F= '{ print $NF }')
+# remove stupid quotes
+recipe_outdir=${recipe_outdir%\"}
+recipe_outdir=${recipe_outdir#\"}
+echo "Detected outdir of ${recipe_outdir}"
+
+recipe_sourcedir=$(make bake RECIPE="-e $1" | grep ^S= | awk -F= '{ print $NF }')
+recipe_sourcedir=${recipe_sourcedir%\"}
+recipe_sourcedir=${recipe_sourcedir#\"}
+echo "Detected recipe_sourcedir of ${recipe_sourcedir}"
+
+for deploy_target in $(make devtool ARGS="deploy-target -n $1 foo" | tail -n+3)
+do
+   # we only care about providing source for ELF files
+   file ${recipe_outdir}${deploy_target} | grep -q ELF
+   if [ $? -eq 0 ]
+   then
+      echo "Determined ${deploy_target} is ELF file, processing ..."
+      for deploy_file in $(dwarfdump ${recipe_outdir}${deploy_target} | grep DW_AT_decl_file | awk '{ print $NF }' | sort -u | grep $1)
+      do
+         # let's hardcode some logic (blech) to massage the path to something we can use
+         # return "-fdebug-prefix-map=${@d.getVar('S')}=/usr/src/debug/${BPN}/${PV}-${PR}"
+         rel_file=$(echo ${deploy_file} | cut -d/ -f7- )
+	 if [ -f   ${recipe_sourcedir}/${rel_file} ]
+         then
+            echo "Deploying ${recipe_sourcedir}/${rel_file} to ${deploy_file}"
+            scp ${recipe_sourcedir}/${rel_file} $2:${deploy_file}
+         else
+            # we get some garbage names, comment this out eventually
+            echo "Skipping non-existant ${recipe_sourcedir}/${rel_file}"
+         fi
+      done
+   #else
+      #echo "Skipping ${deploy_target}"
+   fi
+done

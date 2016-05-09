@@ -1,0 +1,21 @@
+#!/bin/sh
+
+# to be run from BUILD_ROOT
+# will output gdb commands for setting sysroot and for remapping any modules that have been added via devenv_add
+# can redirect the output to .gdbcommands and then pass to gdb via -x
+# so
+# map_gdb > .gdbcommands
+# gdb -x .gdbcommands <your daemon>
+
+if [ ! -f .platform -o ! -f .devenv ]
+then
+   echo "Error: $0 must be run from BUILD_ROOT where you have a configured a platform and initialized a devenv" 1>&2
+   exit 1
+fi
+
+platform=$(cat .platform)
+echo "set sysroot $(pwd)/build/tmp/sysroots/${platform}"
+while read repo
+do
+   echo "set substitute-path /usr/src/debug/${repo}/git999-r0 $(pwd)/src/${repo}"
+done <.devenv
