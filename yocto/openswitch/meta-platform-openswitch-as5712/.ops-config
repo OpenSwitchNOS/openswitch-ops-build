@@ -1,0 +1,34 @@
+#
+# Automatically generated file; DO NOT EDIT.
+# OpenSwitch Configuration for "as5712" Platform
+#
+OPS_CONFIG_AS5712=y
+
+#
+# General Setup
+#
+OPS_CONFIG_HAVE_OPS_BUFMOND=y
+OPS_CONFIG_OPS_BUFMOND=y
+
+#
+# Platform (Accton) Options
+#
+
+#
+# Forwarding ASIC (Broadcom) Features
+#
+OPS_CONFIG_OPS_BROADVIEW=y
+
+#
+# Layer 2 Features
+#
+OPS_CONFIG_KEY_VALUE_EXAMPLE_NUM_PORTS=64
+
+#
+# Layer 3 and above Features
+#
+
+#
+# Management Interface Options
+#
+OPS_CONFIG_OPS_NTPD=y
