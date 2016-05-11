@@ -11,7 +11,7 @@ SRC_URI = "${OPS_REPO_BASE_URL}/ops-classifierd;protocol=${OPS_REPO_PROTOCOL};br
            file://ops-classifierd.service \
 "
 
-SRCREV = "c8d87fcbb31e35a994b65cf486ed6899d09533be"
+SRCREV = "668a38131678af2c441eebc53365aedd08925e87"
 
 FILES_${PN} = "${libdir}/openvswitch/plugins ${includedir}/plugins/* ${bindir} ${bindir}/ops-classifierd"
 
@@ -36,6 +36,5 @@ FILES_${PN} += "/usr/share/opsplugins"
 FILES_${PN} += "/usr/lib/cli/plugins/"
 SYSTEMD_PACKAGES = "${PN}"
 SYSTEMD_SERVICE_${PN} = "ops-classifierd.service"
-SYSTEMD_AUTO_ENABLE = "enable"
 
 inherit openswitch cmake pkgconfig systemd
