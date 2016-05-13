@@ -12,5 +12,7 @@ DISTRO_FS_TARGET = openswitch-disk-image
 ONIE_INSTALLER_RECIPE = openswitch-onie-installer
 ONIE_INSTALLER_FILE = onie-installer-x86_64-as7512_32x
 
-# For this platform we create an onie-installer
-all:: onie-installer
+AS7512_ALL_TARGETS = onie-installer
+ifneq ($(CONFIGURED_PLATFORM),multi)
+all:: $(AS7512_ALL_TARGETS)
+endif
