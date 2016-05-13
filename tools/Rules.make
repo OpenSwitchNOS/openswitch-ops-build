@@ -17,7 +17,7 @@ export DISTRO_SSTATE_ADDRESS
 export CURL_CA_BUNDLE=$(DISTRO_CA_BUNDLE)
 
 # Toolchain variables
-OE_HOST_SYSROOT=$(BUILD_ROOT)/build/tmp/sysroots/$(shell uname -m)-linux/
+OE_HOST_SYSROOT=$(BUILDDIR)/tmp/sysroots/$(shell uname -m)-linux/
 # Some toolchain dirs are named different than their toolchain prefix
 # For example ppc
 TOOLCHAIN_BIN_PATH=$(OE_HOST_SYSROOT)/usr/bin/$(TOOLCHAIN_DIR_PREFIX)
@@ -28,7 +28,7 @@ export SSH_AUTH_SOCK
 ifneq ($(VERBOSE),)
  export VERBOSE
 endif
-export BUILDDIR=$(BUILD_ROOT)/build
+export BUILDDIR=$(BUILD_ROOT)/build/$(MULTIPLATFORM)
 export BB_ENV_EXTRAWHITE=MACHINE DISTRO TCMODE TCLIBC HTTP_PROXY http_proxy HTTPS_PROXY https_proxy FTP_PROXY ftp_proxy ALL_PROXY all_proxy NO_PROXY no_proxy SSH_AGENT_PID SSH_AUTH_SOCK BB_SRCREV_POLICY SDKMACHINE BB_NUMBER_THREADS BB_NO_NETWORK PARALLEL_MAKE GIT_PROXY_COMMAND SOCKS5_PASSWD SOCKS5_USER SCREENDIR STAMPS_DIR PLATFORM_DTS_FILE BUILD_ROOT NFSROOTPATH NFSROOTIP
 export PATH:=$(BUILD_ROOT)/yocto/poky/scripts:$(BUILD_ROOT)/yocto/poky/bitbake/bin:$(BUILD_ROOT)/tools/bin:$(PATH)
 export LD_LIBRARY_PATH:=$(BUILD_ROOT)/tools/lib:$(LD_LIBRARY_PATH)
@@ -67,13 +67,21 @@ PYTEST_NATIVE=$(STAGING_DIR_NATIVE)/usr/bin/py.test
 # Rake binary path
 RAKE_NATIVE = $(STAGING_DIR_NATIVE)/usr/bin/rake
 
+# Output of multiplatform in parallel build
+MULTIBUILD_OUTPUT=$(BUILDDIR)/build_output.log.$(shell echo $$PPID)
+MULTIBUILD_OUTPUT_CMD=$(if $(findstring -j,$(MAKEFLAGS)),$(if $(VERBOSE),| tee $(MULTIBUILD_OUTPUT),> $(MULTIBUILD_OUTPUT)),)
+
 # Static Code Analysis tool. Right now we support Fortify, but others like coverity could be added
 SCA_TOOLCHAIN ?= fortify
 SCA_TOOL ?= sourceanalyzer
 SCA_TOOL_SCAN_CMD ?= -scan -b $$(basename $$(pwd)) -f $$(basename $$(pwd)).fpr
 
 # Leave blank to use default location
+ifneq ($(MULTIPLATFORM_MODE),)
 SSTATE_DIR?=""
+else
+SSTATE_DIR?="$(BUILD_ROOT)/build/sstate-cache"
+endif
 
 # Some makefile macros
 
@@ -134,7 +142,7 @@ endef
 # Rule to regenerate the site.conf file if proxies changed
 include tools/config/proxy.conf
 
-build/conf/site.conf: tools/config/site.conf.in tools/config/proxy.conf
+build/$(MULTIPLATFORM)/conf/site.conf: tools/config/site.conf.in tools/config/proxy.conf
 	$(V)mkdir -p $(dir $@)
 	$(V)cp tools/config/site.conf.in $@
 	$(V)if [ -n "$(GIT_PROXY_COMMAND)" ] ; then \
@@ -144,7 +152,7 @@ build/conf/site.conf: tools/config/site.conf.in tools/config/proxy.conf
 	   sed -i -e "s|##ALL_PROXY##|ALL_PROXY = \"http://$(PROXY):$(PROXY_PORT)\"|" $@ ; \
 	 fi
 
-build/conf/local.conf: .platform
+build/$(MULTIPLATFORM)/conf/local.conf: .platform
 	$(V)mkdir -p $(dir $@)
 	$(V)\
 	 sed \
@@ -170,9 +178,14 @@ build/conf/local.conf: .platform
       fi \
     fi
 
-header:: build/conf/site.conf build/conf/local.conf
+header:: build/$(MULTIPLATFORM)/conf/site.conf build/$(MULTIPLATFORM)/conf/local.conf
 
+ifneq ($(MULTIPLATFORM_MODE),)
+-include build/*/Rules.make
+else
 -include yocto/*/meta-platform-$(DISTRO)-$(CONFIGURED_PLATFORM)/Rules.make
+endif
+
 export PLATFORM_DTS_FILE
 
 ########## Common targets shared by most platforms ##############
@@ -339,7 +352,7 @@ devshell: header
 
 .PHONY: sdk _sdk
 sdk: header _sdk
-	$(V) ln -fs $(BUILD_ROOT)/build/tmp/deploy/sdk/$(DISTRO)-glibc-`uname -m`-*-toolchain-*.sh images
+	$(V) ln -fs $(BUILDDIR)/tmp/deploy/sdk/$(DISTRO)-glibc-`uname -m`-*-toolchain-*.sh images
 
 _sdk:
 	$(V) $(ECHO) "$(BLUE)Building SDK...$(GRAY)\n"
@@ -358,7 +371,7 @@ images/$(CONFIGURED_PLATFORM).dtb: $(PLATFORM_DTS_FILE)
 MKIMAGE=tools/bin/mkimage
 
 $(MKIMAGE): build/tmp/sysroots/$(HOST_ARCH)-linux/usr/bin/uboot-mkimage
-	$(V) ln -sf $(BUILD_ROOT)/build/tmp/sysroots/$(HOST_ARCH)-linux/usr/bin/mkimage $@
+	$(V) ln -sf $(BUILDDIR)/tmp/sysroots/$(HOST_ARCH)-linux/usr/bin/mkimage $@
 
 build/tmp/sysroots/$(HOST_ARCH)-linux/usr/bin/uboot-mkimage:
 	$(V)$(ECHO) " Building mkimage..."
@@ -430,6 +443,14 @@ dev_header: header check_devenv
 devenv_init: header
 	$(V) $(ECHO) "$(BLUE)Configuring development enviroment...$(GRAY)\n"
 	$(V) $(call BITBAKE,meta-ide-support)
+	$(V) $(call DEVTOOL,create-workspace --create-only $(BUILD_ROOT)/build/workspace)
+	$(V) \
+	for conf in `ls build/*/conf/bblayers.conf` ; do \
+	  if ! grep -q "$(BUILD_ROOT)/build/workspace" $$conf ; then \
+	    platform=$$(echo $$conf | cut -d'/' -f 2) ; \
+	    sed -i -e "/platform-$(DISTRO)-$${platform}/a $(BUILD_ROOT)/build/workspace \\\\"  $$conf ; \
+      fi \
+	done
 	$(V) touch .devenv
 	$(V) $(MAKE) setup-git-review
 
