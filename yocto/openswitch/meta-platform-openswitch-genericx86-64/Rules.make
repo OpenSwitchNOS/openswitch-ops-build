@@ -12,6 +12,7 @@ DISTRO_FS_FILE = $(BASE_TARGZ_FS_FILE)
 # Use openswitch-appliance-image if you want to build an appliance
 DISTRO_FS_TARGET = openswitch-disk-image
 
-# For this platform we create a itb image that includes a kernel, fs and dtb
-all:: fs _kernel_links
-
+GENERICX86-64_ALL_TARGETS = fs _kernel_links
+ifneq ($(CONFIGURED_PLATFORM),multi)
+all:: $(GENERICX86-64_ALL_TARGETS)
+endif

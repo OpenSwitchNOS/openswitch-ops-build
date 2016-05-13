@@ -15,6 +15,7 @@ DISTRO_FS_TARGET = openswitch-appliance-image
 LXC_MACHINE_CONFIG_SCRIPT=$(BUILD_ROOT)/yocto/openswitch/meta-platform-$(DISTRO)-$(CONFIGURED_PLATFORM)/lxc.sh
 export LXC_MACHINE_CONFIG_SCRIPT
 
-# For this platform we create a itb image that includes a kernel, fs and dtb
-all:: fs _kernel_links
-
+APPLIANCE_ALL_TARGETS = fs _kernel_links
+ifneq ($(CONFIGURED_PLATFORM),multi)
+all:: $(APPLIANCE_ALL_TARGETS)
+endif

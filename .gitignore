@@ -1,4 +1,5 @@
 .platform
+.multi_last_platform
 .devenv
 .testenv
 .sandbox_uuid

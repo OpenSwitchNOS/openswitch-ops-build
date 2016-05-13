@@ -54,7 +54,19 @@ CYAN=
 GRAY=
 endif
 
-CONFIGURED_PLATFORM=$(shell if [ -f .platform ] ; then cat .platform ; else echo undefined ; fi)
+ifneq ($(MULTIPLATFORM),)
+CONFIGURED_PLATFORM=$(MULTIPLATFORM)
+else
+ CONFIGURED_PLATFORM=$(shell if [ -f .platform ] ; then cat .platform ; else echo undefined ; fi)
+ifeq ($(CONFIGURED_PLATFORM),multi)
+  MULTIPLATFORM_MODE=true
+  MULTI_LAST_PLATFORM=$(shell if [ -f .multi_last_platform ] ; then cat .multi_last_platform ; fi)
+ifneq ($(MULTI_LAST_PLATFORM),)
+   MULTIPLATFORM=$(MULTI_LAST_PLATFORM)
+   CONFIGURED_PLATFORM=$(MULTI_LAST_PLATFORM)
+endif
+endif
+endif
 
 PLATFORMS = $(shell find yocto/$(DISTRO) -name meta-platform* -printf "%P " | sed -e 's/meta-platform-$(DISTRO)-//g')
 PLATFORMS:=$(sort $(PLATFORMS))
@@ -121,6 +133,11 @@ endif
 export HELP_TEXT
 
 header:: .platform
+	$(V) if [ -n "$(MULTIPLATFORM_MODE)" ] ; then \
+	  if [ -z "$(MULTIPLATFORM)" ] ; then \
+		$(call FATAL_ERROR, Multi-platform build is enabled and the value of MULTIPLATFORM is not defined...) ; \
+	  fi ; \
+	fi ;
 	@$(ECHO) "$(CYAN)Build System for $(DISTRO)$(GRAY)\n"
 	@$(ECHO) "Platform: $(PURPLE)$(CONFIGURED_PLATFORM)$(GRAY)"
 	@$(ECHO)
@@ -137,17 +154,9 @@ configure::
 	@$(ECHO) "$(CYAN)Build System for $(DISTRO)$(GRAY)"
 	$(V)$(MAKE) _configure PLATFORM=$(PLATFORM)
 
-.PHONY: _configure
-_configure:
-	$(V) if [ -f .platform ] ; then \
-	    $(call FATAL_ERROR,$(DISTRO) is already configured; you need to run switch-platform if you want to reconfigure to another platform) ; \
-	  fi
-	$(V)\
-	 if ! [ -d yocto/*/meta-platform-$(DISTRO)-$(PLATFORM) ] || [ "$(PLATFORM)" == "" ] ; then \
-	    $(call FATAL_ERROR,Unknown platform \"$(PLATFORM)\"; choose from {$(PURPLE)$(PLATFORMS)$(GRAY)}) ; \
-	 fi ;
-	@$(ECHO) "Configuring for platform $(PLATFORM)...\n"
-	@$(ECHO) "\n$(PURPLE)Configuring yocto...$(GRAY)"
+.PHONY: _configure _create_configs _multisetup
+
+_create_configs:
 	$(V) \
 	 mkdir -p build/conf ; rm -f build/conf/*.conf ; \
 	 sed -e "s|##YOCTO_ROOT##|$(BUILD_ROOT)/yocto/poky|" tools/config/bblayers.conf.in > build/conf/bblayers.conf ; \
@@ -170,12 +179,62 @@ _configure:
 	    layer_dep=`cat $(BUILD_ROOT)/$$repo/.layer_dep 2>/dev/null` ; \
 	    test -z "$$layer_dep" || echo "  $(BUILD_ROOT)/$$layer_dep \\" >> build/conf/bblayers.conf-$${repo##*platform-} ; \
 	    echo -e "  $(BUILD_ROOT)/$$repo \\ \n\"" >> build/conf/bblayers.conf-$${repo##*platform-} ; \
-	 done ; \
-	 ln -sf bblayers.conf-$(DISTRO)-$(PLATFORM) build/conf/bblayers.conf
+	 done ;
+	$(V) rm build/conf/bblayers.conf
+
+_configure:
+	$(V) \
+	  if [ -n "$(MULTIPLATFORM_MODE)" ] ; then \
+	    $(call FATAL_ERROR,System configured for multiplatform. Use distclean if want to build for one) ; \
+	  fi ;\
+	  if [ -f .platform ] ; then \
+	    $(call FATAL_ERROR,$(DISTRO) is already configured; you need to run switch-platform if you want to reconfigure to another platform) ; \
+	  fi
+	$(V)\
+	 if ! [ -d yocto/*/meta-platform-$(DISTRO)-$(PLATFORM) ] || [ "$(PLATFORM)" == "" ] ; then \
+	    $(call FATAL_ERROR,Unknown platform \"$(PLATFORM)\"; choose from {$(PURPLE)$(PLATFORMS)$(GRAY)}) ; \
+	 fi ;
+	@$(ECHO) "Configuring for platform $(PLATFORM)...\n"
+	@$(ECHO) "\n$(PURPLE)Configuring yocto...$(GRAY)"
+	$(V) $(MAKE) _create_configs
 	$(V) mkdir -p images
+	$(V) ln -sf bblayers.conf-$(DISTRO)-$(PLATFORM) build/conf/bblayers.conf
+	$(V) #TODO: remove or account switch-platform ln -sf $(CURDIR)/build build/$(PLATFORM)
 	$(V) tools/bin/bootstrap.sh
 	$(V) echo $(PLATFORM) > .platform
 	$(V) $(ECHO) "\n$(PURPLE)Configuration completed successfully!\n$(GRAY)"
+
+.PHONY: _multisetup multisetup
+_multisetup:
+	$(V) \
+	  if [ -f .platform ] ; then \
+	    if [ -z "$(MULTIPLATFORM_MODE)" ] ; then \
+			$(call FATAL_ERROR,$(DISTRO) is already configured for a given platform. Please distclean to use multiplatform) ; \
+		fi \
+	  fi
+	@$(ECHO) "Configuring for multi platform development...\n"
+	$(V) if [ -z "$(MULTIPLATFORM_MODE)" ] ; then \
+	  $(MAKE) _create_configs ; \
+	  for conf in `ls build/conf/bblayers.conf-$(DISTRO)-*` ; do \
+	    platform=$${conf##*$(DISTRO)-} ; \
+	    platform_upper=`echo $$platform | tr a-z A-Z` ; \
+	    mkdir -p build/$${platform}/conf ; \
+	    mv $$conf build/$${platform}/conf/bblayers.conf ; \
+	    sed -e "s/##PLATFORM##/$$platform/g" \
+	        -e "s/##PLATFORM_UPPER##/$$platform_upper/g" \
+	        tools/multi-platform-template.make > build/$${platform}/Rules.make ; \
+	    sed -e "s|##WORKSPACEDIR##|$(BUILD_ROOT)/build/workspace|" tools/config/devtool.conf.in > build/$${platform}/conf/devtool.conf ; \
+	  done ; \
+	  rmdir build/conf ; \
+	  mkdir -p images build/workspace build/sstate-cache ; \
+	  tools/bin/bootstrap.sh ; \
+	  echo multi > .platform ; \
+	fi
+	$(V) $(ECHO) "\n$(PURPLE)Configuration completed successfully!\n$(GRAY)"
+
+multisetup::
+	@$(ECHO) "$(CYAN)Build System for $(DISTRO)$(GRAY)\n"
+	$(V)$(MAKE) _multisetup
 
 $(eval $(call PARSE_ARGUMENTS,switch-platform))
 PLATFORM?=$(EXTRA_ARGS)
@@ -183,6 +242,9 @@ switch-platform: header _switch-platform
 
 _switch-platform:
 	$(V)\
+	 if [ -n "$(MULTIPLATFORM_MODE)" ] ; then \
+            $(call FATAL_ERROR,System configured for multiplatform, no need to use switch-platform) ; \
+     fi ;\
 	 if [ "$(PLATFORM)" == "" ] ; then \
             $(call FATAL_ERROR,Set the environment variable PLATFORM to select the new platform) ; \
      fi ;\
@@ -206,12 +268,12 @@ show-platforms: header
 
 clean:: header
 	$(V)$(ECHO) "Cleaning..."
-	$(V)rm -Rf build/{tmp,cache,bitbake.lock}
+	$(V)rm -Rf build/{tmp,cache,bitbake.lock} build/*/{tmp,cache,bitbake.lock}
 	$(V)$(ECHO) "Cleaning completed.\n"
 
 distclean::
 	$(V)$(ECHO) "$(PURPLE)Distcleaning...$(GRAY)"
-	$(V)rm -Rf .platform .devenv .testenv images src build nfsroot* tools/bin/{corkscrew,python}
+	$(V)rm -Rf .platform .multi_last_platform .devenv .testenv images src build nfsroot* tools/bin/{corkscrew,python}
 	$(V)find -type l -lname 'images/*' -print0 | xargs -r0 rm -f
 	$(V)$(ECHO) "Distcleaning completed. You need to reconfigure to build again\n"
 
