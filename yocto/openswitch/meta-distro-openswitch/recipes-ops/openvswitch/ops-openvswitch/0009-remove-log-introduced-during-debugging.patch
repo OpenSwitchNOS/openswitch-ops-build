@@ -1,0 +1,31 @@
+From 0bde3eff78bf03a793b83a58c8a84803bdab103e Mon Sep 17 00:00:00 2001
+From: Shad Ansari <shad.ansari@hpe.com>
+Date: Tue, 3 May 2016 18:14:01 +0000
+Subject: [PATCH] Remove log introduced during debugging
+
+Change-Id: Ia3656b5a443663b91cdee61e73d7be89f61bf349
+Signed-off-by: Shad Ansari <shad.ansari@hpe.com>
+---
+ lib/ovsdb-idl.c | 6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
+
+diff --git a/lib/ovsdb-idl.c b/lib/ovsdb-idl.c
+index ccbb449..0001f66 100644
+--- a/lib/ovsdb-idl.c
++++ b/lib/ovsdb-idl.c
+@@ -1520,11 +1520,7 @@ ovsdb_idl_first_row(const struct ovsdb_idl *idl,
+ {
+     struct ovsdb_idl_table *table
+         = ovsdb_idl_table_from_class(idl, table_class);
+-    struct ovsdb_idl_row * temp
+-        = next_real_row(table, hmap_first(&table->rows));
+-    if (temp == NULL)
+-        VLOG_INFO("DEBUG first row is missing from table class %s", table_class->name);
+-    return temp;
++    return next_real_row(table, hmap_first(&table->rows));
+ }
+ 
+ /* Returns a row following 'row' within its table, or a null pointer if 'row'
+-- 
+1.9.1
+
