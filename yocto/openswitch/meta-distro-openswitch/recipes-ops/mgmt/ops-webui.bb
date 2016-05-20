@@ -2,10 +2,12 @@ SUMMARY = "OpenSwitch WebUI"
 LICENSE = "Apache-2.0"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/Apache-2.0;md5=89aea4e17d99a7cacdbeed46a0096b10"
 
-SRC_URI = "git://git.openswitch.net/openswitch/ops-webui;protocol=http;branch=rel/dill \
+BRANCH ?= "${OPS_REPO_BRANCH}"
+
+SRC_URI = "${OPS_REPO_BASE_URL}/ops-webui;protocol=${OPS_REPO_PROTOCOL};branch=${BRANCH} \
 "
 
-SRCREV = "31664fe7ccb01b33a3139ad937d3f3dfa5f055a5"
+SRCREV = "922a7657e903f73c11407952bcef2d2ee45bf9ab"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.
@@ -39,7 +41,7 @@ do_compile() {
 
 do_install() {
     install -d ${D}/srv/www/static
-    cp -Rp build/* ${D}/srv/www/static
+    cp -R build/* ${D}/srv/www/static
 }
 
 do_unittest() {
