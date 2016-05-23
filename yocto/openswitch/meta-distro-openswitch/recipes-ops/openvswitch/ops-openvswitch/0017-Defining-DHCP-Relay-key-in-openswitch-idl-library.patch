@@ -1,0 +1,28 @@
+From 561e8714d4a554200a42d4be14f7f211a5ffb3f3 Mon Sep 17 00:00:00 2001
+From: Sudhakar <sudhakar.athikari@hpe.com>
+Date: Mon, 22 Feb 2016 21:33:37 -0800
+Subject: [PATCH 17/40] Defining DHCP-Relay key in openswitch-idl library
+
+Change-Id: Ie687656286db36651d49aa45fee6c852f6df4a31
+Signed-off-by: Sudhakar <sudhakar.athikari@hpe.com>
+---
+ lib/openswitch-idl.h | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/lib/openswitch-idl.h b/lib/openswitch-idl.h
+index 78be5eb..6e9e18b 100644
+--- a/lib/openswitch-idl.h
++++ b/lib/openswitch-idl.h
+@@ -485,6 +485,9 @@ enum ovsrec_port_config_admin_e {
+ #define SYSTEM_OTHER_CONFIG_MAP_TFTP_SOURCE          "tftp_source"
+ #define SYSTEM_OTHER_CONFIG_MAP_PROTOCOLS_SOURCE     "protocols_source"
+ 
++/*DHCP-Relay global configuration key */
++#define SYSTEM_OTHER_CONFIG_MAP_DHCP_RELAY_DISABLED    "dhcp_relay_disabled"
++
+ /* lacp global configuration parameters */
+ #define SYSTEM_LACP_CONFIG_MAP_LACP_SYSTEM_ID        "lacp-system-id"
+ #define SYSTEM_LACP_CONFIG_MAP_LACP_SYSTEM_PRIORITY  "lacp-system-priority"
+-- 
+2.1.4
+

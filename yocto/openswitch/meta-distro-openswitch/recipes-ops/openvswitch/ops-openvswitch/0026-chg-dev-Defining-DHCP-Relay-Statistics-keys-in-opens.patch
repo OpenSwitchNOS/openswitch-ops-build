@@ -1,0 +1,44 @@
+From ecde1c765d07f911ea881039c00e303b74f5b064 Mon Sep 17 00:00:00 2001
+From: Sudhakar <sudhakar.athikari@hpe.com>
+Date: Tue, 5 Apr 2016 05:39:59 -0700
+Subject: [PATCH 26/40] chg:dev: Defining DHCP-Relay Statistics keys in
+ openswitch-idl library
+
+Change-Id: I9ab9a4e92c1e9f82b131c02205e9ae9ca83f7afd
+Signed-off-by: Sudhakar <sudhakar.athikari@hpe.com>
+---
+ lib/openswitch-idl.h | 18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
+
+diff --git a/lib/openswitch-idl.h b/lib/openswitch-idl.h
+index 3b6da16..b1f47f5 100644
+--- a/lib/openswitch-idl.h
++++ b/lib/openswitch-idl.h
+@@ -452,6 +452,24 @@ enum ovsrec_interface_hw_bond_config_enabled_e {
+ 
+ #define PORT_CONFIG_ADMIN_DOWN                          "down"
+ 
++/* DHCP-Relay statistics */
++#define PORT_DHCP_RELAY_STATISTICS_MAP_VALID_V4CLIENT_REQUESTS \
++                                   "valid_v4client_requests"
++#define PORT_DHCP_RELAY_STATISTICS_MAP_DROPPED_V4CLIENT_REQUESTS \
++                                   "dropped_v4client_requests"
++#define PORT_DHCP_RELAY_STATISTICS_MAP_VALID_V4SERVER_RESPONSES \
++                                   "valid_v4server_responses"
++#define PORT_DHCP_RELAY_STATISTICS_MAP_DROPPED_V4SERVER_RESPONSES \
++                                   "dropped_v4server_responses"
++#define PORT_DHCP_RELAY_STATISTICS_MAP_VALID_V4CLIENT_REQUESTS_WITH_OPTION82 \
++                                   "valid_v4client_requests_with_option82"
++#define PORT_DHCP_RELAY_STATISTICS_MAP_DROPPED_V4CLIENT_REQUESTS_WITH_OPTION82 \
++                                   "dropped_v4client_requests_with_option82"
++#define PORT_DHCP_RELAY_STATISTICS_MAP_VALID_V4SERVER_RESPONSES_WITH_OPTION82 \
++                                   "valid_v4server_responses_with_option82"
++#define PORT_DHCP_RELAY_STATISTICS_MAP_DROPPED_V4SERVER_RESPONSES_WITH_OPTION82 \
++                                   "dropped_v4server_responses_with_option82"
++
+ enum ovsrec_port_config_admin_e {
+     PORT_ADMIN_CONFIG_DOWN,
+     PORT_ADMIN_CONFIG_UP
+-- 
+2.1.4
+

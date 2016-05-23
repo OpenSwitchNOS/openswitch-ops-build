@@ -1,0 +1,110 @@
+From bb46e06a402ac55b08b3b75c51b1694afbd268ac Mon Sep 17 00:00:00 2001
+From: Abhay B <abhay.b@hpe.com>
+Date: Wed, 6 Apr 2016 21:52:18 +0530
+Subject: [PATCH 33/40] Added macros & enums for port state pecking order
+
+New MACROS and ENUMS based on the port state pecking order schema changes - https://review.openswitch.net/#/c/8318/.
+
+TG-988
+
+Change-Id: I2e04b58edff2531ba1c8c469e03d7a69382ee8be
+Signed-off-by: Abhay B <abhay.b@hpe.com>
+(cherry picked from commit 168822522aab9f13e68e8e5247ce2d7a928832f8)
+---
+ lib/openswitch-idl.h | 59 ++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 59 insertions(+)
+
+diff --git a/lib/openswitch-idl.h b/lib/openswitch-idl.h
+index 5740a9b..3a95fa8 100755
+--- a/lib/openswitch-idl.h
++++ b/lib/openswitch-idl.h
+@@ -404,6 +404,7 @@ enum ovsrec_interface_hw_bond_config_enabled_e {
+ #define INTERFACE_LACP_STATUS_MAP_PARTNER_STATE         "partner_state"
+ 
+ /* Definitions for bond_status column */
++#define INTERFACE_BOND_STATUS_MAP_STATE                 "state"
+ #define INTERFACE_BOND_STATUS_ENABLED_FALSE             "false"
+ #define INTERFACE_BOND_STATUS_ENABLED_TRUE              "true"
+ #define INTERFACE_BOND_STATUS_UP                        "up"
+@@ -419,6 +420,31 @@ enum ovsrec_interface_hw_bond_config_enabled_e {
+ #define INTERFACE_LACP_STATUS_STATE_DEFAULTED           "Def"
+ #define INTERFACE_LACP_STATUS_STATE_EXPIRED             "Exp"
+ 
++/* Interface Forwarding State column */
++#define INTERFACE_FORWARDING_STATE_MAP_FORWARDING       "forwarding"
++#define INTERFACE_FORWARDING_STATE_MAP_INTERFACE_AGGREGATION_FORWARDING      \
++            "interface_aggregation_forwarding"
++#define INTERFACE_FORWARDING_STATE_MAP_INTERFACE_AGGREGATION_BLOCKED_REASON  \
++            "interface_aggregation_blocked_reason"
++
++#define INTERFACE_FORWARDING_STATE_FORWARDING_TRUE      "true"
++#define INTERFACE_FORWARDING_STATE_FORWARDING_FALSE     "false"
++
++#define INTERFACE_FORWARDING_STATE_PROTOCOL_LACP        "lacp"
++
++/* Enumeration of various forwarding layers of an interface.
++ * Defined in "decreasing" order of precedence. */
++enum ovsrec_interface_forwarding_state_layer_e {
++    INTERFACE_FORWARDING_STATE_LAYER_AGGREGATION
++};
++
++/* Enumeration of all protocols operating at an
++ * interface level in "decreasing" order of precedence */
++enum ovsrec_interface_forwarding_state_proto_e {
++    INTERFACE_FORWARDING_STATE_PROTO_LACP,
++    INTERFACE_FORWARDING_STATE_PROTO_NONE,
++};
++
+ /****************************** PORT TABLE *******************************/
+ 
+ #define PORT_STATUS_BOND_HW_HANDLE                      "bond_hw_handle"
+@@ -467,6 +493,7 @@ enum ovsrec_interface_hw_bond_config_enabled_e {
+ #define PORT_LACP_STATUS_BOND_STATUS_DEFAULTED          "defaulted"
+ 
+ /* Definitions for bond_status column */
++#define PORT_BOND_STATUS_MAP_STATE                      "state"
+ #define PORT_BOND_STATUS_ENABLED_FALSE                  "false"
+ #define PORT_BOND_STATUS_ENABLED_TRUE                   "true"
+ #define PORT_BOND_STATUS_UP                             "up"
+@@ -498,6 +525,38 @@ enum ovsrec_port_config_admin_e {
+     PORT_ADMIN_CONFIG_UP
+ };
+ 
++/* Port Forwarding State column */
++#define PORT_FORWARDING_STATE_MAP_FORWARDING            "forwarding"
++#define PORT_FORWARDING_STATE_MAP_PORT_AGGREGATION_FORWARDING              \
++            "port_aggregation_forwarding"
++#define PORT_FORWARDING_STATE_MAP_PORT_AGGREGATION_BLOCKED_REASON          \
++            "port_aggregation_blocked_reason"
++#define PORT_FORWARDING_STATE_MAP_PORT_LOOP_PROTECTION_FORWARDING          \
++            "port_loop_protection_forwarding"
++#define PORT_FORWARDING_STATE_MAP_PORT_LOOP_PROTECTION_BLOCKED_REASON      \
++            "port_loop_protection_blocked_reason"
++
++#define PORT_FORWARDING_STATE_FORWARDING_TRUE           "true"
++#define PORT_FORWARDING_STATE_FORWARDING_FALSE          "false"
++
++#define PORT_FORWARDING_STATE_PROTOCOL_LACP             "lacp"
++#define PORT_FORWARDING_STATE_PROTOCOL_MSTP             "mstp"
++
++/* Enumeration of various forwarding layers of a port.
++ * Defined in "decreasing" order of precedence. */
++enum ovsrec_port_forwarding_state_layer_e {
++    PORT_FORWARDING_STATE_LAYER_AGGREGATION,
++    PORT_FORWARDING_STATE_LAYER_LOOP_PROTECTION
++};
++
++/* Enumeration of all protocols operating at a port level
++ * in "decreasing" order of precedence */
++enum ovsrec_port_forwarding_state_proto_e {
++    PORT_FORWARDING_STATE_PROTO_LACP,
++    PORT_FORWARDING_STATE_PROTO_MSTP,
++    PORT_FORWARDING_STATE_PROTO_NONE,
++};
++
+ /****************************** SUBSYSTEM TABLE *******************************/
+ 
+ #define SUBSYSTEM_OTHER_INFO_MAX_TRANSMISSION_UNIT       "max_transmission_unit"
+-- 
+2.1.4
+

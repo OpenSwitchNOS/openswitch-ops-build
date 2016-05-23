@@ -1,0 +1,28 @@
+From 9266126b7a3cf7ffd9b8c14397dc6c953261509e Mon Sep 17 00:00:00 2001
+From: Abhay B <abhay.b@hpe.com>
+Date: Thu, 11 Feb 2016 06:14:41 -0800
+Subject: [PATCH 14/40] new: dev: Added a new IDL identifier for proxy ARP
+
+Change-Id: I097ce3dfb224f41e64bd11feaecf8820e15ba9eb
+Signed-off-by: Abhay B <abhay.b@hpe.com>
+---
+ lib/openswitch-idl.h | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/lib/openswitch-idl.h b/lib/openswitch-idl.h
+index 01c4e1c..c4f1e97 100644
+--- a/lib/openswitch-idl.h
++++ b/lib/openswitch-idl.h
+@@ -393,6 +393,9 @@ enum ovsrec_interface_hw_bond_config_enabled_e {
+ #define PORT_OTHER_CONFIG_MAP_LACP_SYSTEM_PRIORITY      "lacp-system-priority"
+ #define PORT_OTHER_CONFIG_MAP_LACP_SYSTEM_ID            "lacp-system-id"
+ 
++#define PORT_OTHER_CONFIG_MAP_PROXY_ARP_ENABLED         "proxy_arp_enabled"
++#define PORT_OTHER_CONFIG_MAP_PROXY_ARP_ENABLED_TRUE    "true"
++
+ #define PORT_LACP_STATUS_MAP_BOND_SPEED                 "bond_speed"
+ #define PORT_LACP_STATUS_MAP_BOND_STATUS                "bond_status"
+ #define PORT_LACP_STATUS_MAP_BOND_STATUS_REASON         "bond_status_reason"
+-- 
+2.1.4
+
