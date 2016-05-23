@@ -1,0 +1,64 @@
+From 1a828ab846c220a1e32c4d5b38e1b3b43f31d6f3 Mon Sep 17 00:00:00 2001
+From: Vladimir Vargas <vladimir.vargas.cordero@hpe.com>
+Date: Mon, 14 Mar 2016 14:17:56 -0600
+Subject: [PATCH 02/22] Remove LAG L2+VID hash (Load Balance)
+
+* This is a part of the fix for Taiga 551.
+* Removing l2vid from enumeration and functions.
+* L4 hash is not removed.
+
+Change-Id: Icddba846d56d3e94fd43e62bc3a7c9fa34aa28bc
+Signed-off-by: Vladimir Vargas <vladimir.vargas.cordero@hpe.com>
+
+%% original patch: 0002-Remove-LAG-L2-VID-hash-Load-Balance.patch
+---
+ ofproto/bond.c | 6 ------
+ ofproto/bond.h | 1 -
+ 2 files changed, 7 deletions(-)
+
+diff --git a/ofproto/bond.c b/ofproto/bond.c
+index c248af2..b4b276c 100644
+--- a/ofproto/bond.c
++++ b/ofproto/bond.c
+@@ -206,9 +206,6 @@ bond_mode_from_string(enum bond_mode *balance, const char *s)
+     else if (!strcmp(s, bond_mode_to_string(BM_L2_SRC_DST_HASH))) {
+         *balance = BM_L2_SRC_DST_HASH;
+     }
+-    else if (!strcmp(s, bond_mode_to_string(BM_L2VID_SRC_DST_HASH))) {
+-        *balance = BM_L2VID_SRC_DST_HASH;
+-    }
+     else if (!strcmp(s, bond_mode_to_string(BM_L3_SRC_DST_HASH))) {
+         *balance = BM_L3_SRC_DST_HASH;
+     }
+@@ -235,8 +232,6 @@ bond_mode_to_string(enum bond_mode balance) {
+ #ifdef OPS
+     case BM_L2_SRC_DST_HASH:
+         return "l2-src-dst-hash";
+-    case BM_L2VID_SRC_DST_HASH:
+-        return "l2vid-src-dst-hash";
+     case BM_L3_SRC_DST_HASH:
+         return "l3-src-dst-hash";
+     case BM_L4_SRC_DST_HASH:
+@@ -863,7 +858,6 @@ bond_check_admissibility(struct bond *bond, const void *slave_,
+          * this code path. Making this change to avoid compiler warnings. */
+     case BM_L4_SRC_DST_HASH:
+     case BM_L3_SRC_DST_HASH:
+-    case BM_L2VID_SRC_DST_HASH:
+     case BM_L2_SRC_DST_HASH:
+         goto out;
+ #endif
+diff --git a/ofproto/bond.h b/ofproto/bond.h
+index 89e4033..96c63dc 100644
+--- a/ofproto/bond.h
++++ b/ofproto/bond.h
+@@ -36,7 +36,6 @@ enum bond_mode {
+ #ifdef OPS
+     BM_AB,               /* Active Backup. */
+     BM_L2_SRC_DST_HASH,  /* Layer 2 Src and Dest Mac Hash */
+-    BM_L2VID_SRC_DST_HASH,  /* Layer 2 and VID Src and Dest Mac Hash */
+     BM_L3_SRC_DST_HASH,  /* Layer 3 Src and Dest IP Hash */
+     BM_L4_SRC_DST_HASH   /* Layer 4 Src and Dest IP Hash */
+ #else
+-- 
+1.9.1
+
