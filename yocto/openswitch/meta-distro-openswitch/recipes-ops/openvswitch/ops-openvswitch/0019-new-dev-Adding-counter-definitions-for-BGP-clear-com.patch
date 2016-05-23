@@ -1,0 +1,35 @@
+From 0138f3cd721eea960e51eafc68f5dbcd53c31129 Mon Sep 17 00:00:00 2001
+From: iyergan <ganesh.m.iyer@hpe.com>
+Date: Wed, 9 Mar 2016 21:26:14 -0800
+Subject: [PATCH 19/40] new: dev: Adding counter definitions for BGP clear
+ commands
+
+This commit includes adding definitions for smap keys
+used to store counter values for BGP clear commands.
+
+Change-Id: Ie51312494fc2d236adbb27050697c6fae9acd213
+Signed-off-by: iyergan <ganesh.m.iyer@hpe.com>
+---
+ lib/openswitch-idl.h | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/lib/openswitch-idl.h b/lib/openswitch-idl.h
+index 0d2d5a6..609c0de 100644
+--- a/lib/openswitch-idl.h
++++ b/lib/openswitch-idl.h
+@@ -530,6 +530,12 @@ enum ovsrec_port_config_admin_e {
+ #define OVSDB_BGP_ROUTE_PATH_ATTRIBUTES_ECOMMUNITY       "BGP_ecommunity"
+ #define OVSDB_BGP_ROUTE_PATH_ATTRIBUTES_ATOMIC_AGGREGATE "BGP_atomic_aggregate"
+ 
++/* BGP Neighbor table status keys for clear commands*/
++#define OVSDB_BGP_NEIGHBOR_CLEAR_COUNTERS_SOFT_OUT_PERFORMED   "bgp_num_clear_counters_peer_soft_out_performed"
++#define OVSDB_BGP_NEIGHBOR_CLEAR_COUNTERS_SOFT_OUT_REQUESTED   "bgp_num_clear_counters_peer_soft_out_requested"
++#define OVSDB_BGP_NEIGHBOR_CLEAR_COUNTERS_SOFT_IN_PERFORMED    "bgp_num_clear_counters_peer_soft_in_performed"
++#define OVSDB_BGP_NEIGHBOR_CLEAR_COUNTERS_SOFT_IN_REQUESTED    "bgp_num_clear_counters_peer_soft_in_requested"
++
+ /* BGP Neighbor state, goes into "status" column */
+ #define BGP_PEER_STATE                          "bgp_peer_state"
+ 
+-- 
+2.1.4
+

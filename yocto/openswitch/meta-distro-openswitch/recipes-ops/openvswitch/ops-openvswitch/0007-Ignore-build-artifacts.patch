@@ -1,0 +1,33 @@
+From 1678713e9e06c817c83408cbbbcf16e31776c593 Mon Sep 17 00:00:00 2001
+From: Kevin Worth <kevin.worth@hpe.com>
+Date: Tue, 5 Apr 2016 10:51:58 -0700
+Subject: [PATCH 07/40] Ignore build artifacts
+
+Change-Id: I367806a0fa663233674e1467366b78d1ccdf4482
+Signed-off-by: Kevin Worth <kevin.worth@hpe.com>
+---
+ .gitignore | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
+
+diff --git a/.gitignore b/.gitignore
+index 2e883b4..06c9004 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -70,3 +70,14 @@ OvsDpInterface.h
+ /.vagrant/
+ /build
+ /libltdl/
++plugins/libplugins.pc
++vswitchd/configdb.ovsschema
++vswitchd/dhcp_leases.extschema
++vswitchd/dhcp_leases.ovsschema
++vswitchd/dhcp_leases.xml
++vswitchd/vswitch.extschema
++vswitchd/vswitch.ovsschema
++vswitchd/vswitch.xml
++vswitchd/vtep.ovsschema
++vswitchd/vtep.xml
++manpages.mk
+-- 
+2.1.4
+

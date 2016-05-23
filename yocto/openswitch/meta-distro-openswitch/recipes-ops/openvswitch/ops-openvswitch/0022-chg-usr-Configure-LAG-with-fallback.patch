@@ -1,0 +1,30 @@
+From f3b0f842aa26b18022e595590cc7d707a2f19555 Mon Sep 17 00:00:00 2001
+From: Erick Castro <erick.castro@hpe.com>
+Date: Mon, 7 Mar 2016 07:13:59 -0800
+Subject: [PATCH 22/40] chg: usr: Configure LAG with fallback
+
+To disable all ports or to fallback to active/backup when
+dynamic LACP is configured. Define constant to use as fallback.
+
+Change-Id: Ibdbff143fbb894e07643e51e41c7181a918143f1
+Signed-off-by: Erick Castro <erick.castro@hpe.com>
+---
+ lib/openswitch-idl.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib/openswitch-idl.h b/lib/openswitch-idl.h
+index a1df0de..a5309cc 100644
+--- a/lib/openswitch-idl.h
++++ b/lib/openswitch-idl.h
+@@ -422,7 +422,7 @@ enum ovsrec_interface_hw_bond_config_enabled_e {
+ 
+ #define PORT_OTHER_CONFIG_MAP_LACP_TIME                 "lacp-time"
+ 
+-#define PORT_OTHER_CONFIG_LACP_FALLBACK                 "lacp-fallback"
++#define PORT_OTHER_CONFIG_LACP_FALLBACK                 "lacp-fallback-ab"
+ 
+ #define PORT_OTHER_CONFIG_LACP_TIME_SLOW                "slow"
+ #define PORT_OTHER_CONFIG_LACP_TIME_FAST                "fast"
+-- 
+2.1.4
+

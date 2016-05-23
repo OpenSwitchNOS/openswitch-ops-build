@@ -1,0 +1,29 @@
+From bf02a779a50ca025518c9da33c3d02543a675bfe Mon Sep 17 00:00:00 2001
+From: ravindad <adith.ravindran@hpe.com>
+Date: Mon, 11 Apr 2016 18:04:25 -0700
+Subject: [PATCH 28/40] new: dev: Adding CoPP global stats related #defines.
+
+Change-Id: Ied9c2a5edc88dd574e1875fd34b123de22846a6c
+Signed-off-by: ravindad <adith.ravindran@hpe.com>
+---
+ lib/openswitch-idl.h | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/lib/openswitch-idl.h b/lib/openswitch-idl.h
+index 1c4444b..bb28d17 100644
+--- a/lib/openswitch-idl.h
++++ b/lib/openswitch-idl.h
+@@ -932,4 +932,10 @@ enum ospf_nbr_statistics_e {
+ 
+ /************************************* NTP END ****************************************/
+ 
++/* CoPP Statistics Column */
++#define SYSTEM_COPP_STATISTICS_MAP_TOTAL_PKTS_PASSED      "total_packets_passed"
++#define SYSTEM_COPP_STATISTICS_MAP_TOTAL_BYTES_PASSED     "total_bytes_passed"
++#define SYSTEM_COPP_STATISTICS_MAP_TOTAL_PKTS_DROPPED     "total_packets_dropped"
++#define SYSTEM_COPP_STATISTICS_MAP_TOTAL_BYTES_DROPPED    "total_bytes_dropped"
++
+ #endif /* OPENSWITCH_IDL_HEADER */
+-- 
+2.1.4
+

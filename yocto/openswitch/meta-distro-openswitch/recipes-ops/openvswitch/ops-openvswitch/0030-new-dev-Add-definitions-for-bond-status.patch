@@ -1,0 +1,49 @@
+From a327bbe92c14009c91cc92ee2991bc89dc1cba4a Mon Sep 17 00:00:00 2001
+From: Randall Esquivel <randall.esquivel@hpe.com>
+Date: Fri, 22 Apr 2016 16:44:49 -0700
+Subject: [PATCH 30/40] new: dev: Add definitions for bond status
+
+Add definitions for bond status in Port and Interface tables.
+These values are used in the ops-lacpd daemon.
+
+Change-Id: I6b71ae30d0017d4f85522a47a501f82dbd1b855a
+Signed-off-by: Randall Esquivel <randall.esquivel@hpe.com>
+---
+ lib/openswitch-idl.h | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+
+diff --git a/lib/openswitch-idl.h b/lib/openswitch-idl.h
+index 4c5f767..83f748b 100755
+--- a/lib/openswitch-idl.h
++++ b/lib/openswitch-idl.h
+@@ -400,6 +400,13 @@ enum ovsrec_interface_hw_bond_config_enabled_e {
+ #define INTERFACE_LACP_STATUS_MAP_PARTNER_KEY           "partner_key"
+ #define INTERFACE_LACP_STATUS_MAP_PARTNER_STATE         "partner_state"
+ 
++/* Definitions for bond_status column */
++#define INTERFACE_BOND_STATUS_ENABLED_FALSE             "false"
++#define INTERFACE_BOND_STATUS_ENABLED_TRUE              "true"
++#define INTERFACE_BOND_STATUS_UP                        "up"
++#define INTERFACE_BOND_STATUS_BLOCKED                   "blocked"
++#define INTERFACE_BOND_STATUS_DOWN                      "down"
++
+ #define INTERFACE_LACP_STATUS_STATE_ACTIVE              "Activ"
+ #define INTERFACE_LACP_STATUS_STATE_TIMEOUT             "TmOut"
+ #define INTERFACE_LACP_STATUS_STATE_AGGREGATION         "Aggr"
+@@ -451,6 +458,13 @@ enum ovsrec_interface_hw_bond_config_enabled_e {
+ #define PORT_LACP_STATUS_BOND_STATUS_DOWN               "down"
+ #define PORT_LACP_STATUS_BOND_STATUS_DEFAULTED          "defaulted"
+ 
++/* Definitions for bond_status column */
++#define PORT_BOND_STATUS_ENABLED_FALSE                  "false"
++#define PORT_BOND_STATUS_ENABLED_TRUE                   "true"
++#define PORT_BOND_STATUS_UP                             "up"
++#define PORT_BOND_STATUS_BLOCKED                        "blocked"
++#define PORT_BOND_STATUS_DOWN                           "down"
++
+ #define PORT_CONFIG_ADMIN_DOWN                          "down"
+ 
+ /* DHCP-Relay statistics */
+-- 
+2.1.4
+

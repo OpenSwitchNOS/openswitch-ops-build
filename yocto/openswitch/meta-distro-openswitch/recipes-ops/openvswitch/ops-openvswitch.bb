@@ -4,19 +4,51 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda
 
 DEPENDS = "openssl python perl systemd libtool libyaml jemalloc ops"
 
-BRANCH ?= "${OPS_REPO_BRANCH}"
-
-SRC_URI = "${OPS_REPO_BASE_URL}/ops-openvswitch;protocol=${OPS_REPO_PROTOCOL};branch=${BRANCH} \
+SRC_URI = "git://github.com/openvswitch/ovs.git;protocol=https;branch=branch-2.5 \
            file://ovsdb-server.service \
-           file://0003-Partial-map-updates.patch \
-           file://0004-On-demand-fetching.patch \
-           file://0005-Compound-indexes.patch \
-           file://0006-Python-IDL-tracking.patch \
-           file://0007-smap-shash-add-numeric-and-flexible-sort.patch \
-           file://0008-Handle-special-characters-in-Python-JSON-parser.patch \
+           file://0001-Sync-OVS-2.5-to-OPS.patch \
+           file://0002-Remove-LAG-L2-VID-hash-Load-Balance.patch \
+           file://0003-Fix-compile-error-in-opennsl-plugin.patch \
+           file://0004-Compatibility-with-C-11.patch \
+           file://0005-Fix-IDL-generation-to-emit-enums-with-a-single-optio.patch \
+           file://0006-Add-support-for-column-tracking-in-IDL.patch \
+           file://0007-Ignore-build-artifacts.patch \
+           file://0008-Make-schema-cksum-validation-consistent.patch \
+           file://0009-Add-json_object_get_string-API.patch \
+           file://0010-Rename-ovsdb_users-to-ovsdb-client.patch \
+           file://0011-new-dev-Vtep-IDL-file-generation.patch \
+           file://0012-new-dev-vswitchd-changes-for-L3-statistics.patch \
+           file://0013-chg-dev-Modularized-NTP-CLIs-to-be-present-at-ops-nt.patch \
+           file://0014-new-dev-Added-a-new-IDL-identifier-for-proxy-ARP.patch \
+           file://0015-Add-Resilient-ECMP-CLI.patch \
+           file://0016-chg-usr-BGP-openvswitch-changes-commands-added-set-a.patch \
+           file://0017-Defining-DHCP-Relay-key-in-openswitch-idl-library.patch \
+           file://0018-UDP-Bcast-Forwarder-global-configuration-key-macro.patch \
+           file://0019-new-dev-Adding-counter-definitions-for-BGP-clear-com.patch \
+           file://0020-Intoduce-support-of-QSFP28-connector-type.patch \
+           file://0021-new-dev-OSPFv2-key-and-default-definitions.patch \
+           file://0022-chg-usr-Configure-LAG-with-fallback.patch \
+           file://0023-new-dev-Added-a-new-IDL-identifier-for-Local-Proxy-A.patch \
+           file://0024-chg-dev-Defining-DHCP-configuration-keys.patch \
+           file://0025-chg-dev-sFlow-related-changes.patch \
+           file://0026-chg-dev-Defining-DHCP-Relay-Statistics-keys-in-opens.patch \
+           file://0027-new-dev-Add-new-key-for-LACP-Fallback.patch \
+           file://0028-new-dev-Adding-CoPP-global-stats-related-defines.patch \
+           file://0029-Added-broadview-config-related-macros.patch \
+           file://0030-new-dev-Add-definitions-for-bond-status.patch \
+           file://0031-new-dev-Macro-to-support-global-DNS-client-feature.patch \
+           file://0032-new-dev-Add-definitions-for-LACP-Fallback-mode.patch \
+           file://0033-Added-macros-enums-for-port-state-pecking-order.patch \
+           file://0034-Converted-tests.patch \
+           file://0035-Partial-map-updates.patch \
+           file://0036-On-demand-fetching.patch \
+           file://0037-Compound-indexes.patch \
+           file://0038-Python-IDL-tracking.patch \
+           file://0039-smap-shash-add-numeric-and-flexible-sort.patch \
+           file://0040-Handle-special-characters-in-Python-JSON-parser.patch \
            "
 
-SRCREV = "66c7ab9872067cb3b742dcb3110af0fca9e30cd9"
+SRCREV = "976b441345df85dd7adb973f8ae208f588d764a0"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.

@@ -1,0 +1,36 @@
+From 3cbf1b77a182292b712abe805ac36ffcdc40a424 Mon Sep 17 00:00:00 2001
+From: John Johnson <john.d.johnson@hpe.com>
+Date: Mon, 1 Feb 2016 13:48:19 -0800
+Subject: [PATCH 05/40] Fix IDL generation to emit enums with a single option.
+
+Change-Id: I3be13b347ebe7595e7403d787828b7a8586f1180
+Signed-off-by: John Johnson <john.d.johnson@hpe.com>
+---
+ python/ovs/db/data.py | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/python/ovs/db/data.py b/python/ovs/db/data.py
+index a44b95c..f14e07c 100644
+--- a/python/ovs/db/data.py
++++ b/python/ovs/db/data.py
+@@ -547,7 +547,7 @@ class Datum(object):
+         return s
+ 
+     def cEnumConst(self, prefix):
+-        if len(self.values) > 1:
++        if len(self.values) > 0:
+             s = []
+             for en in sorted(self.values):
+                 sv = re.sub('[\"]', '', en.to_string())
+@@ -560,7 +560,7 @@ class Datum(object):
+             return "\n".join(s)
+ 
+     def cEnumType(self, prefix):
+-        if len(self.values) > 1:
++        if len(self.values) > 0:
+             s = []
+             for en in sorted(self.values):
+                 ev = re.sub('[\"]', '', en.to_string())
+-- 
+2.1.4
+

@@ -1,0 +1,33 @@
+From 31d1b1984e3cde4fb1a9ecdab7eafeb5b16d5e4a Mon Sep 17 00:00:00 2001
+From: waghodeh <hemali.waghode@hpe.com>
+Date: Mon, 29 Feb 2016 10:41:48 -0800
+Subject: [PATCH 16/40] chg: usr: BGP openvswitch changes commands added: set
+ atomic-aggregate, set aggregator as, set comm-list delete, set community, set
+ weight, set local-preference
+
+Change-Id: Ia19dd6d75dfacf733f2dd9ed28be44de229eb793
+Signed-off-by: waghodeh <hemali.waghode@hpe.com>
+---
+ lib/openswitch-idl.h | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/lib/openswitch-idl.h b/lib/openswitch-idl.h
+index 8f94ef6..78be5eb 100644
+--- a/lib/openswitch-idl.h
++++ b/lib/openswitch-idl.h
+@@ -517,6 +517,12 @@ enum ovsrec_port_config_admin_e {
+ #define OVSDB_BGP_ROUTE_PATH_ATTRIBUTES_INTERNAL       "BGP_internal"
+ #define OVSDB_BGP_ROUTE_PATH_ATTRIBUTES_IBGP           "BGP_iBGP"
+ #define OVSDB_BGP_ROUTE_PATH_ATTRIBUTES_UPTIME         "BGP_uptime"
++#define OVSDB_BGP_ROUTE_PATH_ATTRIBUTES_WEIGHT           "BGP_weight"
++#define OVSDB_BGP_ROUTE_PATH_ATTRIBUTES_AGGREGATOR_ID    "BGP_aggregator_id"
++#define OVSDB_BGP_ROUTE_PATH_ATTRIBUTES_AGGREGATOR_ADDR  "BGP_aggregator_addr"
++#define OVSDB_BGP_ROUTE_PATH_ATTRIBUTES_COMMUNITY        "BGP_community"
++#define OVSDB_BGP_ROUTE_PATH_ATTRIBUTES_ECOMMUNITY       "BGP_ecommunity"
++#define OVSDB_BGP_ROUTE_PATH_ATTRIBUTES_ATOMIC_AGGREGATE "BGP_atomic_aggregate"
+ 
+ /* BGP Neighbor state, goes into "status" column */
+ #define BGP_PEER_STATE                          "bgp_peer_state"
+-- 
+2.1.4
+

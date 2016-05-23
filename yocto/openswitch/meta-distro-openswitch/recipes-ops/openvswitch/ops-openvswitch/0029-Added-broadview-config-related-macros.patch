@@ -1,0 +1,39 @@
+From b80c1aa48106b2b06e798c5dfcce8e1043370379 Mon Sep 17 00:00:00 2001
+From: Yelamandeswara Rao <yeeswar@broadcom.com>
+Date: Fri, 15 Apr 2016 11:01:34 -0700
+Subject: [PATCH 29/40] Added broadview-config related macros
+
+Change-Id: I0399d26fa9d86edb9e4dafc662279925c9b1c24a
+Signed-off-by: Yelamandeswara Rao <yeeswar@broadcom.com>
+---
+ lib/openswitch-idl.h | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
+ mode change 100644 => 100755 lib/openswitch-idl.h
+
+diff --git a/lib/openswitch-idl.h b/lib/openswitch-idl.h
+old mode 100644
+new mode 100755
+index bb28d17..4c5f767
+--- a/lib/openswitch-idl.h
++++ b/lib/openswitch-idl.h
+@@ -664,6 +664,17 @@ enum ovsrec_port_config_admin_e {
+ #define SYSTEM_MGMT_INTF_MAP_DOMAIN_NAME          "domain_name"
+ #define SYSTEM_MGMT_INTF_MAP_DHCP_DOMAIN_NAME     "dhcp_domain_name"
+ 
++/* BroadView Configuration column */
++#define SYSTEM_BROADVIEW_CONFIG_MAP_ENABLED      "enabled"
++#define SYSTEM_BROADVIEW_CONFIG_MAP_CLIENT_IP    "client_ip"
++#define SYSTEM_BROADVIEW_CONFIG_MAP_CLIENT_PORT  "client_port"
++#define SYSTEM_BROADVIEW_CONFIG_MAP_AGENT_PORT   "agent_port"
++
++#define SYSTEM_BROADVIEW_CONFIG_MAP_ENABLED_DEFAULT      false
++#define SYSTEM_BROADVIEW_CONFIG_MAP_AGENT_PORT_DEFAULT   8080
++#define SYSTEM_BROADVIEW_CONFIG_MAP_CLIENT_IP_DEFAULT    "127.0.0.1"
++#define SYSTEM_BROADVIEW_CONFIG_MAP_CLIENT_PORT_DEFAULT  9070
++
+ /* buffer monitoring statistics config table (bufmon)*/
+ #define BUFMON_CONFIG_MAP_ENABLED                               "enabled"
+ #define BUFMON_CONFIG_MAP_COUNTERS_MODE                         "counters_mode"
+-- 
+2.1.4
+

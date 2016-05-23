@@ -1,0 +1,42 @@
+From 54715c984460fb72162edcbb1ff818b243cfaa75 Mon Sep 17 00:00:00 2001
+From: Sudhakar <sudhakar.athikari@hpe.com>
+Date: Mon, 21 Mar 2016 00:17:08 -0700
+Subject: [PATCH 24/40] chg: dev: Defining DHCP configuration keys
+
+Change-Id: I69bebac67db858922fece0800ec111421694bd12
+Signed-off-by: Sudhakar <sudhakar.athikari@hpe.com>
+---
+ lib/openswitch-idl.h | 17 +++++++++++++++--
+ 1 file changed, 15 insertions(+), 2 deletions(-)
+
+diff --git a/lib/openswitch-idl.h b/lib/openswitch-idl.h
+index a18c747..9d6a2a2 100644
+--- a/lib/openswitch-idl.h
++++ b/lib/openswitch-idl.h
+@@ -525,8 +525,21 @@ enum ovsrec_port_config_admin_e {
+ #define SYSTEM_OTHER_CONFIG_MAP_TFTP_SOURCE          "tftp_source"
+ #define SYSTEM_OTHER_CONFIG_MAP_PROTOCOLS_SOURCE     "protocols_source"
+ 
+-/*DHCP-Relay global configuration key */
+-#define SYSTEM_OTHER_CONFIG_MAP_DHCP_RELAY_DISABLED    "dhcp_relay_disabled"
++/* DHCP Configuration keys */
++#define SYSTEM_DHCP_CONFIG_MAP_V4RELAY_DISABLED    "v4relay_disabled"
++#define SYSTEM_DHCP_CONFIG_MAP_V4RELAY_OPTION82_ENABLED                \
++                                       "v4relay_option82_enabled"
++#define SYSTEM_DHCP_CONFIG_MAP_V4RELAY_OPTION82_POLICY                 \
++                                       "v4relay_option82_policy"
++#define SYSTEM_DHCP_CONFIG_MAP_V4RELAY_OPTION82_VALIDATION_ENABLED     \
++                                       "v4relay_option82_validation_enabled"
++#define SYSTEM_DHCP_CONFIG_MAP_V4RELAY_OPTION82_REMOTE_ID              \
++                                       "v4relay_option82_remote_id"
++#define SYSTEM_DHCP_CONFIG_MAP_V4RELAY_HOP_COUNT_INCREMENT_DISABLED    \
++                                       "v4relay_hop_count_increment_disabled"
++
++/* DHCP BOOTP-Gateway Configuration key */
++#define DHCP_RELAY_OTHER_CONFIG_MAP_BOOTP_GATEWAY    "bootp_gateway"
+ 
+ /* lacp global configuration parameters */
+ #define SYSTEM_LACP_CONFIG_MAP_LACP_SYSTEM_ID        "lacp-system-id"
+-- 
+2.1.4
+
