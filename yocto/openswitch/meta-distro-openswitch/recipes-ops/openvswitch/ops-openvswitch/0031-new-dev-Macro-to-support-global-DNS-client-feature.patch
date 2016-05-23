@@ -1,0 +1,32 @@
+From e1dd93173d75e9727db4c7aae29fd269cedaf995 Mon Sep 17 00:00:00 2001
+From: Vinay K <vinay.k@hpe.com>
+Date: Thu, 28 Apr 2016 21:52:26 -0700
+Subject: [PATCH 31/40] new: dev: Macro to support global DNS client feature
+
+Change-Id: I6fbfd0334f8121727a3e11290010ca7c42df706b
+Signed-off-by: Vinay K <vinay.k@hpe.com>
+---
+ lib/openswitch-idl.h | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/lib/openswitch-idl.h b/lib/openswitch-idl.h
+index 83f748b..ae15312 100755
+--- a/lib/openswitch-idl.h
++++ b/lib/openswitch-idl.h
+@@ -54,9 +54,12 @@
+ 
+ #define OVSREC_PORT_ERROR_ADMIN_DOWN                    "port_admin_down"
+ 
+-/************************** UDP BROADCAST SERVER TABLE***********************/
++/************************** UDP BROADCAST SERVER TABLE ***********************/
+ #define SYSTEM_OTHER_CONFIG_MAP_UDP_BCAST_FWD_ENABLED   "udp_bcast_forwarder_enabled"
+ 
++/************************** DNS CLIENT TABLE *******************************/
++#define SYSTEM_OTHER_CONFIG_MAP_DNS_CLIENT_DISABLED     "dns_client_disabled"
++
+ enum ovsrec_interface_error_e {
+     INTERFACE_ERROR_UNINITIALIZED,
+     INTERFACE_ERROR_ADMIN_DOWN,
+-- 
+2.1.4
+

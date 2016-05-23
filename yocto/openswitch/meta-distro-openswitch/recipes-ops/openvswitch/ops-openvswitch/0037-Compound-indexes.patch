@@ -1,10 +1,9 @@
-From f12ac59efd856733c0c6119c13c92fee115cacd0 Mon Sep 17 00:00:00 2001
+From c920dfc89591ed514eaab512149ba6538e383c32 Mon Sep 17 00:00:00 2001
 From: "Marcelo E. Magallon" <marcelo.magallon@hpe.com>
 Date: Fri, 13 May 2016 13:31:20 -0600
-Subject: [PATCH 2/5] Compound indexes
+Subject: [PATCH 37/40] Compound indexes
 
-Change-Id: I51f85a430789a15a1c4e074a52fd9b9a96e13088
-
+Signed-off-by: Marcelo E. Magallon <marcelo.magallon@hpe.com>
 ---
  Makefile.am                |   1 +
  README-compound-indexes.md | 321 ++++++++++++++++++++++++++++++++++++++
@@ -407,7 +406,7 @@ index e651c19..446e357 100644
  
      bool has_pending_fetch;  /* Indicates if the table has a pending fetch
 diff --git a/lib/ovsdb-idl.c b/lib/ovsdb-idl.c
-index dc09a2e..efcb99c 100644
+index 5be0f87..5363093 100644
 --- a/lib/ovsdb-idl.c
 +++ b/lib/ovsdb-idl.c
 @@ -37,8 +37,10 @@

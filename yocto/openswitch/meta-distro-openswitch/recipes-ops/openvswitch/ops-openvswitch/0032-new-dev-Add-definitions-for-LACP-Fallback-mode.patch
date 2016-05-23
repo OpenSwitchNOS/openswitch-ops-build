@@ -1,0 +1,33 @@
+From fbef5db00af0469948b00842567e6581b86ac69b Mon Sep 17 00:00:00 2001
+From: Kattia Chaves <kchavesr@hpe.com>
+Date: Wed, 4 May 2016 11:57:44 -0700
+Subject: [PATCH 32/40] new: dev: Add definitions for LACP Fallback mode
+
+This definition will be used with the key lacp_fallback_mode in
+other_config column for Port table
+
+Change-Id: I9dcc7a01e710f83547219956024ff48fdb1ce65a
+Signed-off-by: Kattia Chaves <kchavesr@hpe.com>
+---
+ lib/openswitch-idl.h | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/lib/openswitch-idl.h b/lib/openswitch-idl.h
+index ae15312..5740a9b 100755
+--- a/lib/openswitch-idl.h
++++ b/lib/openswitch-idl.h
+@@ -435,6 +435,11 @@ enum ovsrec_interface_hw_bond_config_enabled_e {
+ #define PORT_OTHER_CONFIG_LACP_FALLBACK                 "lacp-fallback-ab"
+ #define PORT_OTHER_CONFIG_LACP_FALLBACK_ENABLED         "true"
+ 
++#define PORT_OTHER_CONFIG_LACP_FALLBACK_MODE_PRIORITY   "priority"
++#define PORT_OTHER_CONFIG_LACP_FALLBACK_MODE_ALL_ACTIVE "all_active"
++#define PORT_OTHER_CONFIG_MAP_LACP_FALLBACK_TIMEOUT     "lacp_fallback_timeout"
++#define PORT_OTHER_CONFIG_MAP_LACP_FALLBACK_MODE        "lacp_fallback_mode"
++
+ #define PORT_OTHER_CONFIG_LACP_TIME_SLOW                "slow"
+ #define PORT_OTHER_CONFIG_LACP_TIME_FAST                "fast"
+ 
+-- 
+2.1.4
+

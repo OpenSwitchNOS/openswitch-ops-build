@@ -1,0 +1,26 @@
+From 60ae0ec68baf6621a866f5926f7f55cedd39c656 Mon Sep 17 00:00:00 2001
+From: Mario Castro <mario.castro@hpe.com>
+Date: Fri, 8 Apr 2016 14:49:40 -0700
+Subject: [PATCH 27/40] new: dev: Add new key for LACP Fallback
+
+Change-Id: I4c2887615e69171c6e4106b3236e4458469374b6
+Signed-off-by: Mario Castro <mario.castro@hpe.com>
+---
+ lib/openswitch-idl.h | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/lib/openswitch-idl.h b/lib/openswitch-idl.h
+index b1f47f5..1c4444b 100644
+--- a/lib/openswitch-idl.h
++++ b/lib/openswitch-idl.h
+@@ -423,6 +423,7 @@ enum ovsrec_interface_hw_bond_config_enabled_e {
+ #define PORT_OTHER_CONFIG_MAP_LACP_TIME                 "lacp-time"
+ 
+ #define PORT_OTHER_CONFIG_LACP_FALLBACK                 "lacp-fallback-ab"
++#define PORT_OTHER_CONFIG_LACP_FALLBACK_ENABLED         "true"
+ 
+ #define PORT_OTHER_CONFIG_LACP_TIME_SLOW                "slow"
+ #define PORT_OTHER_CONFIG_LACP_TIME_FAST                "fast"
+-- 
+2.1.4
+

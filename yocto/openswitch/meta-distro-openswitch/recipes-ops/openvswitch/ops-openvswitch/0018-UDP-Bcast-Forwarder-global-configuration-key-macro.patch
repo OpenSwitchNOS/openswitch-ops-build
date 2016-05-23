@@ -1,0 +1,28 @@
+From 839634689459f8835e96c95c4c500e6b83487287 Mon Sep 17 00:00:00 2001
+From: Vinay K <vinay.k@hpe.com>
+Date: Tue, 1 Mar 2016 20:37:24 -0800
+Subject: [PATCH 18/40] UDP Bcast Forwarder global configuration key macro.
+
+Change-Id: I2ce523306f3db8b5ea9e35ffa666ca5e5e2b2cd0
+Signed-off-by: Vinay K <vinay.k@hpe.com>
+---
+ lib/openswitch-idl.h | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/lib/openswitch-idl.h b/lib/openswitch-idl.h
+index 6e9e18b..0d2d5a6 100644
+--- a/lib/openswitch-idl.h
++++ b/lib/openswitch-idl.h
+@@ -54,6 +54,9 @@
+ 
+ #define OVSREC_PORT_ERROR_ADMIN_DOWN                    "port_admin_down"
+ 
++/************************** UDP BROADCAST SERVER TABLE***********************/
++#define SYSTEM_OTHER_CONFIG_MAP_UDP_BCAST_FWD_ENABLED   "udp_bcast_forwarder_enabled"
++
+ enum ovsrec_interface_error_e {
+     INTERFACE_ERROR_UNINITIALIZED,
+     INTERFACE_ERROR_ADMIN_DOWN,
+-- 
+2.1.4
+
