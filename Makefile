@@ -116,6 +116,33 @@ Additional development/maintenance targets:
     $(BLUE)show-platform$(GRAY)       : show current platform
     $(BLUE)show-platforms$(GRAY)      : show available platforms for the current distribution
 
+    $(BLUE)devenv_init$(GRAY)         : inits the developer environment (aka devenv)
+    $(BLUE)devenv_clean$(GRAY)        : cleans and uninitialize the devenv(unsaved changes will be lost!)
+    $(BLUE)devenv_add$(GRAY)          : add a recipe into the devenv
+    $(BLUE)devenv_rm$(GRAY)           : remove a recipe from the devenv (unsaved changes will be lost!)
+    $(BLUE)devenv_status$(GRAY)       : shows what recipes are on the devenv
+    $(BLUE)devenv_list_all$(GRAY)     : shows the list of $(DISTRO) components that you can add to the devenv
+    $(BLUE)devenv_update_recipe$(GRAY): updates the SRCREV of the recipe with the version on the devenv
+    $(BLUE)devenv_patch_recipe$(GRAY) : create patches for the commits on the devenv against the recipe
+    $(BLUE)devenv_import$(GRAY)       : import external code into the devenv (equivalent to add, but doesn't fetch the code)
+
+    $(BLUE)testenv_init$(GRAY)        : inits the test environment (aka testenv)
+    $(BLUE)testenv_clean$(GRAY)       : cleans the testenv
+    $(BLUE)testenv_run$(GRAY)         : prepares an image for testing and runs a test directory from a list of components
+    $(BLUE)testenv_rerun$(GRAY)       : runs a test directory against a list of components without preparing the image again
+    $(BLUE)testenv_suite_run$(GRAY)   : prepares an image for testing and runs a suite
+    $(BLUE)testenv_suite_rerun$(GRAY) : runs a suite without preparing the image again
+    $(BLUE)testenv_suite_list$(GRAY)  : list the suites available
+    $(BLUE)testenv_suite_list_components$(GRAY) : list the components of a suite
+
+    $(BLUE)branch_create$(GRAY)       :
+    $(BLUE)branch_add$(GRAY)          :
+    $(BLUE)branch_remove$(GRAY)       :
+    $(BLUE)branch_checkout$(GRAY)     :
+    $(BLUE)branch_list$(GRAY)         :
+    $(BLUE)branch_rebase$(GRAY)       :
+    $(BLUE)branch_merge$(GRAY)        :
+
 endef
 endif
 export HELP_TEXT

@@ -981,3 +981,6 @@ attach_screen_with:
 	$(V)$(ECHO) "Attaching to a shared screen by user: $(USERTOSHARE)..."
 	$(V)screen -x $(USERTOSHARE)/shared-with-$(USER)
 	$(V)$(ECHO) "Leaving shared screen"
+
+# Command sets includes
+include tools/Rules-branch.make
