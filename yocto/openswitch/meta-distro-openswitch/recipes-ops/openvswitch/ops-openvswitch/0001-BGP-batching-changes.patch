@@ -1,0 +1,83 @@
+From abec37ba82ac9f95f7130f3d90e5e82e1fa3eab0 Mon Sep 17 00:00:00 2001
+From: waghodeh <hemali.waghode@hpe.com>
+Date: Thu, 26 May 2016 09:36:23 -0700
+Subject: [PATCH] BGP batching changes
+
+Adding API's for batching multiple BGP transactions
+to one IDL transaction.
+TG-394
+Tags : chg, dev
+
+Change-Id: I7cfea7dcc2967a02f2acb8bfc7fdd7c35677d570
+Signed-off-by: waghodeh <hemali.waghode@hpe.com>
+---
+ lib/ovsdb-idl.c | 41 +++++++++++++++++++++++++++++++++++++++++
+ lib/ovsdb-idl.h |  6 ++++++
+ 2 files changed, 47 insertions(+)
+
+diff --git a/lib/ovsdb-idl.c b/lib/ovsdb-idl.c
+index ccbb449..ca3b042 100644
+--- a/lib/ovsdb-idl.c
++++ b/lib/ovsdb-idl.c
+@@ -2951,3 +2951,44 @@ ovsdb_idl_loop_commit_and_wait(struct ovsdb_idl_loop *loop)
+
+     ovsdb_idl_wait(loop->idl);
+ }
++
++struct ovsdb_idl_txn *
++get_idl_txn(struct ovsdb_idl *idl){
++
++    if(idl){
++        if(idl->txn){
++            return idl->txn;
++        }
++    }
++    return NULL;
++}
++
++/* Starts a new transaction on 'idl'
++*This API is specific to BGP use.
++*/
++struct ovsdb_idl_txn *
++ovsdb_idl_txn_create_bgp(struct ovsdb_idl *idl)
++{
++    if(idl){
++        if(idl->txn){
++            return idl->txn;
++        }
++    }
++    struct ovsdb_idl_txn *txn;
++
++    idl->txn = txn = xmalloc(sizeof *txn);
++    txn->request_id = NULL;
++    txn->idl = idl;
++    hmap_init(&txn->txn_rows);
++    txn->status = TXN_UNCOMMITTED;
++    txn->error = NULL;
++    txn->dry_run = false;
++    ds_init(&txn->comment);
++
++    txn->inc_table = NULL;
++    txn->inc_column = NULL;
++
++    hmap_init(&txn->inserted_rows);
++
++    return txn;
++}
+diff --git a/lib/ovsdb-idl.h b/lib/ovsdb-idl.h
+index 4c66ae0..cac7df6 100644
+--- a/lib/ovsdb-idl.h
++++ b/lib/ovsdb-idl.h
+@@ -274,4 +274,10 @@ void ovsdb_idl_loop_destroy(struct ovsdb_idl_loop *);
+ struct ovsdb_idl_txn *ovsdb_idl_loop_run(struct ovsdb_idl_loop *);
+ void ovsdb_idl_loop_commit_and_wait(struct ovsdb_idl_loop *);
+
++struct ovsdb_idl_txn *
++get_idl_txn(struct ovsdb_idl *idl);
++
++struct ovsdb_idl_txn *
++ovsdb_idl_txn_create_bgp(struct ovsdb_idl *idl);
++
+ #endif /* ovsdb-idl.h */
+--
+1.9.1
