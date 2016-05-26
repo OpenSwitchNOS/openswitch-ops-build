@@ -1,0 +1,31 @@
+From 27fa63fbf335d8475c0f52ecc46e6a4799bba0d5 Mon Sep 17 00:00:00 2001
+From: Javier Albornoz <javier.albornoz@hpe.com>
+Date: Thu, 26 May 2016 11:22:16 -0600
+Subject: [PATCH] Do not install openswitch-[idl|dflt].h
+
+These files will be provided by ops instead. Since Yocto might complain
+because they will be already installed by other module, they must be
+removed from the Makefile to prevent the automatic installation process.
+
+Change-Id: If6e5ef12daf397e381d9e6f983c7633fc4650956
+Signed-off-by: Javier Albornoz <javier.albornoz@hpe.com>
+---
+ lib/automake.mk | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/lib/automake.mk b/lib/automake.mk
+index e49f26f..9f8e218 100644
+--- a/lib/automake.mk
++++ b/lib/automake.mk
+@@ -89,8 +89,6 @@ ovslibinclude_HEADERS = \
+ 	lib/ofp-print.h \
+ 	lib/ofp-util.h \
+ 	lib/ofp-version-opt.h \
+-	lib/openswitch-dflt.h \
+-	lib/openswitch-idl.h \
+ 	lib/ovs-atomic-c11.h \
+ 	lib/ovs-atomic-clang.h \
+ 	lib/ovs-atomic-flag-gcc4.7+.h \
+-- 
+1.9.1
+

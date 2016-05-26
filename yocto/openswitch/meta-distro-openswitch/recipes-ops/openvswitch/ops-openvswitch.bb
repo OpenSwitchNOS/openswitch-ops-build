@@ -14,6 +14,7 @@ SRC_URI = "${OPS_REPO_BASE_URL}/ops-openvswitch;protocol=${OPS_REPO_PROTOCOL};br
            file://0006-Python-IDL-tracking.patch \
            file://0007-smap-shash-add-numeric-and-flexible-sort.patch \
            file://0008-Handle-special-characters-in-Python-JSON-parser.patch \
+           file://0009-Do-not-install-openswitch-idl-dflt-.h.patch \
            "
 
 SRCREV = "66c7ab9872067cb3b742dcb3110af0fca9e30cd9"
@@ -112,6 +113,15 @@ do_install_append() {
     echo "A+ /run/log/journal/%m - - - - group:ops_netop:r-x" >> ${D}${sysconfdir}/tmpfiles.d/openswitch.conf
     install -d ${D}${PYTHON_SITEPACKAGES_DIR}
     mv ${D}/${prefix}/share/openvswitch/python/ovs ${D}${PYTHON_SITEPACKAGES_DIR}
+
+    # FIXME: temporary manual installation of openswitch-*h files
+    if [ ! -f ${D}/${includedir}/openswitch-idl.h ]; then
+        if [ -f ${S}/lib/openswitch-idl.h ]; then
+            install -d ${D}/${includedir}
+            install -m 0644 ${S}/lib/openswitch-idl.h ${D}/${includedir}
+            install -m 0644 ${S}/lib/openswitch-dflt.h ${D}/${includedir}
+        fi
+    fi
 }
 
 pkg_postinst_ops-ovsdb () {
