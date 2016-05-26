@@ -40,6 +40,14 @@ do_install() {
      install -m 0644 ${WORKDIR}/dhcp_tftp.service ${D}${systemd_unitdir}/system/
 }
 
-FILES_${PN} += "/usr/lib/cli/plugins/"
+do_install_append() {
+    # Code for copying to /usr/share/opsplugins.
+    install -d ${D}/usr/share/opsplugins
+    for plugin in $(find ${S}/opsplugins -name "*.py"); do \
+        install -m 0644 ${plugin} ${D}/usr/share/opsplugins
+    done
+}
+
+FILES_${PN} += "/usr/lib/cli/plugins/ /usr/share/opsplugins"
 SYSTEMD_PACKAGES = "${PN}"
 SYSTEMD_SERVICE_${PN} = "dhcp_tftp.service"
