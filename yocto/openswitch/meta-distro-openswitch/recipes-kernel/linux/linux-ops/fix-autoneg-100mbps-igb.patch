@@ -1,16 +1,14 @@
-Patch to support Intel Avoton Ethernet driver with Broadcom PHY
- 
-Index: linux-3.9.11/drivers/net/ethernet/intel/igb/e1000_82575.c
+Index: kernel-source/drivers/net/ethernet/intel/igb/e1000_82575.c
 ===================================================================
---- linux-3.9.11.orig/drivers/net/ethernet/intel/igb/e1000_82575.c
-+++ linux-3.9.11/drivers/net/ethernet/intel/igb/e1000_82575.c
+--- kernel-source.orig/drivers/net/ethernet/intel/igb/e1000_82575.c
++++ kernel-source/drivers/net/ethernet/intel/igb/e1000_82575.c
 @@ -214,6 +214,9 @@ static s32 igb_init_phy_params_82575(str
  		phy->ops.set_d3_lplu_state = igb_set_d3_lplu_state_82580;
  		phy->ops.force_speed_duplex = igb_phy_force_speed_duplex_m88;
  		break;
 +        case BCM54616_E_PHY_ID:
-+		phy->type                   = e1000_phy_bcm54616;
-+                break;
++               phy->type                   = e1000_phy_bcm54616;
++               break;
  	default:
  		ret_val = -E1000_ERR_PHY;
  		goto out;
@@ -18,7 +16,7 @@ Index: linux-3.9.11/drivers/net/ethernet/intel/igb/e1000_82575.c
  	case E1000_DEV_ID_I350_FIBER:
  	case E1000_DEV_ID_I350_SERDES:
  	case E1000_DEV_ID_I350_SGMII:
-+	case E1000_DEV_ID_I354_SGMII:
++        case E1000_DEV_ID_I354_SGMII:
  		mac->type = e1000_i350;
  		break;
  	case E1000_DEV_ID_I210_COPPER:
@@ -26,16 +24,16 @@ Index: linux-3.9.11/drivers/net/ethernet/intel/igb/e1000_82575.c
  	case e1000_phy_82580:
  		ret_val = igb_copper_link_setup_82580(hw);
  		break;
-+	case e1000_phy_bcm54616:
-+		ret_val = E1000_SUCCESS;
-+		break;
++        case e1000_phy_bcm54616:
++                ret_val = E1000_SUCCESS;
++                break;
  	default:
  		ret_val = -E1000_ERR_PHY;
  		break;
-Index: linux-3.9.11/drivers/net/ethernet/intel/igb/e1000_defines.h
+Index: kernel-source/drivers/net/ethernet/intel/igb/e1000_defines.h
 ===================================================================
---- linux-3.9.11.orig/drivers/net/ethernet/intel/igb/e1000_defines.h
-+++ linux-3.9.11/drivers/net/ethernet/intel/igb/e1000_defines.h
+--- kernel-source.orig/drivers/net/ethernet/intel/igb/e1000_defines.h
++++ kernel-source/drivers/net/ethernet/intel/igb/e1000_defines.h
 @@ -772,6 +772,7 @@
  #define I350_I_PHY_ID        0x015403B0
  #define M88_VENDOR           0x0141
@@ -44,10 +42,10 @@ Index: linux-3.9.11/drivers/net/ethernet/intel/igb/e1000_defines.h
  
  /* M88E1000 Specific Registers */
  #define M88E1000_PHY_SPEC_CTRL     0x10  /* PHY Specific Control Register */
-Index: linux-3.9.11/drivers/net/ethernet/intel/igb/e1000_hw.h
+Index: kernel-source/drivers/net/ethernet/intel/igb/e1000_hw.h
 ===================================================================
---- linux-3.9.11.orig/drivers/net/ethernet/intel/igb/e1000_hw.h
-+++ linux-3.9.11/drivers/net/ethernet/intel/igb/e1000_hw.h
+--- kernel-source.orig/drivers/net/ethernet/intel/igb/e1000_hw.h
++++ kernel-source/drivers/net/ethernet/intel/igb/e1000_hw.h
 @@ -63,6 +63,7 @@ struct e1000_hw;
  #define E1000_DEV_ID_I350_FIBER               0x1522
  #define E1000_DEV_ID_I350_SERDES              0x1523
@@ -64,10 +62,10 @@ Index: linux-3.9.11/drivers/net/ethernet/intel/igb/e1000_hw.h
  };
  
  enum e1000_bus_type {
-Index: linux-3.9.11/drivers/net/ethernet/intel/igb/igb_main.c
+Index: kernel-source/drivers/net/ethernet/intel/igb/igb_main.c
 ===================================================================
---- linux-3.9.11.orig/drivers/net/ethernet/intel/igb/igb_main.c
-+++ linux-3.9.11/drivers/net/ethernet/intel/igb/igb_main.c
+--- kernel-source.orig/drivers/net/ethernet/intel/igb/igb_main.c
++++ kernel-source/drivers/net/ethernet/intel/igb/igb_main.c
 @@ -82,6 +82,7 @@ static DEFINE_PCI_DEVICE_TABLE(igb_pci_t
  	{ PCI_VDEVICE(INTEL, E1000_DEV_ID_I210_FIBER), board_82575 },
  	{ PCI_VDEVICE(INTEL, E1000_DEV_ID_I210_SERDES), board_82575 },
@@ -76,3 +74,12 @@ Index: linux-3.9.11/drivers/net/ethernet/intel/igb/igb_main.c
  	{ PCI_VDEVICE(INTEL, E1000_DEV_ID_I350_COPPER), board_82575 },
  	{ PCI_VDEVICE(INTEL, E1000_DEV_ID_I350_FIBER), board_82575 },
  	{ PCI_VDEVICE(INTEL, E1000_DEV_ID_I350_SERDES), board_82575 },
+@@ -1560,6 +1561,8 @@ void igb_power_up_link(struct igb_adapte
+ 		igb_power_up_phy_copper(&adapter->hw);
+ 	else
+ 		igb_power_up_serdes_link_82575(&adapter->hw);
++
++        igb_setup_link(&adapter->hw);
+ }
+ 
+ /**
