@@ -5,13 +5,13 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/Apache-2.0;md5=89aea4e17d99a7ca
 DEPENDS = "ops-utils ops-hw-config ops-ovsdb ops-cli ops-supportability"
 RDEPENDS_${PN} = "dmidecode"
 
-BRANCH ?= "${OPS_REPO_BRANCH}"
+BRANCH ?= "feature/branch_test1"
 
 SRC_URI = "${OPS_REPO_BASE_URL}/ops-sysd;protocol=${OPS_REPO_PROTOCOL};branch=${BRANCH} \
            file://ops-sysd.service \
 "
 
-SRCREV = "93db3a0f621c1805894e5380e217e22bb4228cdd"
+SRCREV = "${AUTOREV}"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.
