@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-.PHONY: branch_create branch_add branch_remove branch_checkout branch_list
+.PHONY: branch_create branch_add branch_remove branch_checkout branch_list_components
 .PHONY: branch_rebase branch_merge
 
 BRANCH_TOOL=$(BUILD_ROOT)/tools/bin/branch-tool.sh

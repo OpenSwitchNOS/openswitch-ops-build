@@ -257,7 +257,7 @@ get_recipes_for_branch() {
     fi
 
     # Collect possible recipes
-    recipes=$(grep -lR "^BRANCH *= *\"$current_branch\"\$" ${BUILD_ROOT}/yocto 2>/dev/null)
+    recipes=$(grep -lR "^BRANCH *?*= *\"$current_branch\"\$" ${BUILD_ROOT}/yocto 2>/dev/null)
     recipes="$recipes $(grep -lR ";branch=$current_branch" ${BUILD_ROOT}/yocto 2>/dev/null)"
 
     echo "${recipes}"
@@ -271,7 +271,7 @@ list_components() {
     echo
     echo -e "${blue}Listing components for branch '${current_branch}'...${reset}\n"
     echo
-    if [ -n "$recipes" ] ; then
+    if [ -z "$recipes" ] ; then
         echo " No components found for this branch"
     fi
     for comp in ${recipes} ; do
