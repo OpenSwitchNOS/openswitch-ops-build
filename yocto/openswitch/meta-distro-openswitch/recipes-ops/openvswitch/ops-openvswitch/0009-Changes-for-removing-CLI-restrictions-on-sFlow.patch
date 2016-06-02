@@ -1,0 +1,28 @@
+From 239bc3a44d8537e1bb55d68db8c0b1b02a3c44d5 Mon Sep 17 00:00:00 2001
+From: Bhaskar Upadhyayula <sarma.bha.upadhyayula@hpe.com>
+Date: Wed, 18 May 2016 15:39:19 -0700
+Subject: [PATCH] Changes for removing CLI restrictions on sFlow.
+
+Changes in openvswitch library to remove CLI restrictions on sFlow.
+
+Change-Id: Ic2110e3bc28014aaa0ce1b7481d8e1f54bf1736b
+Signed-off-by: Bhaskar Upadhyayula <sarma.bha.upadhyayula@hpe.com>
+---
+ ofproto/ofproto.h | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/ofproto/ofproto.h b/ofproto/ofproto.h
+index 3f29f0a..d57fdac 100644
+--- a/ofproto/ofproto.h
++++ b/ofproto/ofproto.h
+@@ -73,6 +73,7 @@ struct ofproto_sflow_options {
+ #ifdef OPS
+     char agent_ip[INET6_ADDRSTRLEN];     /* ip (v4 or v6) of interface */
+     uint32_t max_datagram;               /* Maximum datagram size */
++    struct sset ports;  /* port names on which sFlow is disabled */
+ #endif
+     char *control_ip;
+ };
+--
+1.9.1
+
