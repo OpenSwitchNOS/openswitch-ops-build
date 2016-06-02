@@ -1,0 +1,50 @@
+From 0985d1c53edb2192d0cf932464aa156bd8760817 Mon Sep 17 00:00:00 2001
+From: waghodeh <hemali.waghode@hpe.com>
+Date: Wed, 1 Jun 2016 17:18:32 -0700
+Subject: [PATCH] API to get IDL transaction pointer
+
+Adding generic API to get idl transaction's pointer. This
+API is used for BGP batching changes.
+TG-394
+Tags: chg, dev
+
+Change-Id: I035ebc42097b8223b010ec987d57b6dbbefa2ecc
+Signed-off-by: waghodeh <hemali.waghode@hpe.com>
+---
+ lib/ovsdb-idl.c | 10 ++++++++++
+ lib/ovsdb-idl.h |  3 +++
+ 2 files changed, 13 insertions(+)
+
+diff --git a/lib/ovsdb-idl.c b/lib/ovsdb-idl.c
+index 8427a4c..84bdb28 100644
+--- a/lib/ovsdb-idl.c
++++ b/lib/ovsdb-idl.c
+@@ -2979,3 +2979,13 @@ ovsdb_idl_loop_commit_and_wait(struct ovsdb_idl_loop *loop)
+ 
+     ovsdb_idl_wait(loop->idl);
+ }
++
++struct ovsdb_idl_txn *
++get_idl_txn(struct ovsdb_idl *idl){
++    if(idl){
++        if(idl->txn){
++            return idl->txn;
++        }
++    }
++    return NULL;
++}
+diff --git a/lib/ovsdb-idl.h b/lib/ovsdb-idl.h
+index 136c38c..fac1580 100644
+--- a/lib/ovsdb-idl.h
++++ b/lib/ovsdb-idl.h
+@@ -276,4 +276,7 @@ void ovsdb_idl_loop_destroy(struct ovsdb_idl_loop *);
+ struct ovsdb_idl_txn *ovsdb_idl_loop_run(struct ovsdb_idl_loop *);
+ void ovsdb_idl_loop_commit_and_wait(struct ovsdb_idl_loop *);
+ 
++struct ovsdb_idl_txn *
++get_idl_txn(struct ovsdb_idl *idl);
++
+ #endif /* ovsdb-idl.h */
+-- 
+1.9.1
+
