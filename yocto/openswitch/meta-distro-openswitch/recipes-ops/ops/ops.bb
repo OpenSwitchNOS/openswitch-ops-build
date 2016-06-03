@@ -6,7 +6,7 @@ BRANCH ?= "${OPS_REPO_BRANCH}"
 
 SRC_URI = "${OPS_REPO_BASE_URL}/ops;protocol=${OPS_REPO_PROTOCOL};branch=${BRANCH}"
 
-SRCREV = "b1c516df0c6b051f68b9ea8ca62d40a3a875db39"
+SRCREV = "453257d83a8f64d0887b91619d314219f5c2f4ce"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.
