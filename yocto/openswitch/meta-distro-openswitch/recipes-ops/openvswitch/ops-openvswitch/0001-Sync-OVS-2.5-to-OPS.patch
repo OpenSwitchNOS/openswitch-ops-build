@@ -1,14 +1,14 @@
-From 012f5582d8c05900a08d0e40fbfb41a96371f255 Mon Sep 17 00:00:00 2001
+From ba5100474177b4d417663cf85dbdb66f4302305d Mon Sep 17 00:00:00 2001
 From: "Marcelo E. Magallon" <marcelo.magallon@hpe.com>
 Date: Mon, 23 May 2016 13:19:39 -0600
-Subject: [PATCH 01/22] Sync OVS 2.5 to OPS
+Subject: [PATCH 01/24] Sync OVS 2.5 to OPS
 
 Starting commit is 976b441345df85dd7adb973f8ae208f588d764a0
 
 Signed-off-by: Marcelo E. Magallon <marcelo.magallon@hpe.com>
 Signed-off-by: Javier Albornoz <javier.albornoz@hpe.com>
 
-
+%% original patch: 0001-Sync-OVS-2.5-to-OPS.patch
 ---
  .gitignore                                        |    6 +-
  Makefile.am                                       |  121 +-
@@ -11505,5 +11505,5 @@ index de028b6..b8c6f5a 100644
  
  # ovs-vtep
 -- 
-2.1.4
+1.9.1
 

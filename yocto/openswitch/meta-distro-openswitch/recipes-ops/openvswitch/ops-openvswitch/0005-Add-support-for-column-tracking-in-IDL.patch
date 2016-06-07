@@ -1,7 +1,7 @@
-From b7703a8bf78013404311a4176e540ce1b8186183 Mon Sep 17 00:00:00 2001
+From 112bb3674890f2cdcda539e80dc0204212e44d3f Mon Sep 17 00:00:00 2001
 From: Shad Ansari <shad.ansari@hpe.com>
 Date: Wed, 16 Mar 2016 23:13:46 +0000
-Subject: [PATCH 05/22] Add support for column tracking in IDL
+Subject: [PATCH 05/24] Add support for column tracking in IDL
 
 Recent IDL change tracking patches allow quick traversal of changed
 rows. This patch adds additional support to track changed columns.
@@ -13,7 +13,7 @@ This patch has been upstreamed to OVS.
 
 Signed-off-by: Shad Ansari <shad.ansari@hpe.com>
 
-
+%% original patch: 0005-Add-support-for-column-tracking-in-IDL.patch
 ---
  lib/ovsdb-idl-provider.h |  4 ++-
  lib/ovsdb-idl.c          | 32 ++++++++++++++++++++++++
@@ -284,5 +284,5 @@ index 76c9ad9..9630244 100644
  
  static void
 -- 
-2.1.4
+1.9.1
 

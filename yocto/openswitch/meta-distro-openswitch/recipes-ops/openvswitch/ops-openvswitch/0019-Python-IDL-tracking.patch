@@ -1,11 +1,11 @@
-From bb2fdcad44c097b9b8f0020aa4d5ed81a6d1149e Mon Sep 17 00:00:00 2001
+From 0e97283ccf70aa6410153eba08f1c63e1a1670fc Mon Sep 17 00:00:00 2001
 From: "Marcelo E. Magallon" <marcelo.magallon@hpe.com>
 Date: Fri, 13 May 2016 13:32:08 -0600
-Subject: [PATCH 19/22] Python IDL tracking
+Subject: [PATCH 19/24] Python IDL tracking
 
 Signed-off-by: Marcelo E. Magallon <marcelo.magallon@hpe.com>
 
-
+%% original patch: 0019-Python-IDL-tracking.patch
 ---
  python/ovs/db/idl.py | 186 ++++++++++++++++++++++++++++++++++++++++++++++++++-
  1 file changed, 183 insertions(+), 3 deletions(-)
@@ -264,5 +264,5 @@ index b6c986e..764a930 100644
 +    def __len__(self):
 +        return len(self.store)
 -- 
-2.1.4
+1.9.1
 
