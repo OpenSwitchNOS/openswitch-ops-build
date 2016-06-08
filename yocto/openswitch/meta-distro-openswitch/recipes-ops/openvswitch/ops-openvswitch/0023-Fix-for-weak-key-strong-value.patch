@@ -1,7 +1,7 @@
-From 9360d69aca93ec2e77697149f3dc276bca6a3a91 Mon Sep 17 00:00:00 2001
+From 25fdf95140650a2d6315bf575f18ae699b845d0f Mon Sep 17 00:00:00 2001
 From: Ligeo George <ligeo.george@hpe.com>
 Date: Wed, 25 May 2016 15:10:29 -0700
-Subject: [PATCH] fix: dev: Fix for weak-key:strong-value
+Subject: [PATCH 23/24] fix: dev: Fix for weak-key:strong-value
 
 This fix allows the row pointed to by the strong
 value to be garbage collected when the row pointed
@@ -9,6 +9,8 @@ to by its weak key is deleted.
 
 Change-Id: I7c84aa41d223184570e502ecd308f7f99f5f8d73
 Signed-off-by: Ligeo George <ligeo.george@hpe.com>
+
+%% original patch: 0023-Fix-for-weak-key-strong-value.patch
 ---
  ovsdb/transaction.c | 63 +++++++++++++++++++++++++++++++++++++----------------
  1 file changed, 44 insertions(+), 19 deletions(-)

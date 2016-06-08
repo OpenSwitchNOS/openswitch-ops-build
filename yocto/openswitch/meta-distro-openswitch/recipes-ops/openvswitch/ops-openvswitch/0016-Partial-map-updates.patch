@@ -1,11 +1,11 @@
-From c0e65097dc70c4f121b09f6681de2db05f243d00 Mon Sep 17 00:00:00 2001
+From 11c62085000880a15428d2e3468bc189f8116709 Mon Sep 17 00:00:00 2001
 From: "Marcelo E. Magallon" <marcelo.magallon@hpe.com>
 Date: Fri, 13 May 2016 13:26:09 -0600
-Subject: [PATCH 16/22] Partial map updates
+Subject: [PATCH 16/24] Partial map updates
 
 Signed-off-by: Marcelo E. Magallon <marcelo.magallon@hpe.com>
 
-
+%% original patch: 0016-Partial-map-updates.patch
 ---
  lib/automake.mk          |   4 +-
  lib/ovsdb-idl-provider.h |   4 +
@@ -754,5 +754,5 @@ index 22c0efe..e3503d3 100755
          # Table columns.
          print "\nstruct ovsdb_idl_column %s_columns[%s_N_COLUMNS];" % (
 -- 
-2.1.4
+1.9.1
 

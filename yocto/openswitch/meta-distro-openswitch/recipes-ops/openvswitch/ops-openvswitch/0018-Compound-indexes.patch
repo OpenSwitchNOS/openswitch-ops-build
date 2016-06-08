@@ -1,11 +1,11 @@
-From 2ac0a8dc103b0f1ce74d73a32f2ee13999c05306 Mon Sep 17 00:00:00 2001
+From 7665259b33e4a7848952c9fe8a444fb0bfc26631 Mon Sep 17 00:00:00 2001
 From: "Marcelo E. Magallon" <marcelo.magallon@hpe.com>
 Date: Fri, 13 May 2016 13:31:20 -0600
-Subject: [PATCH 18/22] Compound indexes
+Subject: [PATCH 18/24] Compound indexes
 
 Signed-off-by: Marcelo E. Magallon <marcelo.magallon@hpe.com>
 
-
+%% original patch: 0018-Compound-indexes.patch
 ---
  Makefile.am                |   1 +
  README-compound-indexes.md | 321 ++++++++++++++++++++++++++++++++++++++
@@ -1729,5 +1729,5 @@ index 0000000..291ff26
 +
 +OVSTEST_REGISTER("test-skiplist", test_skiplist_main);
 -- 
-2.1.4
+1.9.1
 

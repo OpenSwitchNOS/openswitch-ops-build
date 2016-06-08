@@ -1,15 +1,32 @@
+From 7c250d72a5e77019062fd0b1343639fb178bfcc4 Mon Sep 17 00:00:00 2001
+From: Bhaskar Upadhyayula <sarma.bha.upadhyayula@hpe.com>
+Date: Wed, 8 Jun 2016 13:59:40 -0700
+Subject: [PATCH 24/24] %% original patch:
+ 0024-Improve-ovsdb-json-error-msgs.patch
+
+---
+ ovsdb/column.c           |  2 +-
+ ovsdb/execution.c        |  3 +++
+ ovsdb/row.c              |  4 +++-
+ ovsdb/table.c            | 16 ++++++++++------
+ python/ovs/db/schema.py  | 14 ++++++++++----
+ tests/ovsdb-column.at    |  4 ++++
+ tests/ovsdb-execution.at |  8 ++++----
+ tests/ovsdb-table.at     |  8 ++++++--
+ 8 files changed, 41 insertions(+), 18 deletions(-)
+
 diff --git a/ovsdb/column.c b/ovsdb/column.c
 index 26b7a0b..59452e6 100644
 --- a/ovsdb/column.c
 +++ b/ovsdb/column.c
 @@ -86,7 +86,7 @@ ovsdb_column_from_json(const struct json *json, const char *name,
- 
+
      error = ovsdb_type_from_json(&type, type_json);
      if (error) {
 -        return error;
 +        return ovsdb_wrap_error(error, "Column - %s", name);
      }
- 
+
      persistent = ephemeral ? !json_boolean(ephemeral) : true;
 diff --git a/ovsdb/execution.c b/ovsdb/execution.c
 index de25a87..7a9758f 100644
@@ -55,18 +72,18 @@ index e7545ad..aad13fb 100644
          n_max_rows = max_rows->u.integer;
      } else {
 @@ -159,7 +160,8 @@ ovsdb_table_schema_from_json(const struct json *json, const char *name,
- 
+
      if (shash_is_empty(json_object(columns))) {
          return ovsdb_syntax_error(json, NULL,
 -                                  "table must have at least one column");
 +                                  "table \"%s\" must have at least one column",
 +                                  name);
      }
- 
+
      ts = ovsdb_table_schema_create(name,
 @@ -170,10 +172,12 @@ ovsdb_table_schema_from_json(const struct json *json, const char *name,
          struct ovsdb_column *column;
- 
+
          if (node->name[0] == '_') {
 -            error = ovsdb_syntax_error(json, NULL, "names beginning with "
 -                                       "\"_\" are reserved");
@@ -81,13 +98,13 @@ index e7545ad..aad13fb 100644
              error = ovsdb_column_from_json(node->data, node->name, &column);
          }
 @@ -222,7 +226,7 @@ ovsdb_table_schema_from_json(const struct json *json, const char *name,
- 
+
  error:
      ovsdb_table_schema_destroy(ts);
 -    return error;
 +    return ovsdb_wrap_error(error, "Table - \"%s\"", name);
  }
- 
+
  /* Returns table schema 'ts' serialized into JSON.
 diff --git a/python/ovs/db/schema.py b/python/ovs/db/schema.py
 index 86e9616..2a86ad8 100644
@@ -100,12 +117,12 @@ index 86e9616..2a86ad8 100644
 -            raise error.Error("maxRows must be at least 1", json)
 +            raise error.Error('Table - "%s": maxRows must be at least 1'
 +                              % name, json)
- 
+
          if not columns_json:
 -            raise error.Error("table must have at least one column", json)
 +            raise error.Error('table "%s" must have at least one column'
 +                              % name, json)
- 
+
          columns = {}
          for column_name, column_json in columns_json.iteritems():
              _check_id(column_name, json)
@@ -117,7 +134,7 @@ index 86e9616..2a86ad8 100644
 +            except error.Error as err:
 +                raise error.Error('Table - "%s": %s' % (name, err.msg),
 +                                  err.json)
- 
+
          indexes = []
          for index_json in indexes_json:
 diff --git a/tests/ovsdb-column.at b/tests/ovsdb-column.at
@@ -143,7 +160,7 @@ index 94630bd..10986b0 100644
 -  [[[{"details":"named-uuid string is not a valid <id>","error":"syntax error","syntax":"[\"named-uuid\",\"0\"]"}]
 +  [[[{"details":"Table - \"a\", Column - \"a2a\": named-uuid string is not a valid <id>","error":"syntax error","syntax":"[\"named-uuid\",\"0\"]"}]
  ]])
- 
+
  OVSDB_CHECK_EXECUTION([duplicate uuid-name not allowed],
 @@ -576,9 +576,9 @@ OVSDB_CHECK_EXECUTION([insert and update constraints],
        {"op": "insert",
@@ -163,14 +180,14 @@ index 26ff90e..997dfd8 100644
 --- a/tests/ovsdb-table.at
 +++ b/tests/ovsdb-table.at
 @@ -68,9 +68,13 @@ OVSDB_CHECK_NEGATIVE_CPY([table must have at least one column (1)],
- 
+
  OVSDB_CHECK_NEGATIVE_CPY([table must have at least one column (2)],
    [[parse-table mytable '{"columns": {}}']],
 -  [[table must have at least one column]])
 +  [[table "mytable" must have at least one column]])
- 
+
  OVSDB_CHECK_NEGATIVE_CPY([table maxRows must be positive],
-   [[parse-table mytable '{"columns": {"name": {"type": "string"}}, 
+   [[parse-table mytable '{"columns": {"name": {"type": "string"}},
                            "maxRows": 0}']],
 -  [[syntax "{"columns":{"name":{"type":"string"}},"maxRows":0}": syntax error: maxRows must be at least 1]])
 +  [[syntax "{"columns":{"name":{"type":"string"}},"maxRows":0}": syntax error: Table - "mytable": maxRows must be at least 1]])
@@ -178,3 +195,6 @@ index 26ff90e..997dfd8 100644
 +OVSDB_CHECK_NEGATIVE_CPY([column must contain the required type member],
 +  [[parse-table mytable '{"columns": {"name": {}}}']],
 +  [[syntax "{}": syntax error: Table - "mytable": Parsing schema for column name failed: Required 'type' member is missing.]])
+--
+1.9.1
+

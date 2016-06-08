@@ -1,11 +1,11 @@
-From 5aa4c88e6c63d835db5a9fc3ad07de2a1d721d11 Mon Sep 17 00:00:00 2001
+From 8bb829b8ea6ead89856643faae5aa731d07a9242 Mon Sep 17 00:00:00 2001
 From: "Marcelo E. Magallon" <marcelo.magallon@hpe.com>
 Date: Fri, 13 May 2016 13:29:19 -0600
-Subject: [PATCH 17/22] On demand fetching
+Subject: [PATCH 17/24] On demand fetching
 
 Signed-off-by: Marcelo E. Magallon <marcelo.magallon@hpe.com>
 
-
+%% original patch: 0017-On-demand-fetching.patch
 ---
  lib/ovsdb-idl-provider.h |  11 ++
  lib/ovsdb-idl.c          | 470 ++++++++++++++++++++++++++++++++++++++++++++++-
@@ -798,5 +798,5 @@ index e3503d3..b5f7079 100755
          for columnName, column in sorted(table.columns.iteritems()):
              print '''
 -- 
-2.1.4
+1.9.1
 

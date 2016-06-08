@@ -1,11 +1,11 @@
-From d70fbd355718024a9f2e516cd59320e56700f583 Mon Sep 17 00:00:00 2001
+From a904f8884afc59a8a5fda279441932b1a8ef1811 Mon Sep 17 00:00:00 2001
 From: John Johnson <john.d.johnson@hpe.com>
 Date: Mon, 1 Feb 2016 13:48:19 -0800
-Subject: [PATCH 04/22] Fix IDL generation to emit enums with a single option.
+Subject: [PATCH 04/24] Fix IDL generation to emit enums with a single option.
 
 Signed-off-by: John Johnson <john.d.johnson@hpe.com>
 
-
+%% original patch: 0004-Fix-IDL-generation-to-emit-enums-with-a-single-optio.patch
 ---
  python/ovs/db/data.py | 4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
@@ -33,5 +33,5 @@ index a44b95c..f14e07c 100644
              for en in sorted(self.values):
                  ev = re.sub('[\"]', '', en.to_string())
 -- 
-2.1.4
+1.9.1
 

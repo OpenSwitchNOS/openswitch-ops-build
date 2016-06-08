@@ -1,7 +1,7 @@
-From 62547f31dcbd47320291ff1f1a0a81f2ac56114d Mon Sep 17 00:00:00 2001
+From e810bdafebe226d9ef7e13d4fb9dce95e48ddc55 Mon Sep 17 00:00:00 2001
 From: Esteban Rodriguez Betancourt <estebarb@hpe.com>
 Date: Thu, 17 Mar 2016 19:26:16 -0600
-Subject: [PATCH 07/22] Make schema cksum validation consistent
+Subject: [PATCH 07/24] Make schema cksum validation consistent
 
 Fix a problem when calculating the cksum of a schema that
 has fields with the substring cksum. Now the cksum is
@@ -10,7 +10,7 @@ calculated in a way more similar to the one used by the
 
 Signed-off-by: Esteban Rodriguez Betancourt <estebarb@hpe.com>
 
-
+%% original patch: 0007-Make-schema-cksum-validation-consistent.patch
 ---
  Makefile.am                      | 1 +
  build-aux/calculate-schema-cksum | 4 ++++
@@ -55,5 +55,5 @@ index 0fe37e4..52f5f48 100755
  if test "X$sum" = "X$expected"; then
      touch $stamp
 -- 
-2.1.4
+1.9.1
 
