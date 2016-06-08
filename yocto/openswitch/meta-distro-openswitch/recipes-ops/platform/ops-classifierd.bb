@@ -9,7 +9,7 @@ SRC_URI = "git://git.openswitch.net/openswitch/ops-classifierd;protocol=http;bra
            file://ops-classifierd.service \
 "
 
-SRCREV = "bcc7c93ddf46e9c6f1bd73d8459eb4f3aeb2b62a"
+SRCREV = "8a42a78856ba12bf9561cd28cdc683199d585e34"
 
 FILES_${PN} = "${libdir}/openvswitch/plugins ${includedir}/plugins/* ${bindir} ${bindir}/ops-classifierd"
 
