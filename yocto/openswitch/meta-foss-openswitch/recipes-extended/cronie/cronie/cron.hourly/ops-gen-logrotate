@@ -45,6 +45,7 @@ def read_ovsdb():
     global target
     global protocol
     global uri
+    global remoteIP
 
     results = {}
     try:
