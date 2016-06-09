@@ -170,6 +170,7 @@ FILES_ops-ovsdb = "/run /var/run /var/log /var/volatile ${bindir}/ovsdb* \
 FILES_python-ops-ovsdb = "${libdir}/${PYTHON_DIR}/*"
 
 FILES_${PN} = "${bindir}/ovs-appctl ${bindir}/ovs-pki ${bindir}/ovs-vsctl \
+ ${bindir}/ovs-ofctl ${bindir}/ovs-dpctl ${bindir}/ovs-testcontroller \
  /var/local/openvswitch /etc/bash_completion.d \
  ${libdir}/libofproto.so.1* \
  ${libdir}/libopenvswitch.so.1* \
