@@ -6,11 +6,14 @@ DEPENDS = "net-snmp ops-openvswitch ops-ovsdb ops-cli"
 
 RDEPENDS_${PN} = "net-snmp-client net-snmp-server net-snmp-mibs net-snmp-libs perl"
 
-SRC_URI = "git://git.openswitch.net/openswitch/ops-snmpd;protocol=http\
-           file://ops-snmpd.service\
-           file://snmpd.conf"
+BRANCH ?= "${OPS_REPO_BRANCH}"
 
-SRCREV="7c054c44dc3df70e02e0a9a942578435c3f53915"
+SRC_URI = "${OPS_REPO_BASE_URL}/ops-snmpd;protocol=${OPS_REPO_PROTOCOL};branch=${BRANCH} \
+           file://ops-snmpd.service\
+           file://snmpd.conf\
+           "
+
+SRCREV="da77250ce74f88c99a4318e9adc44eb49ea876f7"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.

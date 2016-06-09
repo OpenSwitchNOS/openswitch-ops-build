@@ -4,10 +4,12 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/Apache-2.0;md5=89aea4e17d99a7ca
 
 DEPENDS = "yaml-cpp gtest i2c-tools"
 
-SRC_URI = "git://git.openswitch.net/openswitch/ops-hw-config;protocol=http \
+BRANCH ?= "${OPS_REPO_BRANCH}"
+
+SRC_URI = "${OPS_REPO_BASE_URL}/ops-hw-config;protocol=${OPS_REPO_PROTOCOL};branch=${BRANCH} \
 "
 
-SRCREV = "570989131504e2ac2c569c1d45519403d4dbc12b"
+SRCREV = "b179264071ed0c87dd30ca29750b902e67314f14"
 
 PLATFORM_PATH?="${MACHINE}"
 
@@ -24,9 +26,9 @@ do_install_append () {
         n=`basename "$f"`
         # If there's a flavor override, use that
         if test -n "${PLATFORM_FLAVOR}" -a -e "${d}/${PLATFORM_FLAVOR}/${n}" ; then
-            cp -p "${d}/${PLATFORM_FLAVOR}/${n}" "${D}${sysconfdir}/openswitch/platform/${PLATFORM_PATH}"
+            cp "${d}/${PLATFORM_FLAVOR}/${n}" "${D}${sysconfdir}/openswitch/platform/${PLATFORM_PATH}"
         else
-            cp -p "${d}/${n}" "${D}${sysconfdir}/openswitch/platform/${PLATFORM_PATH}"
+            cp "${d}/${n}" "${D}${sysconfdir}/openswitch/platform/${PLATFORM_PATH}"
         fi
     done
 }

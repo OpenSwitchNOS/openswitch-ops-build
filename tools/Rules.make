@@ -53,6 +53,7 @@ BASE_SIMPLEIMAGE_INITRAMFS_FILE = $(BUILDDIR)/tmp/deploy/images/$(CONFIGURED_PLA
 BASE_VMLINUX_FILE = $(BUILDDIR)/tmp/deploy/images/$(CONFIGURED_PLATFORM)/vmlinux
 BASE_CPIO_FS_FILE = $(BUILDDIR)/tmp/deploy/images/$(CONFIGURED_PLATFORM)/$(DISTRO_FS_TARGET)-$(CONFIGURED_PLATFORM).cpio.gz
 BASE_TARGZ_FS_FILE = $(BUILDDIR)/tmp/deploy/images/$(CONFIGURED_PLATFORM)/$(DISTRO_FS_TARGET)-$(CONFIGURED_PLATFORM).tar.gz
+BASE_TARGZ_DBG_FS_FILE = $(BUILDDIR)/tmp/deploy/images/$(CONFIGURED_PLATFORM)/$(DISTRO_FS_TARGET)-$(CONFIGURED_PLATFORM).dbg.tar.gz
 BASE_HDDIMG_FS_FILE = $(BUILDDIR)/tmp/deploy/images/$(CONFIGURED_PLATFORM)/$(DISTRO_FS_TARGET)-$(CONFIGURED_PLATFORM).hddimg
 BASE_OVA_FILE = $(BUILDDIR)/tmp/deploy/images/$(CONFIGURED_PLATFORM)/$(DISTRO_FS_TARGET)-$(CONFIGURED_PLATFORM).ova
 BASE_BOX_FILE = $(BUILDDIR)/tmp/deploy/images/$(CONFIGURED_PLATFORM)/$(DISTRO_FS_TARGET)-$(CONFIGURED_PLATFORM).box
@@ -215,6 +216,7 @@ _fs_links:
 	$(V)for extra_fs in $(DISTRO_EXTRA_FS_FILES) ; do ln -sf $$extra_fs images/`basename $$extra_fs` ; done
 	@# If we have a tar.gz file, also link it, useful for docker images
 	$(V)if [ -f $(BASE_TARGZ_FS_FILE) ] ; then ln -sf $(BASE_TARGZ_FS_FILE) images/`basename $(BASE_TARGZ_FS_FILE)` ; fi
+	$(V)if [ -f $(BASE_TARGZ_DBG_FS_FILE) ] ; then ln -sf $(BASE_TARGZ_DBG_FS_FILE) images/`basename $(BASE_TARGZ_DBG_FS_FILE)` ; fi
 	$(V)ln -sf `basename $(DISTRO_FS_FILE)` images/fs-$(CONFIGURED_PLATFORM)
 	$(V)ln -sf `dirname $(DISTRO_FS_FILE)`/`basename $(DISTRO_FS_FILE) |  cut -d'.' -f1`.manifest images/`basename $(DISTRO_FS_FILE) | cut -d'.' -f1`.manifest
 
@@ -375,12 +377,12 @@ images/$(CONFIGURED_PLATFORM).itb:: $(DISTRO_PLATFORM_ITS_FILE) $(MKIMAGE)
 
 # ONIE installer
 .PHONY: onie-installer
-onie-installer: header _kernel_links _fs _onie-installer
+onie-installer: header _onie-installer _kernel_links _fs_links
 
 DISTRO_ONIE_INSTALLER_FILE?= $(BASE_ONIE_INSTALLER_FILE)
 _onie-installer::
 	$(V) $(ECHO) "$(BLUE)Building ONIE Installer file ($(ONIE_INSTALLER_RECIPE))...$(GRAY)\n"
-	$(V)$(call BITBAKE,$(ONIE_INSTALLER_RECIPE))
+	$(V)$(call BITBAKE,$(ONIE_INSTALLER_RECIPE) $(DISTRO_FS_TARGET))
 	$(V)ln -sf $(DISTRO_ONIE_INSTALLER_FILE) images/`basename $(DISTRO_ONIE_INSTALLER_FILE)`
 
 ifneq ($(findstring onie-installer,$(MAKECMDGOALS)),)
@@ -411,17 +413,19 @@ _setup-git-review:: $(addprefix .git/hooks/,$(notdir $(wildcard $(BUILD_ROOT)/to
 	$(V) cp $(BUILD_ROOT)/tools/bin/hooks/$* $@
 
 .PHONY: devenv_init devenv_clean devenv_add devenv_rm devenv_status devenv_cscope devenv_list_all
-.PHONY: devenv_import dev_header devenv_refresh _devenv_refresh
+.PHONY: check_devenv devenv_import dev_header devenv_refresh _devenv_refresh
 
 -include src/Rules.make
 
-dev_header: header
-	$(V) flock -n $(BUILDDIR)/bitbake.lock echo -n || \
-	   { echo "Bitbake is currently running... can't proceed further, aborting" ; \
-             exit 255 ; }
+check_devenv:
 	$(V) if ! [ -f .devenv ] ; then \
 	  $(call FATAL_ERROR, devenv is not initialized, use 'devenv_init') ; \
 	fi
+
+dev_header: header check_devenv
+	$(V) flock -n $(BUILDDIR)/bitbake.lock echo -n || \
+	   { echo "Bitbake is currently running... can't proceed further, aborting" ; \
+             exit 255 ; }
 
 devenv_init: header
 	$(V) $(ECHO) "$(BLUE)Configuring development enviroment...$(GRAY)\n"
@@ -507,11 +511,11 @@ ifneq ($(findstring query_recipe,$(MAKECMDGOALS)),)
   endif
   PACKAGE?=$(EXTRA_ARGS)
   ifeq ($(PACKAGE),)
-   $(error ====== PACKAGE variable is empty, please specify which package(s) you want  =====)
+   $(error ====== Please specify which package(s) you want to query =====)
   endif
 endif
 
-query_recipe:
+query_recipe: check_devenv
 	@$(foreach P, $(PACKAGE), $(call QUERY_RECIPE,$(VAR),$(P)))
 
 ifeq (devenv_import,$(firstword $(MAKECMDGOALS)))
@@ -598,7 +602,10 @@ _testenv_header: header
 testenv_init: dev_header
 	$(V) if ! which tox > /dev/null ; then \
 		$(call FATAL_ERROR,Python's tox is not installed. Please use your package manager to install it:\n\n  Hint: on Debian/Ubuntu systems you can install it with: 'sudo apt-get install python-tox') ; \
-	 fi
+	 fi ; \
+	 if ! which python3-config > /dev/null ; then \
+	        $(call FATAL_ERROR,Python's 3 development package is not installed and is required.\n  Hint: on Debian/Ubuntu systems you can install it with: 'sudo apt-get install python3-dev') ; \
+	 fi ;
 	$(V) if ! [ -f /etc/sudoers.d/topology ] ; then \
 	     $(ECHO) "$(BLUE) Setting up sudoer permissions for the topology framework... $(GRAY)\n" ; \
 		 echo "$(USER) ALL = (root) NOPASSWD: /sbin/ip, /bin/mkdir -p /var/run/netns, /bin/rm /var/run/netns/*, /bin/ln -s /proc/*/ns/net /var/run/netns/*" | \
@@ -610,6 +617,13 @@ testenv_init: dev_header
 
 
 TOPOLOGY_TEST_IMAGE?=ops_$(USER)$(subst /,_,$(BUILD_ROOT))
+
+# TOPOLOGY_TEST_COV_DIR: directory in the local system that contains the gcov gcno (coverage notes) files.
+# The attributes.json expects this directory.
+# In the current implementation, this directory is shared between the host and the container using Docker volumes to collect the coverage data (gcda) files.
+TOPOLOGY_TEST_COV_DIR?=$(BUILD_ROOT)/src
+
+TESTENV_REQUIRED_DRIVERS = bonding
 
 ifeq (testenv_run,$(firstword $(MAKECMDGOALS)))
   $(eval $(call PARSE_TWO_ARGUMENTS,testenv_run))
@@ -632,8 +646,8 @@ testenv_run: _testenv_header
 	$(V) docker rmi $(TOPOLOGY_TEST_IMAGE) > /dev/null 2>&1 || true
 	$(V) $(MAKE) export_docker_image $(TOPOLOGY_TEST_IMAGE)
 	$(V) $(SUDO) rm -Rf $(BUILDDIR)/test/$(TESTSUITE)
+	$(V) $(SUDO) modprobe $(TESTENV_REQUIRED_DRIVERS)
 	$(V) $(MAKE) _testenv_rerun
-	$(V) $(SUDO) modprobe bonding
 
 ifeq (testenv_rerun,$(firstword $(MAKECMDGOALS)))
   $(eval $(call PARSE_TWO_ARGUMENTS,testenv_rerun))
@@ -649,6 +663,8 @@ endif
 testenv_rerun: _testenv_header
 	$(V) $(MAKE) _testenv_rerun
 
+TESTENV_ABORT_IF_NOT_FOUND?=true
+
 define TESTENV_PREPARE
 	$(V) # Find if the component is on the devenv
 	$(V) \
@@ -656,12 +672,20 @@ define TESTENV_PREPARE
 	  if [ "$(TESTSUITE)" = "legacy" ] ; then \
 	    test_source_path="tests" ; \
 	  fi ; \
+	  testenv_abort=false ; \
 	  if [ -f .devenv ] && [ -d src/$(1) ] ; then \
 	   $(ECHO) "$(1): using tests from devenv..." ; \
 	   if ! [ -d src/$(1)/$$test_source_path ] ; then \
-		 $(call FATAL_ERROR, No testsuite found at src/$(1)/$$test_source_path); \
+	     if [ "$(TESTENV_ABORT_IF_NOT_FOUND)" == "true" ] ; then \
+	       $(call FATAL_ERROR, No testsuite found at src/$(1)/$$test_source_path); \
+	     else \
+	       $(call WARNING, No testsuite found at src/$(1)/$$test_source_path); \
+	       testenv_abort = true ; \
+	     fi ; \
 	   fi ; \
-	   ln -sf $(BUILD_ROOT)/src/$(1)/$$test_source_path $(BUILDDIR)/test/$(TESTSUITE)/code_under_test/$(1) ; \
+	   if ! $$testenv_abort ; then \
+	     ln -sf $(BUILD_ROOT)/src/$(1)/$$test_source_path $(BUILDDIR)/test/$(TESTSUITE)/code_under_test/$(1) ; \
+	   fi ; \
 	 else \
 	   $(ECHO) "$(1): fetching tests from git..." ; \
 	   $$(query-recipe.py -s -v SRCREV --gitrepo --gitbranch $(1)) ; \
@@ -677,37 +701,49 @@ define TESTENV_PREPARE
 	   git reset $$SRCREV --hard ; \
 	   popd > /dev/null ; \
 	   if ! [ -d $(BUILDDIR)/test/$(TESTSUITE)/downloads/$(1)/git/$$test_source_path ] ; then \
-		 $(call FATAL_ERROR, No testsuite found at '/$$test_source_path' inside the git repo $$gitrepo); \
+	     if [ "$(TESTENV_ABORT_IF_NOT_FOUND)" == "true" ] ; then \
+	       $(call FATAL_ERROR, No testsuite found at '/$$test_source_path' inside the git repo $$gitrepo); \
+	     else \
+	       $(call WARNING, No testsuite found at '/$$test_source_path' inside the git repo $$gitrepo); \
+	       testenv_abort = true ; \
+	     fi ; \
 	   fi ; \
-	   ln -sf $(BUILDDIR)/test/$(TESTSUITE)/downloads/$(1)/git/$$test_source_path \
+	   if ! $$testenv_abort ; then \
+	     ln -sf $(BUILDDIR)/test/$(TESTSUITE)/downloads/$(1)/git/$$test_source_path \
 		 $(BUILDDIR)/test/$(TESTSUITE)/code_under_test/$(1) ; \
+	   fi ; \
 	 fi ; \
-	 if [ "$(TESTSUITE)" = "legacy" ] ; then \
-	   cp tools/pytest.ini $(BUILDDIR)/test/$(TESTSUITE)/pytest.ini ; \
-	 else \
-	   if [ -f $(BUILDDIR)/test/$(TESTSUITE)/code_under_test/$(1)/requirements.txt ] ; then \
+	 if ! $$testenv_abort ; then \
+	   if [ "$(TESTSUITE)" = "legacy" ] ; then \
+	     cp tools/pytest.ini $(BUILDDIR)/test/$(TESTSUITE)/pytest.ini ; \
+	   else \
+	     if [ -f $(BUILDDIR)/test/$(TESTSUITE)/code_under_test/$(1)/requirements.txt ] ; then \
 		 $(call WARNING,Overriding the global requirements.txt with the one from $(1)) ; \
 		 cp $(BUILDDIR)/test/$(TESTSUITE)/code_under_test/$(1)/requirements.txt \
 		   $(BUILDDIR)/test/$(TESTSUITE)/ ; \
-	   else \
+	     else \
 		 cp tools/topology/requirements.txt $(BUILDDIR)/test/$(TESTSUITE)/ ; \
-	   fi ; \
-	   if [ -f $(BUILDDIR)/test/$(TESTSUITE)/code_under_test/$(1)/tox.ini ] ; then \
-	     $(call WARNING,Overriding the global tox.ini with the one from $(1)) ; \
+	     fi ; \
+	     if [ -f $(BUILDDIR)/test/$(TESTSUITE)/code_under_test/$(1)/tox.ini ] ; then \
+	       $(call WARNING,Overriding the global tox.ini with the one from $(1)) ; \
 		 cp $(BUILDDIR)/test/$(TESTSUITE)/code_under_test/$(1)/tox.ini \
 		   $(BUILDDIR)/test/$(TESTSUITE)/ ; \
-	   else \
+	     else \
 		 cp tools/topology/tox.ini $(BUILDDIR)/test/$(TESTSUITE)/ ; \
-	   fi ; \
-	   if [ -f $(BUILDDIR)/test/$(TESTSUITE)/code_under_test/$(1)/attributes.json.in ] ; then \
-		 $(call WARNING,Overriding the global attributes.json with the one from $(1)) ; \
+	     fi ; \
+	     output_attr_json=$(BUILDDIR)/test/$(TESTSUITE)/attributes.json ; \
+	     if [ -f $(BUILDDIR)/test/$(TESTSUITE)/code_under_test/$(1)/attributes.json.in ] ; then \
+		 $(call WARNING, Overriding the global attributes.json with the one from $(1)) ; \
 		 sed -e 's?@TEST_IMAGE@?$(TOPOLOGY_TEST_IMAGE):latest?' \
+			-e 's?@BUILD_ROOT@?$(BUILD_ROOT)?g' \
 		   $(BUILDDIR)/test/$(TESTSUITE)/code_under_test/$(1)/attributes.json.in \
-		   > $(BUILDDIR)/test/$(TESTSUITE)/attributes.json ; \
-	   else \
+		   > $$output_attr_json ; \
+		 sed -i 's?@TEST_COV_DIR@?$(TOPOLOGY_TEST_COV_DIR)?g' $$output_attr_json ; \
+	     else \
 		 sed -e 's?@TEST_IMAGE@?$(TOPOLOGY_TEST_IMAGE):latest?' \
-		   tools/topology/attributes.json.in \
-		   > $(BUILDDIR)/test/$(TESTSUITE)/attributes.json ; \
+		   tools/topology/attributes.json.in > $$output_attr_json ; \
+		 sed -i 's?@TEST_COV_DIR@?$(TOPOLOGY_TEST_COV_DIR)?g' $$output_attr_json ; \
+	     fi ; \
 	   fi ; \
 	 fi
 
@@ -716,7 +752,9 @@ endef
 ifneq ($(TESTENV_STRESS),)
 # If not specified, run at least 3 iterations and max 13
 TESTENV_ITERATIONS?=$(shell echo $$(expr $$RANDOM % 10 + 3))
-TESTENV_EXTRA_PARAMETERS=-k '$(TESTENV_STRESS)'
+TESTENV_EXTRA_PARAMETERS=$(if $(VERBOSE),-vv,) -k '$(TESTENV_STRESS)'
+else
+TESTENV_EXTRA_PARAMETERS=$(if $(VERBOSE),-vv,)
 endif
 TESTENV_ITERATIONS?=1
 
@@ -730,11 +768,15 @@ _testenv_rerun:
 	  if [ "$(TESTSUITE)" == "legacy" ] ; then \
 	    export VSI_IMAGE_NAME=$(TOPOLOGY_TEST_IMAGE) ;\
             $(ECHO) "\nIterating the tests $(TESTENV_ITERATIONS) times\n" ; \
+	    export VSI_COV_DATA_DIR=$(TOPOLOGY_TEST_COV_DIR) ;\
 	    for iteration in $$(seq 1 $(TESTENV_ITERATIONS)) ; do \
 	      $(ECHO) "\nRunning the testsuite on iteration $$iteration" ; \
 	      $(MAKE) devenv_ct_test PY_TEST_ARGS="$(TESTENV_EXTRA_PARAMETERS) --exitfirst --junitxml=$(BUILDDIR)/test/$(TESTSUITE)/test-results.xml $(BUILDDIR)/test/$(TESTSUITE)/code_under_test" || exit 1 ; \
 	    done ; \
 	  else \
+	    if [[ tools/topology/requirements.txt -nt $(BUILDDIR)/test/$(TESTSUITE)/.tox ]] ; then \
+	      rm -Rf $(BUILDDIR)/test/$(TESTSUITE)/.tox ; \
+	    fi ; \
             $(ECHO) "\nIterating the tests $(TESTENV_ITERATIONS) times\n" ; \
 	    for iteration in $$(seq 1 $(TESTENV_ITERATIONS)) ; do \
 	      $(ECHO) "\nRunning the testsuite on iteration $$iteration" ; \
@@ -854,8 +896,8 @@ devenv_ct_clean:
 	$(V) SBOX_UUID=$$(cat .sandbox_uuid | cut -d '-' -f 5) ; \
 	for name in `docker ps -a -q --filter="name=$$SBOX_UUID"`; do \
 	  echo "Cleaning the docker container with id $$SBOX_UUID" ; \
-	  docker stop $$name >/dev/null ; \
-	  docker rm -f $$name >/dev/null ; \
+	  docker stop --time=5 $$name >/dev/null ; \
+	  docker rm -vf $$name >/dev/null ; \
 	done
 	$(V) rm -rf .sandbox_uuid
 

@@ -5,10 +5,12 @@ LIC_FILES_CHKSUM = "file://COPYING;md5=81bcece21748c91ba9992349a91ec11d\
 
 DEPENDS = "ops-utils ops-ovsdb"
 
-SRC_URI = "git://git.openswitch.net/openswitch/ops-cli;protocol=http \
+BRANCH ?= "${OPS_REPO_BRANCH}"
+
+SRC_URI = "${OPS_REPO_BASE_URL}/ops-cli;protocol=${OPS_REPO_PROTOCOL};branch=${BRANCH} \
 "
 
-SRCREV = "37c1e56db54663962f62d2fc3f8f7604519592da"
+SRCREV = "2a9eff858f2178a86f4a88d4b3a011f410269603"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.

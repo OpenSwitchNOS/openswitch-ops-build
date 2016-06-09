@@ -3,21 +3,19 @@ LICENSE = "Apache-2.0"
 
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/Apache-2.0;md5=89aea4e17d99a7cacdbeed46a0096b10"
 
-PACKAGES += "ops-librbac ops-librbac-dev"
-FILES_ops-librbac = "/usr/lib/librbac.so.*.*.*"
-FILES_ops-librbac-dev = "/usr/lib/pkgconfig/rbac.pc /usr/lib/librbac.so*"
-
 DEPENDS = "ops-ovsdb ops-cli ops-supportability"
 
 RDEPENDS_${PN} = "python-argparse python-json python-ops-ovsdb python-distribute python-pam pam-plugin-radius-auth pam-plugin-radius-chap-auth"
 
-SRC_URI = "git://git.openswitch.net/openswitch/ops-aaa-utils;protocol=http \
+BRANCH ?= "${OPS_REPO_BRANCH}"
+
+SRC_URI = "${OPS_REPO_BASE_URL}/ops-aaa-utils;protocol=${OPS_REPO_PROTOCOL};branch=${BRANCH} \
            file://aaautils.service \
            file://server \
            file://useradd \
          "
 
-SRCREV = "c6341d86c8af333374ba55cfd8aa9fd7b68f1773"
+SRCREV = "d270b8ad70045e313af1179f8589fda9473e98d9"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.
@@ -48,6 +46,11 @@ do_install() {
      install -m 0644 ${WORKDIR}/server ${D}${sysconfdir}/raddb/server
      install -d ${D}${sysconfdir}/sudoers.d
      install -m 0644 ${WORKDIR}/useradd ${D}${sysconfdir}/sudoers.d/useradd
+
+     # Uninstall old libraries
+     rm -f ${D}/usr/include/rbac.h
+     rm -f ${D}/usr/lib/librbac.so*
+     rm -f ${D}/usr/lib/python2.7/site-packages/rbac.py*
 }
 
 FILES_${PN} += "/usr/lib/cli/plugins/"

@@ -6,7 +6,7 @@ LICENSE = "Apache-2"
 
 DEPENDS += "bridge-utils openssl python perl"
 
-RDEPENDS_${PN} += "util-linux-uuidgen util-linux-libuuid coreutils initscripts \
+RDEPENDS_${PN} += "util-linux-uuidgen util-linux-libuuid coreutils \
                    python perl perl-module-strict ${PN}-switch ${PN}-controller ovsdb"
 RDEPENDS_${PN}-controller = "${PN} lsb ${PN}-pki ovsdb"
 RDEPENDS_${PN}-switch = "${PN} openssl procps util-linux-uuidgen ovsdb"
@@ -55,6 +55,7 @@ LIC_FILES_CHKSUM = "file://COPYING;md5=5973c953e3c8a767cf0808ff8a0bac1b"
 # Changing the default location to /opt to avoid conflict
 # with the OVS infrastructure used by OpenSwitch.
 PKG_CONFIG_DIR := "${STAGING_DIR_HOST}${libdir}/pkgconfig"
+PKG_CONFIG_DIR[vardepvalue] = ""
 OVS_PREFIX="/opt/openvswitch"
 sys_bindir := "${bindir}"
 orig_prefix := "${prefix}"

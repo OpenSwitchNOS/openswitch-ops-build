@@ -4,11 +4,13 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/Apache-2.0;md5=89aea4e17d99a7ca
 
 DEPENDS = "ops-ovsdb ops-cli"
 
-SRC_URI = "git://git.openswitch.net/openswitch/ops-vland;protocol=http \
+BRANCH ?= "${OPS_REPO_BRANCH}"
+
+SRC_URI = "${OPS_REPO_BASE_URL}/ops-vland;protocol=${OPS_REPO_PROTOCOL};branch=${BRANCH} \
            file://ops-vland.service \
 "
 
-SRCREV = "9dc5bd5717ca680743e0b6772cb48ac58f5b8e63"
+SRCREV = "2dc6c03d4ec925cc151af001de19abe997ff1b4b"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.
@@ -19,9 +21,13 @@ S = "${WORKDIR}/git"
 do_install_append() {
      install -d ${D}${systemd_unitdir}/system
      install -m 0644 ${WORKDIR}/ops-vland.service ${D}${systemd_unitdir}/system/
+     install -d ${D}/usr/share/opsplugins
+     for plugin in $(find ${S}/opsplugins -name "*.py"); do \
+       install -m 0644 ${plugin} ${D}/usr/share/opsplugins
+     done
 }
 
-FILES_${PN} += "/usr/lib/cli/plugins/"
+FILES_${PN} += "/usr/lib/cli/plugins/ /usr/share/opsplugins"
 SYSTEMD_PACKAGES = "${PN}"
 SYSTEMD_SERVICE_${PN} = "ops-vland.service"
 

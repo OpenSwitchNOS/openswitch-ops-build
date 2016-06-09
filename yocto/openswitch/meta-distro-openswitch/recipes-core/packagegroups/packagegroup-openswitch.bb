@@ -1,4 +1,5 @@
 DESCRIPTION = "Package groups for OpenSwitch applications"
+
 LICENSE = "Apache-2.0"
 PR = "r1"
 
@@ -18,7 +19,6 @@ PACKAGES = ' \
             packagegroup-ops-core \
             '
 
-PACKAGES += "${@bb.utils.contains("IMAGE_FEATURES", "ops-p4", "packagegroup-ops-p4", "", d)}"
 PACKAGES += "${@bb.utils.contains("MACHINE_FEATURES", "ops-container", "packagegroup-ops-container", "", d)}"
 
 RDEPENDS_packagegroup-ops-base = "\
@@ -49,7 +49,6 @@ RDEPENDS_packagegroup-ops-base = "\
     libcap-bin \
     ops-init \
     virtual/switchd \
-    virtual/ops-switchd-switch-api-plugin \
     ops-ovsdb \
     ops-hw-config \
     ops-cfgd ops-fand ops-ledd ops-pmd ops-powerd ops-sysd ops-tempd \
@@ -73,10 +72,13 @@ RDEPENDS_packagegroup-ops-base = "\
     ops-ipapps \
     ops-stpd \
     ops-sysmond \
+    ops-vrfmgrd \
     nicstat \
     sysstat \
     ${@bb.utils.contains("MACHINE_FEATURES", "ops-kdump", "ops-kdump", "", d)} \
     ops-snmpd \
+    ops-l2macd \
+    ops-rbac \
 "
 
 RDEPENDS_packagegroup-ops-base_append_arm = "\
@@ -87,6 +89,9 @@ RDEPENDS_packagegroup-ops-base_append_arm = "\
 RDEPENDS_packagegroup-ops-min = "\
     python \
     python-pyroute2 \
+    python-paramiko \
+    python-netclient \
+    python-netserver \
     yaml-cpp \
     libevent \
     util-linux \
@@ -99,12 +104,6 @@ RDEPENDS_packagegroup-ops-min-debug = "\
     "
 
 RDEPENDS_packagegroup-ops-core = "\
-    "
-
-RDEPENDS_packagegroup-ops-p4 = "\
-    ops-switchd-p4switch-plugin \
-    ops-p4dp \
-    ops-p4c \
     "
 
 RDEPENDS_packagegroup-ops-container = "\

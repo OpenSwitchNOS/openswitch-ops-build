@@ -7,8 +7,8 @@ FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}:"
 SRC_URI += "file://Makefile-modules"
 
 OPENNSL_PLATFORM = "as5712"
-OPENNSL_PLATFORM_BUILD = "5e55299"
+OPENNSL_PLATFORM_BUILD = "4c90aba"
 GPL_MODULES_DIR = "sdk-6.4.10-gpl-modules"
 
-SRC_URI[md5sum] = "189ad3ccf8fbad6848b740283ea3d656"
-SRC_URI[sha256sum] = "27acaebb8c295a643abdb0ff6537b0df9962d97f5d12ff5fd60621d61a509fe0"
+SRC_URI[md5sum] = "45d81d395e05ff13f37efedac9c68059"
+SRC_URI[sha256sum] = "db1f87f4e71c8ea9c129411f4fe2426203c2ca9fd8fc11cb082e04f49eb61b9b"

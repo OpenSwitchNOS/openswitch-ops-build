@@ -6,11 +6,13 @@ DEPENDS = "python-inflect-native python-tornado-native ops-openvswitch ops-ovsdb
 
 RDEPENDS_${PN} = "python-argparse python-json python-ops-ovsdb python-distribute python-tornado python-html python-pkgutil python-subprocess python-numbers python-inflect python-xml ops-restapi python-unixadmin python-jsonschema python-jsonpatch ops-aaa-utils ops-passwd-srv python-pycrypto"
 
-SRC_URI = "git://git.openswitch.net/openswitch/ops-restd;protocol=http \
+BRANCH ?= "${OPS_REPO_BRANCH}"
+
+SRC_URI = "${OPS_REPO_BASE_URL}/ops-restd;protocol=${OPS_REPO_PROTOCOL};branch=${BRANCH} \
            file://restd.service \
 "
 
-SRCREV = "ab3599a0b8b4df99c35b3f99de6948b2c41630d5"
+SRCREV = "302ec2f641fc3c1096d818c88cb17d3acadd82ac"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.
@@ -34,6 +36,11 @@ do_install_append () {
       install -d ${D}/etc/ssl/certs
       cp ${S}/server.crt ${D}/etc/ssl/certs
       cp ${S}/server-private.key ${D}/etc/ssl/certs
+
+      install -d ${D}/usr/share/opsplugins
+      for plugin in $(find ${S}/opsplugins -name "*.py"); do \
+        install -m 0644 ${plugin} ${D}/usr/share/opsplugins
+      done
 }
 
 
@@ -44,4 +51,5 @@ inherit openswitch setuptools systemd pythonnative
 
 FILES_${PN} += "/srv/www/api/ops-restapi.json \
                 /etc/ssl/certs \
+                /usr/share/opsplugins \
 "

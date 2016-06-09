@@ -2,16 +2,18 @@ SUMMARY = "OpenSwitch vswitchd Broadcom plugin"
 LICENSE = "Apache-2.0"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/Apache-2.0;md5=89aea4e17d99a7cacdbeed46a0096b10"
 
-DEPENDS = "ops-ovsdb virtual/opennsl ops-switchd ops-supportability"
+DEPENDS = "ops-ovsdb virtual/opennsl ops-switchd ops-supportability ops-classifierd"
 
 PROVIDES += "virtual/ops-switchd-switch-api-plugin"
 RPROVIDES_${PN} += "virtual/ops-switchd-switch-api-plugin"
 
-SRC_URI = "git://git.openswitch.net/openswitch/ops-switchd-opennsl-plugin;protocol=http"
+BRANCH ?= "${OPS_REPO_BRANCH}"
+
+SRC_URI = "${OPS_REPO_BASE_URL}/ops-switchd-opennsl-plugin;protocol=${OPS_REPO_PROTOCOL};branch=${BRANCH}"
 
 FILES_${PN} = "${libdir}/openvswitch/plugins"
 
-SRCREV = "2710637dc87afc534dbe21864bad693408ceeeef"
+SRCREV = "0bd44223a6daafdc08aa26342ff64413830cd504"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.

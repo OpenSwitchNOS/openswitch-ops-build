@@ -267,9 +267,13 @@ populate_rootfs()
         exit 1
     }
     echo
+    PRIMARY_PARTITION_UUID=$(sgdisk -i ${PRIMARY_PARTITION_NUMBER} ${NOS_DISK} | awk '/unique GUID/ { print $4 }')
+    SECONDARY_PARTITION_UUID=$(sgdisk -i ${SECONDARY_PARTITION_NUMBER} ${NOS_DISK} | awk '/unique GUID/ { print $4 }')
     echo -e "${bold} --- Installing $label GRUB --- ${low}"
     sed -i -e "s/OPENSWITCH_PRIMARY_PART_NUM/${PRIMARY_PARTITION_NUMBER}/g" \
            -e "s/OPENSWITCH_SECONDARY_PART_NUM/${SECONDARY_PARTITION_NUMBER}/g" \
+           -e "s/OPENSWITCH_PRIMARY_PARTUUID/${PRIMARY_PARTITION_UUID}/g" \
+           -e "s/OPENSWITCH_SECONDARY_PARTUUID/${SECONDARY_PARTITION_UUID}/g" \
            -e "s/OPENSWITCH_CONFIG_PART_NUM/${CONFIG_PARTITION_NUMBER}/g" \
            -e "s/OPENSWITCH_CONFIG_CONSOLE/${CONFIG_CONSOLE}/g" \
            -e "s/OPENSWITCH_COMMANDLINE_APPEND/${COMMANDLINE_APPEND}/g" \
@@ -310,9 +314,9 @@ if [ $(awk -F= '/^NAME/ { print $2 } ' /etc/os-release) == \"onie\" ] ; then
         exit 1
     }
 else
-    # Check we are running on $label
-    if [ $(awk -F= '/^NAME/ { print $2 } ' /etc/os-release) != "$label" ] ; then
-        echo -e "${red}ERROR${normal}: This machine does not seem to be running ONIE or $label; aborting!"
+    # Check we are running on correct distro
+    if [ $(awk -F= '/^NAME/ { print $2 } ' /etc/os-release) != $DISTRO_NAME ] ; then
+        echo -e "${red}ERROR${normal}: This machine does not seem to be running ONIE or $DISTRO_NAME; aborting!"
         exit 1
     fi
 
@@ -362,6 +366,7 @@ EOF
 }
 
 banner
+
 # Clear any left-over mounts
 umount $mount_point 2>/dev/null
 mkdir -p $mount_point

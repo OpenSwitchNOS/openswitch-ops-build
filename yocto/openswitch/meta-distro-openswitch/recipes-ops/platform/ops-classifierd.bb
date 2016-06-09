@@ -5,11 +5,13 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/Apache-2.0;md5=89aea4e17d99a7ca
 DEPENDS = "ops-hw-config ops-ovsdb ops-cli ops-switchd audit"
 RDEPENDS_${PN} = "audit"
 
-SRC_URI = "git://git.openswitch.net/openswitch/ops-classifierd;protocol=http \
+BRANCH ?= "${OPS_REPO_BRANCH}"
+
+SRC_URI = "${OPS_REPO_BASE_URL}/ops-classifierd;protocol=${OPS_REPO_PROTOCOL};branch=${BRANCH} \
            file://ops-classifierd.service \
 "
 
-SRCREV = "ff2124405190cffbecc49c34355a6e08f172bb60"
+SRCREV = "2840f19f89a8e5f47f6b4fcc30908bc0e30e002b"
 
 FILES_${PN} = "${libdir}/openvswitch/plugins ${includedir}/plugins/* ${bindir} ${bindir}/ops-classifierd"
 
@@ -34,6 +36,5 @@ FILES_${PN} += "/usr/share/opsplugins"
 FILES_${PN} += "/usr/lib/cli/plugins/"
 SYSTEMD_PACKAGES = "${PN}"
 SYSTEMD_SERVICE_${PN} = "ops-classifierd.service"
-SYSTEMD_AUTO_ENABLE = "disable"
 
 inherit openswitch cmake pkgconfig systemd
