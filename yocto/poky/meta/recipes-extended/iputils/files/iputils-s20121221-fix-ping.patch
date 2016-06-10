@@ -1,0 +1,10 @@
+--- iputils-s20121221.orig/ping_common.c	2015-10-18 06:24:21.000000000 -0700
++++ iputils-s20121221/ping_common.c	2016-06-10 02:30:10.399306621 -0700
+@@ -1032,7 +1032,6 @@
+ 		comma = ", ";
+ 	}
+ 	if (pipesize > 1) {
+-		printf("%spipe %d", comma, pipesize);
+ 		comma = ", ";
+ 	}
+ 	if (nreceived && (!interval || (options&(F_FLOOD|F_ADAPTIVE))) && ntransmitted > 1) {
