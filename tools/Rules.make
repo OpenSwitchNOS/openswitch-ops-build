@@ -756,6 +756,15 @@ TESTENV_EXTRA_PARAMETERS=$(if $(VERBOSE),-vv,) -k '$(TESTENV_STRESS)'
 else
 TESTENV_EXTRA_PARAMETERS=$(if $(VERBOSE),-vv,)
 endif
+
+ifeq ($(TESTENV_TYPE),gate)
+TESTENV_EXTRA_PARAMETERS+= -m gating
+endif
+
+ifeq ($(TESTENV_TYPE),periodic)
+TESTENV_EXTRA_PARAMETERS+= -m "not gating"
+endif
+
 TESTENV_ITERATIONS?=1
 
 _testenv_rerun:
