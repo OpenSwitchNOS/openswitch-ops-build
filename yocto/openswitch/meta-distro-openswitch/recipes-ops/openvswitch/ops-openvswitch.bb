@@ -32,7 +32,7 @@ SRC_URI = "git://github.com/openvswitch/ovs.git;protocol=https;branch=branch-2.5
            file://0024-Improve-ovsdb-json-error-msgs.patch \
            "
 
-SRCREV = "976b441345df85dd7adb973f8ae208f588d764a0"
+SRCREV = "5a50b75e946ed4eeee9cc16df6d409ff5dcb5917"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.
