@@ -27,4 +27,4 @@ FILES_${PN} += "/usr/lib/cli/plugins/"
 SYSTEMD_PACKAGES = "${PN}"
 SYSTEMD_SERVICE_${PN} = "ops-vrrpd.service"
 
-inherit openswitch systemd
+inherit openswitch cmake systemd
