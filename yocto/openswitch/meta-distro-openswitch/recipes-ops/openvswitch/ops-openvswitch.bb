@@ -17,6 +17,7 @@ SRC_URI = "git://git.openswitch.net/openswitch/ops-openvswitch;protocol=http;bra
    file://bond_status_speed.patch \
    file://Populate-value-for-key-value-pair-of-max1.patch \
    file://mac-ovsvsctl-cmd.patch \
+   file://fix-docs.patch \
 "
 
 SRCREV = "ae74c6e7d4086bdc9942b33f2410ef87403e336e"
