@@ -71,6 +71,7 @@ RDEPENDS_packagegroup-ops-base = "\
     firejail \
     ops-ipapps \
     ops-stpd \
+    ops-openbfdd \
     ops-sysmond \
     ops-vrfmgrd \
     nicstat \
