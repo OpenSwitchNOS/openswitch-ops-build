@@ -811,12 +811,14 @@ ifeq (testenv_suite_list_components,$(firstword $(MAKECMDGOALS)))
   endif
 endif
 testenv_suite_list_components: _testenv_header
-	$(V) for layer in $$YOCTO_LAYERS ; do \
+	$(V) for layer in $$YOCTO_LAYERS src/*/ops-tests ; do \
 	   test -d $$layer || continue ; \
 	   if [ -f $$layer/testsuite_$(TESTSUITE).conf ] ; then \
-		 while read component ; do \
-		     [[ $$component == \#* ]] && continue ; \
-			 $(ECHO) "  * $$component" ; \
+	     while read component ; do \
+	       [[ $$component == \#* ]] && continue ; \
+	       echo $$COMPONENTS | grep -q $$component && continue ; \
+               COMPONENTS="$$COMPONENTS $$component" ; \
+	       $(ECHO) "  * $$component" ; \
 	     done < $$layer/testsuite_$(TESTSUITE).conf ; \
 	   fi ; \
 	 done
@@ -847,19 +849,21 @@ testenv_suite_rerun: _testenv_header
 	$(V) $(MAKE) _testenv_suite_rerun
 
 _testenv_suite_rerun:
-	$(V) for layer in $$YOCTO_LAYERS ; do \
+	$(V) for layer in $$YOCTO_LAYERS src/*/ops-tests ; do \
 	   test -d $$layer || continue ; \
 	   if [ -f $$layer/testsuite_$(TESTSUITE).conf ] ; then \
-		 while read component ; do \
-		    [[ $$component == \#* ]] && continue ; \
-			COMPONENTS="$$COMPONENTS $$component" ; \
+	     while read component ; do \
+	       [[ $$component == \#* ]] && continue ; \
+               echo $$COMPONENTS | grep -q $$component && continue ; \
+	       COMPONENTS="$$COMPONENTS $$component" ; \
 	     done < $$layer/testsuite_$(TESTSUITE).conf ; \
 	   fi ; \
 	 done ; \
 	 if [ -z "$$COMPONENTS" ] ; then \
 	   $(call FATAL_ERROR, No components where found for the test suite. Do you have testsuite_$(TESTSUITE).conf files?); \
 	 else \
-	   $(MAKE) _testenv_rerun TESTSUITE=$(TESTSUITE) COMPONENTS="$$COMPONENTS" ; \
+	   testsuite=$(TESTSUITE) ; \
+	   $(MAKE) _testenv_rerun TESTSUITE=$${testsuite##*@} COMPONENTS="$$COMPONENTS" ; \
 	 fi
 
 testenv_clean:
