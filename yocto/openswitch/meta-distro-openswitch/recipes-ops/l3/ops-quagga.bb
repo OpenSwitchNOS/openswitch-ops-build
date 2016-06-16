@@ -14,7 +14,7 @@ SRC_URI = "${OPS_REPO_BASE_URL}/ops-quagga;protocol=${OPS_REPO_PROTOCOL};branch=
     file://ops-zebra.service file://ops-bgpd.service file://ops-ospfd.service \
 "
 
-SRCREV = "fe0e74510c4d6edfab3a653a77fbf7889443ab6d"
+SRCREV = "98a9a5ab77a09cbe24bb4589a5123af5606ea059"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.
