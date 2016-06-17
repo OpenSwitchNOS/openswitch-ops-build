@@ -67,3 +67,9 @@ pyyaml==3.11
 
 # iperf command Communcation Library
 -e git+https://github.com/HPENetworking/topology_lib_iperf.git@master#egg=topology_lib_iperf
+
+# scapy Communication library
+-e git+https://github.com/HPENetworking/topology_lib_scapy.git@master#egg=topology_lib_scapy
+
+# reboot library
+-e git+https://github.hpe.com/hpe-networking/topology_lib_reboot.git@master#egg=topology_lib_reboot
