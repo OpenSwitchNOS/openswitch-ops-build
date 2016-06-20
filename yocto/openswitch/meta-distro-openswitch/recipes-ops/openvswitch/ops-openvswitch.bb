@@ -32,7 +32,8 @@ SRC_URI = "git://github.com/openvswitch/ovs.git;protocol=https;branch=branch-2.5
            file://0024-fix-dev-Fix-for-weak-key-strong-value.patch \
            file://0025-Improve-ovsdb-trasaction-errors.patch \
            file://0026-Implementation-of-weak_gc-reference-type.patch \
-          "
+           file://0027-Change-track-retain-column-values-of-deleted-rows.patch \
+           "
 
 SRCREV = "976b441345df85dd7adb973f8ae208f588d764a0"
 
