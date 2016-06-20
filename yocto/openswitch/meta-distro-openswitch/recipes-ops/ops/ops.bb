@@ -6,7 +6,7 @@ BRANCH ?= "${OPS_REPO_BRANCH}"
 
 SRC_URI = "${OPS_REPO_BASE_URL}/ops;protocol=${OPS_REPO_PROTOCOL};branch=${BRANCH}"
 
-SRCREV = "1af0a0dbbd244ee284d0ac46ebce9ca066912b79"
+SRCREV = "b34ae1cd4d36eb7de56484191007013c4aeed592"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.
@@ -14,10 +14,8 @@ PV = "git${SRCPV}"
 
 S = "${WORKDIR}/git"
 
-FILES_${PN} = "/usr/share/openvswitch/ /usr/share/openvswitch/*.extschema /usr/share/openvswitch/*.xml /usr/share/openvswitch/*.ovsschema"
+FILES_${PN} += "/usr/share/openvswitch/ /usr/share/openvswitch/*.extschema /usr/share/openvswitch/*.xml /usr/share/openvswitch/*.ovsschema"
 
 OPS_SCHEMA_PATH="${S}/schema"
 
-do_install() {
-	oe_runmake install DESTDIR=${D} PREFIX=${prefix}
-}
+inherit openswitch cmake
