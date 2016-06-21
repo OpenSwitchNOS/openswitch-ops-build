@@ -27,4 +27,19 @@ FILES_${PN} += "/usr/lib/cli/plugins/"
 SYSTEMD_PACKAGES = "${PN}"
 SYSTEMD_SERVICE_${PN} = "ops-relay.service"
 
-inherit openswitch cmake systemd
+inherit openswitch setuptools cmake systemd pkgconfig
+
+# need to override the exported functions and call both by ourselves.
+do_compile() {
+     cd ${S}/apps/dns-client/
+     distutils_do_compile
+     # Cmake compile changes to the B directory
+     cmake_do_compile
+}
+
+do_install() {
+     cd ${S}/apps/dns-client/
+     distutils_do_install
+     # Cmake compile changes to the B directory
+     cmake_do_install
+}
