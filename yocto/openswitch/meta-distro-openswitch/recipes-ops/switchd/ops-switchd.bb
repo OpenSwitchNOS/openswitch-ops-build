@@ -9,6 +9,8 @@ SRC_URI = "git://git.openswitch.net/openswitch/ops-switchd;protocol=http;branch=
    file://switchd_sim.service \
    file://switchd_p4sim.service \
    file://switchd_xpliant.service \
+   file://switch_reboot@.service \
+   file://switch_reboot.sh \
 "
 
 SRCREV = "57c510e2700aa0111e37b052110d5fa9c6ea9bdf"
@@ -21,7 +23,7 @@ S = "${WORKDIR}/git"
 
 RPROVIDES_${PN} = "virtual/switchd"
 
-RDEPENDS_${PN} = "openssl procps util-linux-uuidgen util-linux-libuuid coreutils \
+RDEPENDS_${PN} = "bash openssl procps util-linux-uuidgen util-linux-libuuid coreutils \
   python perl perl-module-strict sed gawk grep \
   ops-openvswitch ops-ovsdb \
   ${@bb.utils.contains('MACHINE_FEATURES', 'ops-container', 'openvswitch-sim-switch', '',d)} \
@@ -35,6 +37,8 @@ do_install_append() {
    install -d ${D}${systemd_unitdir}/system
    if ${@bb.utils.contains('MACHINE_FEATURES','broadcom','true','false',d)}; then
       install -m 0644 ${WORKDIR}/switchd_bcm.service ${D}${systemd_unitdir}/system/switchd.service
+      install -m 0644 ${WORKDIR}/switch_reboot@.service ${D}${systemd_unitdir}/system/switch_reboot@.service
+      install -m 0755 ${WORKDIR}/switch_reboot.sh ${D}${sbindir}/ops-reboot
    elif ${@bb.utils.contains('MACHINE_FEATURES','xpliant','true','false',d)}; then
       install -m 0644 ${WORKDIR}/switchd_xpliant.service ${D}${systemd_unitdir}/system/switchd.service
    elif ${@bb.utils.contains('IMAGE_FEATURES','ops-p4','true','false',d)}; then
@@ -48,7 +52,7 @@ do_install_append() {
       install -m 0644 ${plugin} ${D}/usr/share/opsplugins
    done
 }
-FILES_${PN} += "/usr/share/opsplugins"
+FILES_${PN} += "/usr/share/opsplugins ${sbindir}/ops-reboot ${systemd_unitdir}/system/switch_reboot@.service"
 
 SYSTEMD_PACKAGES = "${PN}"
 SYSTEMD_SERVICE_${PN} = "switchd.service"
