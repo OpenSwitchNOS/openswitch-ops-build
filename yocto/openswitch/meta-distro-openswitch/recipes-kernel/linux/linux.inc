@@ -81,6 +81,7 @@ do_configure_prepend() {
     kernel_conf_variable BLK_DEV_BSG y
     kernel_conf_variable DEVTMPFS y
     kernel_conf_variable DEVTMPFS_MOUNT y
+    kernel_conf_variable UNIX_DIAG y
 
     # Newer inits like systemd need cgroup support
     if [ "${KERNEL_ENABLE_CGROUPS}" = "1" ] ; then
