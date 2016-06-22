@@ -8,14 +8,13 @@ RDEPENDS_${PN} = "openvswitch-sim-switch"
 PROVIDES += "virtual/ops-switchd-switch-api-plugin"
 RPROVIDES_${PN} += "virtual/ops-switchd-switch-api-plugin"
 
-BRANCH ?= "${OPS_REPO_BRANCH}"
+BRANCH ?= "feature/citlinkissue"
 
 SRC_URI = "${OPS_REPO_BASE_URL}/ops-switchd-container-plugin;protocol=${OPS_REPO_PROTOCOL};branch=${BRANCH} \
 "
 FILES_${PN} = "${libdir}/openvswitch/plugins"
 
-SRCREV = "4a3545f09c49240fce140bd28ac4eec65c22f804"
-
+SRCREV = "${AUTOREV}"
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.
 PV = "git${SRCPV}"
