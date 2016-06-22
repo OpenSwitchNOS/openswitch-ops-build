@@ -22,7 +22,8 @@ inherit ${TESTIMAGECLASS}
 # IMAGE_FEATURES may contain any available package group
 IMAGE_FEATURES ?= ""
 IMAGE_FEATURES[type] = "list"
-IMAGE_FEATURES[validitems] += "debug-tweaks vagrant-tweaks read-only-rootfs empty-root-password allow-empty-password post-install-logging"
+IMAGE_FEATURES[validitems] += "debug-tweaks vagrant-tweaks read-only-rootfs empty-root-password \
+    allow-empty-password post-install-logging allow-netop-to-issue-reboot"
 
 # Generate companion debugfs?
 IMAGE_GEN_DEBUGFS ?= "0"
@@ -189,6 +190,9 @@ ROOTFS_POSTPROCESS_COMMAND += '${@bb.utils.contains_any("IMAGE_FEATURES", [ 'vag
 
 # Enable postinst logging if debug-tweaks is enabled
 ROOTFS_POSTPROCESS_COMMAND += '${@bb.utils.contains_any("IMAGE_FEATURES", [ 'debug-tweaks', 'post-install-logging' ], "postinst_enable_logging; ", "",d)}'
+
+# Allow netop user to run reboot command
+ROOTFS_POSTPROCESS_COMMAND += '${@bb.utils.contains_any("IMAGE_FEATURES", [ 'debug-tweaks', 'allow-netop-to-issue-reboot' ], "allow_netop_to_issue_reboot; ", "",d)}'
 
 # Write manifest
 IMAGE_MANIFEST = "${DEPLOY_DIR_IMAGE}/${IMAGE_NAME}.rootfs.manifest"
@@ -401,6 +405,12 @@ vagrant_support () {
 
 	# Add password-less sudo
 	echo 'vagrant ALL=(ALL) NOPASSWD: ALL' >> ${IMAGE_ROOTFS}/etc/sudoers
+}
+
+#Allow netop user to issue reboot command on switch
+allow_netop_to_issue_reboot () {
+	# Add password-less sudo
+  echo 'netop ALL= NOPASSWD: /sbin/reboot' >> ${IMAGE_ROOTFS}/etc/sudoers
 }
 
 # Disable DNS lookups, the SSH_DISABLE_DNS_LOOKUP can be overridden to allow
