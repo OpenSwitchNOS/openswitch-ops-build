@@ -18,6 +18,7 @@ pep8-naming
 ##########################
 
 pytest==2.8.4
+pytest-cov
 pytest-random
 pytest-xdist
 pytest-timeout
