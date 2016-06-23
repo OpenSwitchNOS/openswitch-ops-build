@@ -1,0 +1,35 @@
+From fca1579d62d5b978375511e062b9c18f4413dd5a Mon Sep 17 00:00:00 2001
+From: Mark Asselstine <mark.asselstine@windriver.com>
+Date: Thu, 20 Aug 2015 14:06:32 -0400
+Subject: [PATCH] safe_yaml: syck isn't available for Ruby >= 2.0.0
+
+This change was taken from various puppet forks but does not exist in
+puppet upstream as they drop support for YAML on the network as part
+of work to fix PUP-3272.
+
+https://tickets.puppetlabs.com/browse/PUP-3272
+
+Community versions of this change:
+https://github.com/kylog/puppet/commit/42b2e77ec24dfbbf2317d08615a35127afbc4782
+
+Signed-off-by: Mark Asselstine <mark.asselstine@windriver.com>
+---
+ lib/puppet/vendor/safe_yaml/lib/safe_yaml.rb | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib/puppet/vendor/safe_yaml/lib/safe_yaml.rb b/lib/puppet/vendor/safe_yaml/lib/safe_yaml.rb
+index 8670ace..722dd3e 100644
+--- a/lib/puppet/vendor/safe_yaml/lib/safe_yaml.rb
++++ b/lib/puppet/vendor/safe_yaml/lib/safe_yaml.rb
+@@ -3,7 +3,7 @@ require "yaml"
+ # This needs to be defined up front in case any internal classes need to base
+ # their behavior off of this.
+ module SafeYAML
+-  YAML_ENGINE = defined?(YAML::ENGINE) ? YAML::ENGINE.yamler : "syck"
++  YAML_ENGINE = defined?(YAML::ENGINE) ? YAML::ENGINE.yamler : (defined?(Psych) && YAML == Psych ? "psych" : "syck")
+ end
+ 
+ require "set"
+-- 
+2.1.4
+
