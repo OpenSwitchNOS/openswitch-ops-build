@@ -48,6 +48,7 @@ RDEPENDS_packagegroup-ops-base = "\
     wget curl \
     libcap-bin \
     ops-init \
+    ops-reboot \
     virtual/switchd \
     virtual/ops-switchd-switch-api-plugin \
     ops-ovsdb \
