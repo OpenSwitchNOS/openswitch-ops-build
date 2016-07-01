@@ -1,0 +1,11 @@
+config APPLIANCE
+	bool
+	default y
+
+	# Please add new selects below by sorting them alphabetically
+	select HAVE_MAX_NUM_PORTS
+	select HAVE_SIM_CONFIG_FILE
+	# Please add new selects above by sorting them alphabetically
+
+	---help---
+	  Add a description of appliance Platform here.

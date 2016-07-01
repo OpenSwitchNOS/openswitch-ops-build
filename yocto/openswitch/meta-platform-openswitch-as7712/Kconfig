@@ -1,0 +1,12 @@
+config AS7712
+	bool
+	default y
+
+	# Please add new selects below by sorting them alphabetically
+	select HAVE_ACCTON_CONFIG_FILE
+	select HAVE_BROADCOM_CONFIG_FILE
+	select HAVE_OPS_BUFMOND
+	# Please add new selects above by sorting them alphabetically
+
+	---help---
+	  Add a description of AS7712 Platform here.

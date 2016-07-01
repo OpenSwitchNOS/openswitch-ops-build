@@ -1,0 +1,14 @@
+#
+# L3 and above features
+#
+menu "Layer 3 and above Features"
+
+config KEY_VALUE_EXAMPLE_L3_PROPERTY
+	int "Example: L3 Parameter"
+	default 64
+	range 8 256
+        ---help---
+	  This is to demonstrate how to make use of key-value pairs through
+	  through OpenSwitch Modular Configuration framework.
+
+endmenu

@@ -1,0 +1,66 @@
+#
+# For a description of the syntax of this configuration file,
+# see https://www.kernel.org/doc/Documentation/kbuild/kconfig-language.txt
+#
+mainmenu "OpenSwitch Configuration for \"$CONFIGURED_PLATFORM\" Platform"
+
+# Currently configured platform
+config CONFIGURED_PLATFORM
+        string
+        option env="CONFIGURED_PLATFORM"
+
+# Location of ops-build
+config BUILD_ROOT
+	string
+	option env="BUILD_ROOT"
+
+# Current distro
+config DISTRO
+	string
+	option env="DISTRO"
+
+#
+# Source all top level Kconfig files
+# !!! DO NOT CHANGE THE ORDER !!!
+#
+# Include platform specific Kconfig file
+source "$BUILD_ROOT/yocto/$DISTRO/meta-platform-$DISTRO-$CONFIGURED_PLATFORM/Kconfig"
+
+# General setup
+source "$BUILD_ROOT/yocto/$DISTRO/meta-distro-$DISTRO/recipes-ops/utils/Kconfig"
+
+# Platform vendor specific options
+config HAVE_SIM_CONFIG_FILE
+	def_bool n
+
+config HAVE_ACCTON_CONFIG_FILE
+	def_bool n
+
+if HAVE_SIM_CONFIG_FILE
+	# Simulation environment (appliance genericx86-64)
+	source "$BUILD_ROOT/tools/config/Kconfig.sim"
+endif
+
+if HAVE_ACCTON_CONFIG_FILE
+	# Accton (as5712 as6712 as7712)
+	source "$BUILD_ROOT/tools/config/Kconfig.act"
+endif
+
+# Forwarding ASIC vendor specific features
+# None for simulation environment (appliance genericx86-64)
+config HAVE_BROADCOM_CONFIG_FILE
+	def_bool n
+
+if HAVE_BROADCOM_CONFIG_FILE
+	# as5712 as6712 as7712
+	source "$BUILD_ROOT/tools/config/Kconfig.bcm"
+endif
+
+# L2 feature set
+source "$BUILD_ROOT/yocto/$DISTRO/meta-distro-$DISTRO/recipes-ops/l2/Kconfig"
+
+# L3 and above feature set
+source "$BUILD_ROOT/yocto/$DISTRO/meta-distro-$DISTRO/recipes-ops/l3/Kconfig"
+
+# Management interface options
+source "$BUILD_ROOT/yocto/$DISTRO/meta-distro-$DISTRO/recipes-ops/mgmt/Kconfig"

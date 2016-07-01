@@ -1,0 +1,32 @@
+#
+# Automatically generated file; DO NOT EDIT.
+# OpenSwitch Configuration for "genericx86-64" Platform
+#
+OPS_CONFIG_GENERICX86_64=y
+
+#
+# General Setup
+#
+# OPS_CONFIG_HAVE_OPS_BUFMOND is not set
+OPS_CONFIG_HAVE_SIM_CONFIG_FILE=y
+# OPS_CONFIG_HAVE_ACCTON_CONFIG_FILE is not set
+
+#
+# Platform (Simulation) Options
+#
+# OPS_CONFIG_HAVE_BROADCOM_CONFIG_FILE is not set
+
+#
+# Layer 2 Features
+#
+# OPS_CONFIG_HAVE_MAX_NUM_PORTS is not set
+
+#
+# Layer 3 and above Features
+#
+OPS_CONFIG_KEY_VALUE_EXAMPLE_L3_PROPERTY=32
+
+#
+# Management Interface Options
+#
+OPS_CONFIG_OPS_NTPD=y
