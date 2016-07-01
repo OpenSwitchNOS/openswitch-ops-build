@@ -1,0 +1,14 @@
+#
+# Vendor specific features
+#
+menu "Forwarding ASIC (Broadcom) Features"
+
+config OPS_BROADVIEW
+	bool "Broadview"
+	depends on OPS_BUFMOND
+	default y
+	---help---
+	  BroadView Instrumentation exposes various instrumentation
+	  capabilities in Broadcom silicon.
+
+endmenu

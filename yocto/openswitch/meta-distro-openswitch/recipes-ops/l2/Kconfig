@@ -1,0 +1,14 @@
+#
+# L2 features
+#
+menu "Layer 2 Features"
+
+config KEY_VALUE_EXAMPLE_NUM_PORTS
+	int "Example: Number of physical ports"
+	default 64
+	range 8 256
+        ---help---
+	  This is to demonstrate how to make use of key-value pairs through
+	  through OpenSwitch Modular Configuration framework.
+
+endmenu
