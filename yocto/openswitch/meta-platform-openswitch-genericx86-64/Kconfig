@@ -1,0 +1,10 @@
+config GENERICX86_64
+	bool
+	default y
+
+	# Please add new selects below by sorting them alphabetically
+	select HAVE_SIM_CONFIG_FILE
+	# Please add new selects above by sorting them alphabetically
+
+	---help---
+	  Add a description of genericx86-64 Platform here.

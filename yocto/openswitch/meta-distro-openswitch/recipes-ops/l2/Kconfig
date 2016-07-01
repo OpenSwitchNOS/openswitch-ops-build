@@ -1,0 +1,17 @@
+#
+# L2 features
+#
+menu "Layer 2 Features"
+
+config HAVE_MAX_NUM_PORTS
+	def_bool n
+
+config MAX_NUM_PORTS
+	int "Max number of physical ports"
+	depends on HAVE_MAX_NUM_PORTS
+	default 3
+	range 1 256
+        ---help---
+	  This limits the maximum number of physical ports switch can have.
+
+endmenu
