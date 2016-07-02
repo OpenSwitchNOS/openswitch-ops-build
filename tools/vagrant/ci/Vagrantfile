@@ -1,0 +1,33 @@
+
+$provisioning_script = <<SCRIPT
+set -ex
+
+# Required by yocto
+apt-get -y install gawk wget git git-core diffstat unzip texinfo gcc-multilib build-essential chrpath screen curl docker
+
+SCRIPT
+
+Vagrant.configure("2") do |config|
+
+  config.vm.box = "dummy"
+
+  config.vm.provider :aws do |aws, override|
+    aws.region = "us-west-2"
+    aws.instance_type = "t2.nano"
+    aws.ami = "ami-06b94666"
+    aws.keypair_name = "aws"
+    aws.terminate_on_shutdown = true
+    aws.security_groups = [ "openswitch-default" ]
+    aws.tags = {
+       'Name' => 'Test Dynamic Harness',
+       'Job-Number' => 'XXX'
+    }
+
+    override.ssh.username = "ubuntu"
+    override.ssh.private_key_path = "~/.ssh/aws.key"
+  end
+
+  config.vm.provision "shell" do |s|
+    s.inline = $provisioning_script
+  end
+end
