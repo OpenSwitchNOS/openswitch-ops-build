@@ -12,7 +12,7 @@ SRC_URI = "${OPS_REPO_BASE_URL}/ops-supportability;protocol=${OPS_REPO_PROTOCOL}
            file://ops-supportability.service \
 "
 
-SRCREV = "814917135c5350ab3247e83a35fdf6277c50fd1a"
+SRCREV = "ef82ea7fc71622a586bc6c3ec1c873289429d743"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.
