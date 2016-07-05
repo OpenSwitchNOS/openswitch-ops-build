@@ -8,7 +8,7 @@ SRC_URI = "git://git.openswitch.net/openswitch/ops-vland;protocol=http;branch=re
            file://ops-vland.service \
 "
 
-SRCREV = "742c2b95eb06eeaccc94a302f0f7e303cbcae12f"
+SRCREV = "7380a2be3a0b4c72ec347a90452307be1f399dd1"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.
