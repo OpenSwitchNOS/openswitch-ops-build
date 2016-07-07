@@ -92,6 +92,7 @@ RDEPENDS_packagegroup-ops-min = "\
     python-paramiko \
     python-netclient \
     python-netserver \
+    python-coverage \
     yaml-cpp \
     libevent \
     util-linux \
