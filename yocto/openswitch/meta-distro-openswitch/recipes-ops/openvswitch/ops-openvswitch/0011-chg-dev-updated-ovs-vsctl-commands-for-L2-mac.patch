@@ -1,19 +1,18 @@
-From bee33f957516790000d5bcb90a19bbe7744c070c Mon Sep 17 00:00:00 2001
+From b372994a863a873559411c55d7966704a4b56ffd Mon Sep 17 00:00:00 2001
 From: Mamata Hegde <mamata.hegde@hpe.com>
 Date: Sun, 8 May 2016 21:59:14 -0700
-Subject: [PATCH 11/11] chg: dev: updated ovs-vsctl commands for L2 mac
+Subject: [PATCH] chg: dev: updated ovs-vsctl commands for L2 mac
 
 TG-957
 
 Change-Id: I8141feac4889847826a2d49d89505ee149f6cd70
 Signed-off-by: Mamata Hegde <mamata.hegde@hpe.com>
-
 ---
- utilities/ovs-vsctl.c | 129 +++++++++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 128 insertions(+), 1 deletion(-)
+ utilities/ovs-vsctl.c | 130 +++++++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 129 insertions(+), 1 deletion(-)
 
 diff --git a/utilities/ovs-vsctl.c b/utilities/ovs-vsctl.c
-index d404b8f..7e08bda 100644
+index d404b8f..4c10dbc 100644
 --- a/utilities/ovs-vsctl.c
 +++ b/utilities/ovs-vsctl.c
 @@ -446,7 +446,10 @@ VRF Port commands:\n\
@@ -28,7 +27,7 @@ index d404b8f..7e08bda 100644
  #endif
      vlog_usage();
      printf("\
-@@ -1978,6 +1981,27 @@ pre_get_vlan_info(struct ctl_context *ctx)
+@@ -1978,6 +1981,28 @@ pre_get_vlan_info(struct ctl_context *ctx)
  }
  
  static void
@@ -39,13 +38,14 @@ index d404b8f..7e08bda 100644
 +    ovsdb_idl_add_table(ctx->idl, &ovsrec_table_bridge);
 +    ovsdb_idl_add_column(ctx->idl, &ovsrec_bridge_col_name);
 +    ovsdb_idl_add_column(ctx->idl, &ovsrec_bridge_col_ports);
++    ovsdb_idl_add_column(ctx->idl, &ovsrec_bridge_col_vlans);
 +    ovsdb_idl_add_column(ctx->idl, &ovsrec_port_col_name);
 +
 +    ovsdb_idl_add_table(ctx->idl, &ovsrec_table_mac);
 +    ovsdb_idl_add_column(ctx->idl, &ovsrec_mac_col_bridge);
 +    ovsdb_idl_add_column(ctx->idl, &ovsrec_mac_col_mac_addr);
 +    ovsdb_idl_add_column(ctx->idl, &ovsrec_mac_col_tunnel_key);
-+    ovsdb_idl_add_column(ctx->idl, &ovsrec_mac_col_vlan);
++    ovsdb_idl_add_column(ctx->idl, &ovsrec_mac_col_mac_vlan);
 +    ovsdb_idl_add_column(ctx->idl, &ovsrec_mac_col_port);
 +    ovsdb_idl_add_column(ctx->idl, &ovsrec_mac_col_from);
 +    ovsdb_idl_add_column(ctx->idl, &ovsrec_mac_col_status);
@@ -56,7 +56,7 @@ index d404b8f..7e08bda 100644
  bridge_insert_vlan(struct ovsrec_bridge *br, struct ovsrec_vlan *vlan)
  {
      struct ovsrec_vlan **vlans;
-@@ -2134,6 +2158,105 @@ cmd_del_vlan(struct ctl_context *ctx)
+@@ -2134,6 +2159,105 @@ cmd_del_vlan(struct ctl_context *ctx)
  }
  
  static void
@@ -100,7 +100,7 @@ index d404b8f..7e08bda 100644
 +
 +    mac = ovsrec_mac_insert(ctx->txn);
 +    ovsrec_mac_set_bridge(mac, bridge->br_cfg);
-+    ovsrec_mac_set_vlan(mac, vid);
++    ovsrec_mac_set_mac_vlan(mac, ovs_vsctl_get_vlan_row(bridge->br_cfg, vid));
 +    ovsrec_mac_set_mac_addr(mac, mac_addr);
 +    ovsrec_mac_set_port(mac, port_cfg);
 +    ovsrec_mac_set_from(mac, from);
@@ -149,7 +149,7 @@ index d404b8f..7e08bda 100644
 +    OVSREC_MAC_FOR_EACH(mac_e, ctx->idl) {
 +        if ((strcmp(mac_addr, mac_e->mac_addr) == 0) &&
 +            (strcmp(from, mac_e->from) == 0) &&
-+            (vid == mac_e->vlan) &&
++            (vid == mac_e->mac_vlan->id) &&
 +            (mac_e->bridge == bridge->br_cfg) &&
 +            (mac_e->port == port_cfg)) {
 +            ovsrec_mac_delete(mac_e);
@@ -162,7 +162,7 @@ index d404b8f..7e08bda 100644
  pre_get_vrf_info(struct ctl_context *ctx)
  {
      ovsdb_idl_add_column(ctx->idl, &ovsrec_open_vswitch_col_vrfs);
-@@ -3924,6 +4047,10 @@ static const struct ctl_command_syntax vsctl_commands[] = {
+@@ -3924,6 +4048,10 @@ static const struct ctl_command_syntax vsctl_commands[] = {
      {"del-vlan", 2, 2, "", pre_get_vlan_info, cmd_del_vlan, NULL, "--if-exists",
       RW},
  
@@ -174,5 +174,5 @@ index d404b8f..7e08bda 100644
      {"list-vrf", 0, 0, "", pre_get_vrf_info, cmd_list_vrf, NULL, "", RO},
      {"add-vrf", 1, 1, "", pre_get_vrf_info, cmd_add_vrf, NULL,
 -- 
-2.1.4
+2.9.0
 
