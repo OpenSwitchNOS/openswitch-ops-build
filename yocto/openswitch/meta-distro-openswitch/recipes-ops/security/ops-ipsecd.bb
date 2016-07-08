@@ -5,7 +5,7 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/Apache-2.0;md5=89aea4e17d99a7ca
 
 DEPENDS = "ops-ovsdb doxygen-native gtest gmock strongswan libmnl boost"
 
-SRC_URI = "git://git.openswitch.net/openswitch/ops-ipsecd;protocol=http \
+SRC_URI = "git://git-nos.rose.rdlabs.hpecorp.net/openswitch/ops-ipsecd;protocol=http \
            file://ops-ipsecd.service \
            "
 

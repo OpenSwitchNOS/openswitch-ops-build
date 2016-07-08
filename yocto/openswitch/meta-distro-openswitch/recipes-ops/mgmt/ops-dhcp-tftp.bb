@@ -5,7 +5,7 @@ LIC_FILES_CHKSUM = "file://setup.py;beginline=1;endline=15;md5=66f387680cedd92d8
 RDEPENDS_${PN} = "python-argparse python-json python-ops-ovsdb python-distribute"
 DEPENDS = "ops-cli ops-supportability"
 
-SRC_URI = "git://git.openswitch.net/openswitch/ops-dhcp-tftp;protocol=http;branch=rel/dill \
+SRC_URI = "git://git-nos.rose.rdlabs.hpecorp.net/openswitch/ops-dhcp-tftp;protocol=http;branch=rel/dill \
            file://dhcp_tftp.service \
 "
 
