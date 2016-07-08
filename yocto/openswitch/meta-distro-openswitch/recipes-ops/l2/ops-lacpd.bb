@@ -2,7 +2,7 @@ SUMMARY = "OpenSwitch LACP Daemon"
 LICENSE = "Apache-2.0"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/Apache-2.0;md5=89aea4e17d99a7cacdbeed46a0096b10"
 
-DEPENDS = "ops-ovsdb ops-utils ops-cli ops-supportability"
+DEPENDS = "ops-ovsdb ops-utils ops-cli ops-supportability ops-snmpd"
 
 BRANCH ?= "${OPS_REPO_BRANCH}"
 
@@ -23,7 +23,7 @@ do_install_append() {
     install -m 0644 ${WORKDIR}/ops-lacpd.service ${D}${systemd_unitdir}/system/
 }
 
-FILES_${PN} += "/usr/lib/cli/plugins"
+FILES_${PN} += "/usr/lib/cli/plugins /usr/lib/snmp/plugins"
 SYSTEMD_PACKAGES = "${PN}"
 SYSTEMD_SERVICE_${PN} = "ops-lacpd.service"
 
