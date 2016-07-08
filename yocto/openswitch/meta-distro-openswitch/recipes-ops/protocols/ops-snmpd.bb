@@ -6,7 +6,7 @@ DEPENDS = "net-snmp ops-openvswitch ops-ovsdb ops-cli"
 
 RDEPENDS_${PN} = "net-snmp-client net-snmp-server net-snmp-mibs net-snmp-libs perl"
 
-SRC_URI = "git://git.openswitch.net/openswitch/ops-snmpd;protocol=http;branch=rel/dill \
+SRC_URI = "git://git-nos.rose.rdlabs.hpecorp.net/openswitch/ops-snmpd;protocol=http;branch=rel/dill \
            file://ops-snmpd.service\
            file://snmpd.conf\
            "

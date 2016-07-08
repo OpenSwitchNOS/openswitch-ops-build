@@ -5,7 +5,7 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/Apache-2.0;md5=89aea4e17d99a7ca
 
 DEPENDS = "ops-ovsdb"
 
-SRC_URI = "git://git.openswitch.net/openswitch/ops-hw-vtep;protocol=http\
+SRC_URI = "git://git-nos.rose.rdlabs.hpecorp.net/openswitch/ops-hw-vtep;protocol=http\
            file://ops-hw-vtep.service"
 
 SRCREV = "ad5665cb25f6987899c4bd822e69794349a28ba1"
