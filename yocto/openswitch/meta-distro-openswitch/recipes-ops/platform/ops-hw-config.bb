@@ -2,10 +2,14 @@ SUMMARY = "Platform Configuration files for OpenSwitch"
 LICENSE = "Apache-2.0"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/Apache-2.0;md5=89aea4e17d99a7cacdbeed46a0096b10"
 
-SRC_URI = "git://git.openswitch.net/openswitch/ops-hw-config;protocol=http \
+DEPENDS = "yaml-cpp gtest i2c-tools"
+
+BRANCH ?= "${OPS_REPO_BRANCH}"
+
+SRC_URI = "${OPS_REPO_BASE_URL}/ops-hw-config;protocol=${OPS_REPO_PROTOCOL};branch=${BRANCH} \
 "
 
-SRCREV = "f30626e39e0261e1fef323e75e6e9370c0daf6c8"
+SRCREV = "cede9d20bd2a415e6cc2f7c09f0e59ea90c9be69"
 
 PLATFORM_PATH?="${MACHINE}"
 
@@ -15,11 +19,20 @@ PV = "git${SRCPV}"
 
 S = "${WORKDIR}/git"
 
-do_install () {
+do_install_append () {
     install -d ${D}${sysconfdir}/openswitch/platform/${PLATFORM_PATH}
-    cp -p ${S}/${PLATFORM_PATH}/*.yaml ${D}${sysconfdir}/openswitch/platform/${PLATFORM_PATH}
+    for f in ${S}/${PLATFORM_PATH}/*.yaml ; do
+        d=`dirname "$f"`
+        n=`basename "$f"`
+        # If there's a flavor override, use that
+        if test -n "${PLATFORM_FLAVOR}" -a -e "${d}/${PLATFORM_FLAVOR}/${n}" ; then
+            cp "${d}/${PLATFORM_FLAVOR}/${n}" "${D}${sysconfdir}/openswitch/platform/${PLATFORM_PATH}"
+        else
+            cp "${d}/${n}" "${D}${sysconfdir}/openswitch/platform/${PLATFORM_PATH}"
+        fi
+    done
 }
 
-FILES_${PN} = "${sysconfdir}"
+FILES_${PN} += "${sysconfdir}"
 
-inherit openswitch
+inherit openswitch cmake

@@ -1,27 +1,30 @@
-SUMMARY = "P4 Compilers "
+SUMMARY = "P4 Compiler for P4 simulator target"
 HOMEPAGE = "https://github.com/p4lang/p4factory"
 LICENSE = "Apache-2.0"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=2f3453ba8e98aaed11a290758a999e65"
 
-# This is the actual repository, but until the infrastructure issues are
-# sorted out, we can host the code on Github
-#
-# OPS_P4C_REPO = "git.openswitch.net/openswitch/ops-p4c"
-OPS_P4C_REPO = "github.com/ops-p4/ops-p4c.git"
+OPS_P4C_REPO = "github.com/p4lang/p4c-bm.git"
 
-SRC_URI = "\
-	git://${OPS_P4C_REPO};protocol=https;branch=master \
-"
-SRCREV = "${AUTOREV}"
+SRC_URI = "git://${OPS_P4C_REPO};protocol=https;branch=ops \
+           "
+SRCREV = "f44bc6ddb9e49275abd2ddcdcffa81818911ef98"
 PV = "git${SRCPV}"
 S = "${WORKDIR}/git"
+
+PACKAGES_prepend = "${PN}-libpd ${PN}-libpd-dev ${PN}-libpd-staticdev ${PN}-libpd-dbg "
+PROVIDES = "${PACKAGES}"
+
+FILES_${PN}-libpd = "/usr/lib/libpd*.so.?.?.?"
+FILES_${PN}-libpd-staticdev = "/usr/lib/libpd*.a"
+FILES_${PN}-libpd-dev = "/usr/lib/libpd*.la /usr/lib/libpd*.so /usr/lib/libpd*.so.? /usr/lib/pkgconfig"
+FILES_${PN}-dbg = ""
+FILES_${PN}-libpd-dbg = "/usr/src/debug/ /usr/lib/.debug"
 
 DEPENDS = "\
 	judy \
 	libedit \
 	nanomsg \
 	p4-hlir \
-	python-native \
 	python-ply \
 	python-pyyaml-native \
 	python-tenjin \
@@ -31,25 +34,28 @@ DEPENDS = "\
 "
 
 RDEPENDS_${PN} = "\
-	judy \
-	libedit \
-	libpcap \
-	nanomsg \
-	thrift \
+    python-ply \
+    python-tenjin \
 "
 
-FILES_${PN} += "/usr/share/p4/switch_bmv2.json"
+RDEPENDS_class-native = ""
 
-inherit pythonnative
-inherit autotools-brokensep
+inherit pythonnative autotools-brokensep setuptools
 
 EXTRA_OECONF = "CPPFLAGS='${CPPFLAGS} -DHOST_BYTE_ORDER_CALLER'"
 
-export BUILD_SYS
-export HOST_SYS
-export STAGING_LIBDIR
-export STAGING_INCDIR
-export PYTHON_SITEPACKAGES_DIR
+BBCLASSEXTEND = "native"
+
+do_compile() {
+    base_do_compile
+    distutils_do_compile
+}
+
+do_install() {
+    distutils_do_install
+    autotools_do_install
+}
 
 LIBTOOL = "${B}/${HOST_SYS}-libtool"
-EXTRA_OEMAKE = "'LIBTOOL=${LIBTOOL}' PFX=${PKG_CONFIG_SYSROOT_DIR} STAGING_DIR=${STAGING_DIR_NATIVE}"
+EXTRA_OEMAKE = "'LIBTOOL=${LIBTOOL}'"
+EXTRA_OEMAKE_class-native = "'LIBTOOL=${BUILD_SYS}-libtool'"

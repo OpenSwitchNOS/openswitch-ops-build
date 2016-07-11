@@ -2,13 +2,15 @@ SUMMARY = "OpenSwitch LED Daemon"
 LICENSE = "Apache-2.0"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/Apache-2.0;md5=89aea4e17d99a7cacdbeed46a0096b10"
 
-DEPENDS = "ops-config-yaml ops-ovsdb ops-cli"
+DEPENDS = "ops-hw-config ops-ovsdb ops-cli ops-supportability"
 
-SRC_URI = "git://git.openswitch.net/openswitch/ops-ledd;protocol=http \
+BRANCH ?= "${OPS_REPO_BRANCH}"
+
+SRC_URI = "${OPS_REPO_BASE_URL}/ops-ledd;protocol=${OPS_REPO_PROTOCOL};branch=${BRANCH} \
            file://ops-ledd.service \
 "
 
-SRCREV = "7b8e254a9bbbf857cef35f968731080ebd37e5aa"
+SRCREV = "c956dc07557911114a1ec528539e0b2b1e2276d6"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.

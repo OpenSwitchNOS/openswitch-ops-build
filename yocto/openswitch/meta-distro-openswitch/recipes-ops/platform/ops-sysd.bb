@@ -2,14 +2,16 @@ SUMMARY = "OpenSwitch System Daemon (sysd)"
 LICENSE = "Apache-2.0"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/Apache-2.0;md5=89aea4e17d99a7cacdbeed46a0096b10"
 
-DEPENDS = "ops-utils ops-config-yaml ops-ovsdb"
+DEPENDS = "ops-utils ops-hw-config ops-ovsdb ops-cli ops-supportability"
 RDEPENDS_${PN} = "dmidecode"
 
-SRC_URI = "git://git.openswitch.net/openswitch/ops-sysd;protocol=https \
+BRANCH ?= "${OPS_REPO_BRANCH}"
+
+SRC_URI = "${OPS_REPO_BASE_URL}/ops-sysd;protocol=${OPS_REPO_PROTOCOL};branch=${BRANCH} \
            file://ops-sysd.service \
 "
 
-SRCREV = "6b8a4c6213f7921b0e4d5007ed3bff384436209a"
+SRCREV = "fd21bbc56db5cc7f65ac0b7347dc1d4e472caf88"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.
@@ -22,7 +24,10 @@ do_install_append() {
     install -m 0644 ${WORKDIR}/ops-sysd.service ${D}${systemd_unitdir}/system
 }
 
+FILES_${PN} += "/usr/lib/cli/plugins/"
 SYSTEMD_PACKAGES = "${PN}"
 SYSTEMD_SERVICE_${PN} = "ops-sysd.service"
+
+EXTRA_OECMAKE+="${@bb.utils.contains('MACHINE_FEATURES', 'ops-container', '-DUSE_SW_FRU=ON', '',d)}"
 
 inherit openswitch cmake systemd pkgconfig

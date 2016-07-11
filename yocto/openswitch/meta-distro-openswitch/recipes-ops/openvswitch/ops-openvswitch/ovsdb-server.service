@@ -1,18 +1,19 @@
-# Copyright (C) 2015 Hewlett Packard Enterprise Development LP
+# Copyright (C) 2015-2016 Hewlett Packard Enterprise Development LP
 
 [Unit]
 Description=OVSDB Server Daemon
+OnFailure=switch-reboot@ovsdb-server.service
 
 [Service]
 Type=forking
 ExecStartPre=/bin/mkdir -p /var/local/openvswitch
 ExecStartPre=/bin/sh -c '/usr/bin/test -f /var/run/openvswitch/ovsdb.db || /usr/bin/ovsdb-tool create /var/run/openvswitch/ovsdb.db /usr/share/openvswitch/vswitch.ovsschema'
 ExecStartPre=/bin/sh -c '/usr/bin/test -f /var/local/openvswitch/config.db || /usr/bin/ovsdb-tool create /var/local/openvswitch/config.db /usr/share/openvswitch/configdb.ovsschema'
-ExecStartPre=/bin/sh -c '/usr/bin/test -f /var/local/openvswitch/dhcp_leases.db || /usr/bin/ovsdb-tool create /var/local/openvswitch/dhcp_leases.db /usr/share/openvswitch/dhcp_leases.ovsschema'
-ExecStart=/usr/sbin/ovsdb-server --remote=punix:/var/run/openvswitch/db.sock --detach --no-chdir --pidfile -vSYSLOG:INFO /var/run/openvswitch/ovsdb.db /var/local/openvswitch/config.db /var/local/openvswitch/dhcp_leases.db
+ExecStartPre=/bin/sh -c '(/usr/bin/test -f /var/local/openvswitch/dhcp_leases.db && /usr/bin/ovsdb-tool convert /var/local/openvswitch/dhcp_leases.db /usr/share/openvswitch/dhcp_leases.ovsschema) || (/usr/bin/ovsdb-tool create /var/local/openvswitch/dhcp_leases.db /usr/share/openvswitch/dhcp_leases.ovsschema)'
+ExecStartPre=/bin/sh -c '/usr/bin/test -f /var/local/openvswitch/vtep.db || /usr/bin/ovsdb-tool create /var/local/openvswitch/vtep.db /usr/share/openvswitch/vtep.ovsschema'
+ExecStart=/usr/sbin/ovsdb-server --remote=punix:/var/run/openvswitch/db.sock --detach --no-chdir --pidfile -vSYSLOG:INFO /var/run/openvswitch/ovsdb.db /var/local/openvswitch/config.db /var/local/openvswitch/dhcp_leases.db /var/local/openvswitch/vtep.db
 WorkingDirectory=/var/run/openvswitch
 PIDFile=/var/run/openvswitch/ovsdb-server.pid
-Restart=on-abort
 
 [Install]
 WantedBy=multi-user.target

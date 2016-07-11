@@ -2,9 +2,11 @@ SUMMARY = "OpenSwitch"
 LICENSE = "Apache-2.0"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/Apache-2.0;md5=89aea4e17d99a7cacdbeed46a0096b10"
 
-SRC_URI = "git://git.openswitch.net/openswitch/ops;protocol=https;branch=feature/benchmark"
+BRANCH ?= "${OPS_REPO_BRANCH}"
 
-SRCREV = "c25b70b57bf9c89f94581dfecfa3db4c2810c78b"
+SRC_URI = "${OPS_REPO_BASE_URL}/ops;protocol=${OPS_REPO_PROTOCOL};branch=${BRANCH}"
+
+SRCREV = "f24289faff750f36879112b5712d36cb24f14018"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.
@@ -12,23 +14,8 @@ PV = "git${SRCPV}"
 
 S = "${WORKDIR}/git"
 
-FILES_${PN} = "/usr/share/openvswitch/ /usr/share/openvswitch/*.extschema /usr/share/openvswitch/*.xml /usr/share/openvswitch/*.ovsschema"
+FILES_${PN} += "/usr/share/openvswitch/ /usr/share/openvswitch/*.extschema /usr/share/openvswitch/*.xml /usr/share/openvswitch/*.ovsschema"
 
 OPS_SCHEMA_PATH="${S}/schema"
 
-do_compile() {
-  ${PYTHON} ${OPS_SCHEMA_PATH}/sanitize.py ${OPS_SCHEMA_PATH}/vswitch.extschema ${OPS_SCHEMA_PATH}/vswitch.ovsschema
-  ${PYTHON} ${OPS_SCHEMA_PATH}/sanitize.py ${OPS_SCHEMA_PATH}/dhcp_leases.extschema ${OPS_SCHEMA_PATH}/dhcp_leases.ovsschema
-  touch ${OPS_SCHEMA_PATH}/vswitch.xml
-}
-
-do_install() {
-  install -d ${D}/${prefix}/share/openvswitch
-	install -m 0644 ${OPS_SCHEMA_PATH}/vswitch.extschema ${D}/${prefix}/share/openvswitch/vswitch.extschema
-	install -m 0644 ${OPS_SCHEMA_PATH}/vswitch.ovsschema ${D}/${prefix}/share/openvswitch/vswitch.ovsschema
-	install -m 0644 ${OPS_SCHEMA_PATH}/vswitch.xml ${D}/${prefix}/share/openvswitch/vswitch.xml
-	install -m 0644 ${OPS_SCHEMA_PATH}/dhcp_leases.extschema ${D}/${prefix}/share/openvswitch/dhcp_leases.extschema
-	install -m 0644 ${OPS_SCHEMA_PATH}/dhcp_leases.ovsschema ${D}/${prefix}/share/openvswitch/dhcp_leases.ovsschema
-	install -m 0644 ${OPS_SCHEMA_PATH}/dhcp_leases.xml ${D}/${prefix}/share/openvswitch/dhcp_leases.xml
-	install -m 0644 ${OPS_SCHEMA_PATH}/configdb.ovsschema ${D}/${prefix}/share/openvswitch/configdb.ovsschema
-}
+inherit openswitch cmake

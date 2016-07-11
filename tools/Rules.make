@@ -1,4 +1,4 @@
-# Copyright (C) 2015 Hewlett Packard Enterprise Development LP
+# Copyright (C) 2015-2016 Hewlett Packard Enterprise Development LP
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -32,6 +32,8 @@ export BUILDDIR=$(BUILD_ROOT)/build
 export BB_ENV_EXTRAWHITE=MACHINE DISTRO TCMODE TCLIBC HTTP_PROXY http_proxy HTTPS_PROXY https_proxy FTP_PROXY ftp_proxy ALL_PROXY all_proxy NO_PROXY no_proxy SSH_AGENT_PID SSH_AUTH_SOCK BB_SRCREV_POLICY SDKMACHINE BB_NUMBER_THREADS BB_NO_NETWORK PARALLEL_MAKE GIT_PROXY_COMMAND SOCKS5_PASSWD SOCKS5_USER SCREENDIR STAMPS_DIR PLATFORM_DTS_FILE BUILD_ROOT NFSROOTPATH NFSROOTIP
 export PATH:=$(BUILD_ROOT)/yocto/poky/scripts:$(BUILD_ROOT)/yocto/poky/bitbake/bin:$(BUILD_ROOT)/tools/bin:$(PATH)
 export LD_LIBRARY_PATH:=$(BUILD_ROOT)/tools/lib:$(LD_LIBRARY_PATH)
+export http_proxy
+export https_proxy
 
 # Some well known locations
 KERNEL_STAGING_DIR=$(shell cd $(BUILDDIR) ; $(BUILD_ROOT)/yocto/poky/bitbake/bin/bitbake -e | awk -F= '/^STAGING_KERNEL_DIR=/ { gsub(/"/, "", $$2); print $$2 }')
@@ -51,15 +53,24 @@ BASE_SIMPLEIMAGE_INITRAMFS_FILE = $(BUILDDIR)/tmp/deploy/images/$(CONFIGURED_PLA
 BASE_VMLINUX_FILE = $(BUILDDIR)/tmp/deploy/images/$(CONFIGURED_PLATFORM)/vmlinux
 BASE_CPIO_FS_FILE = $(BUILDDIR)/tmp/deploy/images/$(CONFIGURED_PLATFORM)/$(DISTRO_FS_TARGET)-$(CONFIGURED_PLATFORM).cpio.gz
 BASE_TARGZ_FS_FILE = $(BUILDDIR)/tmp/deploy/images/$(CONFIGURED_PLATFORM)/$(DISTRO_FS_TARGET)-$(CONFIGURED_PLATFORM).tar.gz
+BASE_TARGZ_DBG_FS_FILE = $(BUILDDIR)/tmp/deploy/images/$(CONFIGURED_PLATFORM)/$(DISTRO_FS_TARGET)-$(CONFIGURED_PLATFORM).dbg.tar.gz
 BASE_HDDIMG_FS_FILE = $(BUILDDIR)/tmp/deploy/images/$(CONFIGURED_PLATFORM)/$(DISTRO_FS_TARGET)-$(CONFIGURED_PLATFORM).hddimg
 BASE_OVA_FILE = $(BUILDDIR)/tmp/deploy/images/$(CONFIGURED_PLATFORM)/$(DISTRO_FS_TARGET)-$(CONFIGURED_PLATFORM).ova
 BASE_BOX_FILE = $(BUILDDIR)/tmp/deploy/images/$(CONFIGURED_PLATFORM)/$(DISTRO_FS_TARGET)-$(CONFIGURED_PLATFORM).box
 BASE_ONIE_INSTALLER_FILE = $(BUILDDIR)/tmp/deploy/images/$(CONFIGURED_PLATFORM)/$(ONIE_INSTALLER_FILE)
 BASE_DOCKER_IMAGE = openswitch/${CONFIGURED_PLATFORM}
 HOST_INTERPRETER := $(shell readelf -a /bin/sh | grep interpreter | awk '{ print substr($$4, 0, length($$4)-1)}')
+TARGET_INTERPRETER=$(STAGING_DIR_TARGET)/lib/ld-linux-x86-64.so.2
 
 UUIDGEN_NATIVE=$(STAGING_DIR_NATIVE)/usr/bin/uuidgen
 PYTEST_NATIVE=$(STAGING_DIR_NATIVE)/usr/bin/py.test
+# Rake binary path
+RAKE_NATIVE = $(STAGING_DIR_NATIVE)/usr/bin/rake
+
+# Static Code Analysis tool. Right now we support Fortify, but others like coverity could be added
+SCA_TOOLCHAIN ?= fortify
+SCA_TOOL ?= sourceanalyzer
+SCA_TOOL_SCAN_CMD ?= -scan -b $$(basename $$(pwd)) -f $$(basename $$(pwd)).fpr
 
 # Leave blank to use default location
 SSTATE_DIR?=""
@@ -98,16 +109,26 @@ define DEVTOOL
 	 $(BUILD_ROOT)/yocto/poky/scripts/devtool $(1) || exit 1
 endef
 
+define PARSE_TWO_ARGUMENTS
+ifeq ($(1),$(firstword $(MAKECMDGOALS)))
+  # use the rest as arguments for "$(1)"
+  EXTRA_ARGS_1 := $(wordlist 2, 2,$(MAKECMDGOALS))
+  EXTRA_ARGS_2 := $(wordlist 3, $(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
+  # ...and turn them into do-nothing targets
+  $(eval $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))::;@:)
+endif
+endef
+
 UT_PARAMS ?= --gtest_shuffle
 
 define EXECUTE_UT_TEST_HARNESS
-LD_LIBRARY_PATH=$(STAGING_DIR_TARGET)/usr/lib $(HOST_INTERPRETER) $(1) $(UT_PARAMS)
+$(TARGET_INTERPRETER) --library-path $(STAGING_DIR_TARGET)/lib:$(STAGING_DIR_TARGET)/usr/lib $(1) $(UT_PARAMS)
 endef
 
 VALGRIND ?= valgrind
-VALGRIND_OPTIONS = --leak-check=full --show-reachable=yes --track-origins=yes
+VALGRIND_OPTIONS ?= --leak-check=full --track-origins=yes
 define EXECUTE_UT_TEST_HARNESS_ON_VALGRIND
-LD_LIBRARY_PATH=$(STAGING_DIR_TARGET)/usr/lib $(VALGRIND) $(VALGRIND_OPTIONS) $(HOST_INTERPRETER) $(1) $(UT_PARAMS)
+$(VALGRIND) $(VALGRIND_OPTIONS) $(TARGET_INTERPRETER) --library-path $(STAGING_DIR_TARGET)/lib:$(STAGING_DIR_TARGET)/usr/lib $(1)
 endef
 
 # Rule to regenerate the site.conf file if proxies changed
@@ -195,13 +216,14 @@ _fs_links:
 	$(V)for extra_fs in $(DISTRO_EXTRA_FS_FILES) ; do ln -sf $$extra_fs images/`basename $$extra_fs` ; done
 	@# If we have a tar.gz file, also link it, useful for docker images
 	$(V)if [ -f $(BASE_TARGZ_FS_FILE) ] ; then ln -sf $(BASE_TARGZ_FS_FILE) images/`basename $(BASE_TARGZ_FS_FILE)` ; fi
+	$(V)if [ -f $(BASE_TARGZ_DBG_FS_FILE) ] ; then ln -sf $(BASE_TARGZ_DBG_FS_FILE) images/`basename $(BASE_TARGZ_DBG_FS_FILE)` ; fi
 	$(V)ln -sf `basename $(DISTRO_FS_FILE)` images/fs-$(CONFIGURED_PLATFORM)
 	$(V)ln -sf `dirname $(DISTRO_FS_FILE)`/`basename $(DISTRO_FS_FILE) |  cut -d'.' -f1`.manifest images/`basename $(DISTRO_FS_FILE) | cut -d'.' -f1`.manifest
 
 .PHONY: bake _bake
 $(eval $(call PARSE_ARGUMENTS,bake))
-RECIPE?=$(EXTRA_ARGS)
 ifneq ($(findstring bake,$(MAKECMDGOALS)),)
+ RECIPE?=$(EXTRA_ARGS)
  ifeq ($(RECIPE),)
   $(error ====== RECIPE variable is empty, please specify which recipe you want to bake =====)
  endif
@@ -213,8 +235,8 @@ _bake:
 
 .PHONY: cleansstate _cleansstate
 $(eval $(call PARSE_ARGUMENTS,cleansstate))
-RECIPE?=$(EXTRA_ARGS)
 ifneq ($(findstring cleansstate,$(MAKECMDGOALS)),)
+ RECIPE?=$(EXTRA_ARGS)
  ifeq ($(RECIPE),)
   $(error ====== RECIPE variable is empty, please specify which recipe you want to clean =====)
  endif
@@ -265,8 +287,9 @@ export_docker_image:
 	    $(call FATAL_ERROR, Unable to find $(BASE_TARGZ_FS_FILE)\n \
 	                       \tRun 'make' at the top level to create root-fs.) ; \
 	fi
-	$(V) $(ECHO) "Exporting '$(BASE_TARGZ_FS_FILE)' as a Docker Container Image '$(DOCKER_IMAGE)'"
-	$(V) /bin/cat $(BASE_TARGZ_FS_FILE) | docker import - $(DOCKER_IMAGE)
+	$(V) $(ECHO) "$(BLUE)Exporting '$(BASE_TARGZ_FS_FILE)' as image '$(DOCKER_IMAGE)'...$(GRAY)\n"
+	$(V) /bin/zcat $(BASE_TARGZ_FS_FILE) | docker import - $(DOCKER_IMAGE)
+	$(V) $(ECHO)
 
 .PHONY: deploy_nfsroot
 NFSROOTPATH?=$(BUILD_ROOT)/nfsroot-${CONFIGURED_PLATFORM}
@@ -300,8 +323,8 @@ deploy_nfsroot:
 
 .PHONY: devshell
 $(eval $(call PARSE_ARGUMENTS,devshell))
-RECIPE?=$(EXTRA_ARGS)
 ifneq ($(findstring devshell,$(MAKECMDGOALS)),)
+ RECIPE?=$(EXTRA_ARGS)
  ifeq ($(RECIPE),)
   $(error ====== RECIPE variable is empty, please specify which recipe you want the devshell for  =====)
  endif
@@ -354,12 +377,12 @@ images/$(CONFIGURED_PLATFORM).itb:: $(DISTRO_PLATFORM_ITS_FILE) $(MKIMAGE)
 
 # ONIE installer
 .PHONY: onie-installer
-onie-installer: header _kernel_links _fs _onie-installer
+onie-installer: header _onie-installer _kernel_links _fs_links
 
 DISTRO_ONIE_INSTALLER_FILE?= $(BASE_ONIE_INSTALLER_FILE)
 _onie-installer::
 	$(V) $(ECHO) "$(BLUE)Building ONIE Installer file ($(ONIE_INSTALLER_RECIPE))...$(GRAY)\n"
-	$(V)$(call BITBAKE,$(ONIE_INSTALLER_RECIPE))
+	$(V)$(call BITBAKE,$(ONIE_INSTALLER_RECIPE) $(DISTRO_FS_TARGET))
 	$(V)ln -sf $(DISTRO_ONIE_INSTALLER_FILE) images/`basename $(DISTRO_ONIE_INSTALLER_FILE)`
 
 ifneq ($(findstring onie-installer,$(MAKECMDGOALS)),)
@@ -390,17 +413,19 @@ _setup-git-review:: $(addprefix .git/hooks/,$(notdir $(wildcard $(BUILD_ROOT)/to
 	$(V) cp $(BUILD_ROOT)/tools/bin/hooks/$* $@
 
 .PHONY: devenv_init devenv_clean devenv_add devenv_rm devenv_status devenv_cscope devenv_list_all
-.PHONY: devenv_import dev_header devenv_refresh _devenv_refresh
+.PHONY: check_devenv devenv_import dev_header devenv_refresh _devenv_refresh
 
 -include src/Rules.make
 
-dev_header: header
-	$(V) flock -n $(BUILDDIR)/bitbake.lock echo -n || \
-	   { echo "Bitbake is currently running... can't proceed further, aborting" ; \
-             exit 255 ; }
+check_devenv:
 	$(V) if ! [ -f .devenv ] ; then \
 	  $(call FATAL_ERROR, devenv is not initialized, use 'devenv_init') ; \
 	fi
+
+dev_header: header check_devenv
+	$(V) flock -n $(BUILDDIR)/bitbake.lock echo -n || \
+	   { echo "Bitbake is currently running... can't proceed further, aborting" ; \
+             exit 255 ; }
 
 devenv_init: header
 	$(V) $(ECHO) "$(BLUE)Configuring development enviroment...$(GRAY)\n"
@@ -441,6 +466,10 @@ devenv_clean: dev_header
 
 DEVENV_BRANCH?=*auto*
 
+define QUERY_RECIPE
+	echo "$(2) `query-recipe.py --var $(1) $(2)`";
+endef
+
 define DEVENV_ADD
 	if ! grep -q '^$(1)$$' .devenv 2>/dev/null ; then \
 	  $(call DEVTOOL, modify --extract $(1) $(BUILD_ROOT)/src/$(1)) ; \
@@ -464,8 +493,8 @@ define DEVENV_ADD
 endef
 
 $(eval $(call PARSE_ARGUMENTS,devenv_add))
-PACKAGE?=$(EXTRA_ARGS)
 ifneq ($(findstring devenv_add,$(MAKECMDGOALS)),)
+  PACKAGE?=$(EXTRA_ARGS)
   ifeq ($(PACKAGE),)
    $(error ====== PACKAGE variable is empty, please specify which package you want  =====)
   endif
@@ -473,12 +502,28 @@ endif
 devenv_add: dev_header
 	$(V)$(foreach P, $(PACKAGE), $(call DEVENV_ADD,$(P)))
 
-ifeq (devenv_import,$(firstword $(MAKECMDGOALS)))
-  PACKAGE := $(wordlist 2, 2,$(MAKECMDGOALS))
-  IMPORTED_SRC := $(wordlist 3, 3,$(MAKECMDGOALS))
-  $(eval $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))::;@:)
+.PHONY: query_recipe
+
+$(eval $(call PARSE_ARGUMENTS,query_recipe))
+ifneq ($(findstring query_recipe,$(MAKECMDGOALS)),)
+  ifeq ($(VAR),)
+   $(error ====== VAR variable is empty, please specify which variable to query (VAR=SRCREV, VAR=SRC_URI, etc.) =====)
+  endif
+  PACKAGE?=$(EXTRA_ARGS)
   ifeq ($(PACKAGE),)
-   $(error ====== PACKAGE variable is empty, please specify which package you want  =====)
+   $(error ====== Please specify which package(s) you want to query =====)
+  endif
+endif
+
+query_recipe: check_devenv
+	@$(foreach P, $(PACKAGE), $(call QUERY_RECIPE,$(VAR),$(P)))
+
+ifeq (devenv_import,$(firstword $(MAKECMDGOALS)))
+  $(eval $(call PARSE_TWO_ARGUMENTS,devenv_import))
+  PACKAGE?=$(EXTRA_ARGS_1)
+  IMPORTED_SRC?=$(EXTRA_ARGS_2)
+  ifeq ($(PACKAGE),)
+   $(error ====== PACKAGE variable is empty $(PACKAGE), $(EXTRA_ARGS_1), $(IMPORTED_SRC), $(EXTRA_ARGS_2), please specify which package you want  =====)
   endif
   ifeq ($(IMPORTED_SRC),)
    $(error ====== IMPORTED_SRC variable is empty, please specify the source to import  =====)
@@ -491,8 +536,8 @@ devenv_import:
 	echo $(PACKAGE) >> $(BUILD_ROOT)/.devenv
 
 $(eval $(call PARSE_ARGUMENTS,devenv_rm))
-PACKAGE?=$(EXTRA_ARGS)
 ifneq ($(findstring devenv_rm,$(MAKECMDGOALS)),)
+  PACKAGE?=$(EXTRA_ARGS)
   ifeq ($(PACKAGE),)
    $(error ====== PACKAGE variable is empty, please specify which package you want =====)
   endif
@@ -507,8 +552,8 @@ devenv_status: dev_header
 	$(V) $(call DEVTOOL,status)
 
 $(eval $(call PARSE_ARGUMENTS,devenv_update_recipe))
-PACKAGE?=$(EXTRA_ARGS)
 ifneq ($(findstring devenv_update_recipe,$(MAKECMDGOALS)),)
+  PACKAGE?=$(EXTRA_ARGS)
   ifeq ($(PACKAGE),)
    $(error ====== PACKAGE variable is empty, please specify which package you want =====)
   endif
@@ -517,8 +562,8 @@ devenv_update_recipe: dev_header
 	$(V)$(call DEVTOOL,update-recipe $(PACKAGE))
 
 $(eval $(call PARSE_ARGUMENTS,devenv_patch_recipe))
-PACKAGE?=$(EXTRA_ARGS)
 ifneq ($(findstring devenv_patch_recipe,$(MAKECMDGOALS)),)
+  PACKAGE?=$(EXTRA_ARGS)
   ifeq ($(PACKAGE),)
    $(error ====== PACKAGE variable is empty, please specify which package you want =====)
   endif
@@ -539,6 +584,322 @@ _devenv_refresh:
 	  popd >/dev/null ; \
 	done < .devenv
 	$(V) $(ECHO) "\n$(PURPLE)Update completed$(GRAY)"
+
+# Test environment
+
+.PHONY: _testenv_header testenv_init testenv_clean testenv_run testenv_rerun
+.PHONY: _testenv_rerun _testenv_suite_rerun testenv_suite_run testenv_suite_rerun
+.PHONY: testenv_suite_list
+
+_testenv_header: header
+	$(V) flock -n $(BUILDDIR)/bitbake.lock echo -n || \
+	   { echo "Bitbake is currently running... can't proceed further, aborting" ; \
+             exit 255 ; }
+	$(V) if ! [ -f .testenv ] ; then \
+	  $(call FATAL_ERROR, testenv is not initialized, use 'testenv_init') ; \
+	fi
+
+testenv_init: dev_header
+	$(V) if ! which tox > /dev/null ; then \
+		$(call FATAL_ERROR,Python's tox is not installed. Please use your package manager to install it:\n\n  Hint: on Debian/Ubuntu systems you can install it with: 'sudo apt-get install python-tox') ; \
+	 fi ; \
+	 if ! which python3-config > /dev/null ; then \
+	        $(call FATAL_ERROR,Python's 3 development package is not installed and is required.\n  Hint: on Debian/Ubuntu systems you can install it with: 'sudo apt-get install python3-dev') ; \
+	 fi ;
+	$(V) if ! [ -f /etc/sudoers.d/topology ] ; then \
+	     $(ECHO) "$(BLUE) Setting up sudoer permissions for the topology framework... $(GRAY)\n" ; \
+		 echo "$(USER) ALL = (root) NOPASSWD: /sbin/ip, /bin/mkdir -p /var/run/netns, /bin/rm /var/run/netns/*, /bin/ln -s /proc/*/ns/net /var/run/netns/*" | \
+		 $(SUDO) tee /etc/sudoers.d/topology ; \
+		 $(ECHO) ; \
+	 fi
+	$(V) $(MAKE) _devenv_ct_init
+	$(V) touch .testenv
+
+
+TOPOLOGY_TEST_IMAGE?=ops_$(USER)$(subst /,_,$(BUILD_ROOT))
+
+# TOPOLOGY_TEST_COV_DIR: directory in the local system that contains the gcov gcno (coverage notes) files.
+# The attributes.json expects this directory.
+# In the current implementation, this directory is shared between the host and the container using Docker volumes to collect the coverage data (gcda) files.
+TOPOLOGY_TEST_COV_DIR?=$(BUILD_ROOT)/src
+
+TESTENV_REQUIRED_DRIVERS = bonding
+
+ifeq (testenv_run,$(firstword $(MAKECMDGOALS)))
+  $(eval $(call PARSE_TWO_ARGUMENTS,testenv_run))
+  export TESTSUITE?=$(EXTRA_ARGS_1)
+  export COMPONENTS?=$(EXTRA_ARGS_2)
+  ifeq ($(TESTSUITE),)
+   $(error ====== TESTSUITE variable is empty, please specify which test suite you want =====)
+  endif
+  ifeq ($(COMPONENTS),)
+   $(error ====== COMPONENTS variable is empty, please specify which component you want =====)
+  endif
+endif
+testenv_run: _testenv_header
+	$(V) $(MAKE) _fs
+	$(V) for name in `docker ps -a -q --filter="image=$(TOPOLOGY_TEST_IMAGE)"`; do \
+	   echo "Cleaning the docker container ($$name), since is using the old image" ; \
+	   docker stop $$name >/dev/null ; \
+	   docker rm -f $$name >/dev/null ; \
+	 done
+	$(V) docker rmi $(TOPOLOGY_TEST_IMAGE) > /dev/null 2>&1 || true
+	$(V) $(MAKE) export_docker_image $(TOPOLOGY_TEST_IMAGE)
+	$(V) $(SUDO) rm -Rf $(BUILDDIR)/test/$(TESTSUITE)
+	$(V) $(SUDO) modprobe $(TESTENV_REQUIRED_DRIVERS)
+	$(V) $(MAKE) _testenv_rerun
+
+ifeq (testenv_rerun,$(firstword $(MAKECMDGOALS)))
+  $(eval $(call PARSE_TWO_ARGUMENTS,testenv_rerun))
+  export TESTSUITE?=$(EXTRA_ARGS_1)
+  export COMPONENTS?=$(EXTRA_ARGS_2)
+  ifeq ($(TESTSUITE),)
+   $(error ====== TESTSUITE variable is empty, please specify which test suite you want =====)
+  endif
+  ifeq ($(COMPONENTS),)
+   $(error ====== COMPONENTS variable is empty, please specify which component you want =====)
+  endif
+endif
+testenv_rerun: _testenv_header
+	$(V) $(MAKE) _testenv_rerun
+
+TESTENV_ABORT_IF_NOT_FOUND?=true
+
+define TESTENV_PREPARE
+	$(V) # Find if the component is on the devenv
+	$(V) \
+      test_source_path="ops-tests/$(TESTSUITE)" ; \
+	  if [ "$(TESTSUITE)" = "legacy" ] ; then \
+	    test_source_path="tests" ; \
+	  fi ; \
+	  testenv_abort=false ; \
+	  if [ -f .devenv ] && [ -d src/$(1) ] ; then \
+	   $(ECHO) "$(1): using tests from devenv..." ; \
+	   if ! [ -d src/$(1)/$$test_source_path ] ; then \
+	     if [ "$(TESTENV_ABORT_IF_NOT_FOUND)" == "true" ] ; then \
+	       $(call FATAL_ERROR, No testsuite found at src/$(1)/$$test_source_path); \
+	     else \
+	       $(call WARNING, No testsuite found at src/$(1)/$$test_source_path); \
+	       testenv_abort = true ; \
+	     fi ; \
+	   fi ; \
+	   if ! $$testenv_abort ; then \
+	     ln -sf $(BUILD_ROOT)/src/$(1)/$$test_source_path $(BUILDDIR)/test/$(TESTSUITE)/code_under_test/$(1) ; \
+	   fi ; \
+	 else \
+	   $(ECHO) "$(1): fetching tests from git..." ; \
+	   $$(query-recipe.py -s -v SRCREV --gitrepo --gitbranch $(1)) ; \
+	   if [ -z "$$gitrepo" ] ; then $(call FATAL_ERROR, Unable to find the recipe for $(COMPONENT)) ; fi ; \
+	   rm -Rf $(BUILDDIR)/test/$(TESTSUITE)/downloads/$(1)/git ; \
+	   if ! git clone -q --single-branch -b $$gitbranch $$gitrepo $(BUILDDIR)/test/$(TESTSUITE)/downloads/$(1)/git ; then \
+	    $(call FATAL_ERROR, Unable to clone the required version of the code) ; \
+	   fi ; \
+	   pushd . >/dev/null ; \
+	   if ! cd $(BUILDDIR)/test/$(TESTSUITE)/downloads/$(1)/git ; then \
+	     $(call FATAL_ERROR, Unable to find the cloned code) ; \
+	   fi ; \
+	   git reset $$SRCREV --hard ; \
+	   popd > /dev/null ; \
+	   if ! [ -d $(BUILDDIR)/test/$(TESTSUITE)/downloads/$(1)/git/$$test_source_path ] ; then \
+	     if [ "$(TESTENV_ABORT_IF_NOT_FOUND)" == "true" ] ; then \
+	       $(call FATAL_ERROR, No testsuite found at '/$$test_source_path' inside the git repo $$gitrepo); \
+	     else \
+	       $(call WARNING, No testsuite found at '/$$test_source_path' inside the git repo $$gitrepo); \
+	       testenv_abort = true ; \
+	     fi ; \
+	   fi ; \
+	   if ! $$testenv_abort ; then \
+	     ln -sf $(BUILDDIR)/test/$(TESTSUITE)/downloads/$(1)/git/$$test_source_path \
+		 $(BUILDDIR)/test/$(TESTSUITE)/code_under_test/$(1) ; \
+	   fi ; \
+	 fi ; \
+	 if ! $$testenv_abort ; then \
+	   if [ "$(TESTSUITE)" = "legacy" ] ; then \
+	     cp tools/pytest.ini $(BUILDDIR)/test/$(TESTSUITE)/pytest.ini ; \
+	   else \
+	     if [ -f $(BUILDDIR)/test/$(TESTSUITE)/code_under_test/$(1)/requirements.txt ] ; then \
+		 $(call WARNING,Overriding the global requirements.txt with the one from $(1)) ; \
+		 cp $(BUILDDIR)/test/$(TESTSUITE)/code_under_test/$(1)/requirements.txt \
+		   $(BUILDDIR)/test/$(TESTSUITE)/ ; \
+	     else \
+		 cp tools/topology/requirements.txt $(BUILDDIR)/test/$(TESTSUITE)/ ; \
+	     fi ; \
+	     if [ -f $(BUILDDIR)/test/$(TESTSUITE)/code_under_test/$(1)/tox.ini ] ; then \
+	       $(call WARNING,Overriding the global tox.ini with the one from $(1)) ; \
+		 cp $(BUILDDIR)/test/$(TESTSUITE)/code_under_test/$(1)/tox.ini \
+		   $(BUILDDIR)/test/$(TESTSUITE)/ ; \
+	     else \
+		 cp tools/topology/tox.ini $(BUILDDIR)/test/$(TESTSUITE)/ ; \
+	     fi ; \
+	     output_attr_json=$(BUILDDIR)/test/$(TESTSUITE)/attributes.json ; \
+	     if [ -f $(BUILDDIR)/test/$(TESTSUITE)/code_under_test/$(1)/attributes.json.in ] ; then \
+		 $(call WARNING, Overriding the global attributes.json with the one from $(1)) ; \
+		 sed -e 's?@TEST_IMAGE@?$(TOPOLOGY_TEST_IMAGE):latest?' \
+			-e 's?@BUILD_ROOT@?$(BUILD_ROOT)?g' \
+		   $(BUILDDIR)/test/$(TESTSUITE)/code_under_test/$(1)/attributes.json.in \
+		   > $$output_attr_json ; \
+		 sed -i 's?@TEST_COV_DIR@?$(TOPOLOGY_TEST_COV_DIR)?g' $$output_attr_json ; \
+	     else \
+		 sed -e 's?@TEST_IMAGE@?$(TOPOLOGY_TEST_IMAGE):latest?' \
+		   tools/topology/attributes.json.in > $$output_attr_json ; \
+		 sed -i 's?@TEST_COV_DIR@?$(TOPOLOGY_TEST_COV_DIR)?g' $$output_attr_json ; \
+	     fi ; \
+	   fi ; \
+	 fi
+
+endef
+
+ifneq ($(TESTENV_STRESS),)
+# If not specified, run at least 3 iterations and max 13
+TESTENV_ITERATIONS?=$(shell echo $$(expr $$RANDOM % 10 + 3))
+TESTENV_EXTRA_PARAMETERS=$(if $(VERBOSE),-vv,) -k '$(TESTENV_STRESS)'
+else
+TESTENV_EXTRA_PARAMETERS=$(if $(VERBOSE),-vv,)
+endif
+TESTENV_ITERATIONS?=1
+
+_testenv_rerun:
+	$(V) $(SUDO) rm -Rf $(BUILDDIR)/test/$(TESTSUITE)/code_under_test
+	$(V) mkdir -p $(BUILDDIR)/test/$(TESTSUITE)/code_under_test
+	$(V) $(ECHO) "$(BLUE)Collecting the requested code to run $(TESTSUITE) tests...$(GRAY)\n"
+	$(V)$(foreach COMPONENT, $(COMPONENTS), $(call TESTENV_PREPARE,$(COMPONENT)))
+	$(V) $(ECHO) "\n$(BLUE)Starting $(TESTSUITE) tests execution...$(GRAY)\n"
+	$(V) \
+	  if [ "$(TESTSUITE)" == "legacy" ] ; then \
+	    export VSI_IMAGE_NAME=$(TOPOLOGY_TEST_IMAGE) ;\
+            $(ECHO) "\nIterating the tests $(TESTENV_ITERATIONS) times\n" ; \
+	    export VSI_COV_DATA_DIR=$(TOPOLOGY_TEST_COV_DIR) ;\
+	    for iteration in $$(seq 1 $(TESTENV_ITERATIONS)) ; do \
+	      $(ECHO) "\nRunning the testsuite on iteration $$iteration" ; \
+	      $(MAKE) devenv_ct_test PY_TEST_ARGS="$(TESTENV_EXTRA_PARAMETERS) --exitfirst --junitxml=$(BUILDDIR)/test/$(TESTSUITE)/test-results.xml $(BUILDDIR)/test/$(TESTSUITE)/code_under_test" || exit 1 ; \
+	    done ; \
+	  else \
+	    if [[ tools/topology/requirements.txt -nt $(BUILDDIR)/test/$(TESTSUITE)/.tox ]] ; then \
+	      rm -Rf $(BUILDDIR)/test/$(TESTSUITE)/.tox ; \
+	    fi ; \
+            $(ECHO) "\nIterating the tests $(TESTENV_ITERATIONS) times\n" ; \
+	    for iteration in $$(seq 1 $(TESTENV_ITERATIONS)) ; do \
+	      $(ECHO) "\nRunning the testsuite on iteration $$iteration" ; \
+	      cd $(BUILDDIR)/test/$(TESTSUITE) ; unset CURL_CA_BUNDLE; export TESTENV_EXTRA_PARAMETERS='$(TESTENV_EXTRA_PARAMETERS)' ; tox || exit 1 ; \
+            done ; \
+	  fi
+
+# We try to export this symbol only when the target is invoked, since the expansion
+# can cause to trigger bitbake before is configured in other cases
+ifneq ($(findstring testenv,$(MAKECMDGOALS)),)
+  export YOCTO_LAYERS
+endif
+
+testenv_suite_list: _testenv_header
+	$(V) for layer in $$YOCTO_LAYERS ; do \
+	   test -d $$layer || continue ; \
+	   TESTSUITES="$$TESTSUITES `find $$layer -name testsuites.conf`" ; \
+	 done ; \
+	 for testsuiteconf in $$TESTSUITES ; do \
+	   while read suite ; do \
+	     [[ $$suite == \#* ]] && continue ; \
+	     $(ECHO) "  * $$suite" ; \
+	   done < $$testsuiteconf ; \
+	done
+	$(V)$(ECHO)
+
+ifeq (testenv_suite_list_components,$(firstword $(MAKECMDGOALS)))
+  $(eval $(call PARSE_ARGUMENTS,testenv_suite_list_components))
+  export TESTSUITE?=$(EXTRA_ARGS)
+  ifeq ($(TESTSUITE),)
+   $(error ====== TESTSUITE variable is empty, please specify which test suite you want =====)
+  endif
+endif
+testenv_suite_list_components: _testenv_header
+	$(V) for layer in $$YOCTO_LAYERS ; do \
+	   test -d $$layer || continue ; \
+	   if [ -f $$layer/testsuite_$(TESTSUITE).conf ] ; then \
+		 while read component ; do \
+		     [[ $$component == \#* ]] && continue ; \
+			 $(ECHO) "  * $$component" ; \
+	     done < $$layer/testsuite_$(TESTSUITE).conf ; \
+	   fi ; \
+	 done
+	 $(V) $(ECHO)
+
+ifeq (testenv_suite_run,$(firstword $(MAKECMDGOALS)))
+  $(eval $(call PARSE_ARGUMENTS,testenv_suite_run))
+  export TESTSUITE?=$(EXTRA_ARGS)
+  ifeq ($(TESTSUITE),)
+   $(error ====== TESTSUITE variable is empty, please specify which test suite you want =====)
+  endif
+endif
+testenv_suite_run: _testenv_header
+	$(V) $(MAKE) _fs
+	$(V) docker rmi $(TOPOLOGY_TEST_IMAGE) > /dev/null 2>&1 || true
+	$(V) $(MAKE) export_docker_image $(TOPOLOGY_TEST_IMAGE)
+	$(V) $(SUDO) rm -Rf $(BUILDDIR)/test/$(COMPONENT)/$(TESTSUITE)
+	$(V) $(MAKE) _testenv_suite_rerun
+
+$(eval $(call PARSE_ARGUMENTS,testenv_suite_rerun))
+ifneq ($(findstring testenv_suite_rerun,$(MAKECMDGOALS)),)
+  export TESTSUITE?=$(EXTRA_ARGS)
+  ifeq ($(TESTSUITE),)
+   $(error ====== TESTSUITE variable is empty, please specify which test suite you want =====)
+  endif
+endif
+testenv_suite_rerun: _testenv_header
+	$(V) $(MAKE) _testenv_suite_rerun
+
+_testenv_suite_rerun:
+	$(V) for layer in $$YOCTO_LAYERS ; do \
+	   test -d $$layer || continue ; \
+	   if [ -f $$layer/testsuite_$(TESTSUITE).conf ] ; then \
+		 while read component ; do \
+		    [[ $$component == \#* ]] && continue ; \
+			COMPONENTS="$$COMPONENTS $$component" ; \
+	     done < $$layer/testsuite_$(TESTSUITE).conf ; \
+	   fi ; \
+	 done ; \
+	 if [ -z "$$COMPONENTS" ] ; then \
+	   $(call FATAL_ERROR, No components where found for the test suite. Do you have testsuite_$(TESTSUITE).conf files?); \
+	 else \
+	   $(MAKE) _testenv_rerun TESTSUITE=$(TESTSUITE) COMPONENTS="$$COMPONENTS" ; \
+	 fi
+
+testenv_clean:
+	$(V) rm -Rf .testenv build/test
+
+# Legacy commands used to run the deprecated test framework (VSI)
+.PHONY: devenv_ct_init devenv_ct_test _devenv_ct_init
+
+devenv_ct_init: dev_header _devenv_ct_init
+
+_devenv_ct_init:
+	$(V)$(call BITBAKE,ops-ft-framework-native)
+	$(V) /bin/mkdir -p src
+	$(V) /bin/cp tools/pytest.ini src/pytest.ini
+	$(V) if [ ! -f .sandbox_uuid ] ; then \
+	  echo "$$($(UUIDGEN_NATIVE) -t)" >.sandbox_uuid; \
+	fi
+	$(V) $(SUDO) modprobe bonding
+
+# Sandbox unique ID is used as a prefix to the name
+# while creating docker instances to run tests.
+# Docker can't use the entire UUID as container name,
+# so using only the fifth field of the UUID.
+$(eval $(call PARSE_ARGUMENTS,devenv_ct_test))
+PY_TEST_ARGS:=$(EXTRA_ARGS)
+ifeq ($(PY_TEST_ARGS),)
+PY_TEST_ARGS=src
+endif
+devenv_ct_test:
+	$(V) $(SUDO) PYTHONDONTWRITEBYTECODE=0 PATH=$(STAGING_DIR_NATIVE)/usr/bin:/sbin:$$PATH \
+	  SANDBOX_UUID=$$(cat .sandbox_uuid | cut -d '-' -f 5) $(PYTEST_NATIVE) $(PY_TEST_ARGS)
+
+devenv_ct_clean:
+	$(V) SBOX_UUID=$$(cat .sandbox_uuid | cut -d '-' -f 5) ; \
+	for name in `docker ps -a -q --filter="name=$$SBOX_UUID"`; do \
+	  echo "Cleaning the docker container with id $$SBOX_UUID" ; \
+	  docker stop --time=5 $$name >/dev/null ; \
+	  docker rm -vf $$name >/dev/null ; \
+	done
+	$(V) rm -rf .sandbox_uuid
 
 # Trim Support
 .PHONY: trim
@@ -585,47 +946,12 @@ git_pull: header
 	  $(ECHO) "\n$(PURPLE)Update completed$(GRAY)" ; \
 	 fi
 
-.PHONY: devenv_ct_init devenv_ct_test
-
-devenv_ct_init: dev_header
-	$(V)$(call BITBAKE,ops-ft-framework-native)
-	$(V) /bin/mkdir -p src
-	$(V) /bin/cp tools/pytest.ini src/pytest.ini
-	$(V) if [ ! -f .sandbox_uuid ] ; then \
-	  echo "$$($(UUIDGEN_NATIVE) -t)" >.sandbox_uuid; \
-	fi
-	$(V)if ! vercomp $$(docker --version | cut -d' ' -f 3 | cut -d, -f 1) 1.3.0 \> ; then \
-	  $(call FATAL_ERROR, Your docker is too old. You need at least > 1.3.0); \
-	fi
-
-# Sandbox unique ID is used as a prefix to the name
-# while creating docker instances to run tests.
-# Docker can't use the entire UUID as container name,
-# so using only the fifth field of the UUID.
-$(eval $(call PARSE_ARGUMENTS,devenv_ct_test))
-PY_TEST_ARGS:=$(EXTRA_ARGS)
-ifeq ($(PY_TEST_ARGS),)
-PY_TEST_ARGS=src
-endif
-devenv_ct_test:
-	$(V) $(SUDO) PYTHONDONTWRITEBYTECODE=0 PATH=$(STAGING_DIR_NATIVE)/usr/bin:/sbin:$$PATH \
-	  SANDBOX_UUID=$$(cat .sandbox_uuid | cut -d '-' -f 5) $(PYTEST_NATIVE) $(PY_TEST_ARGS)
-
-devenv_ct_clean:
-	$(V) SBOX_UUID=$$(cat .sandbox_uuid | cut -d '-' -f 5) ; \
-	for name in `docker ps -a -q --filter="name=$$SBOX_UUID"`; do \
-	  echo "Cleaning the docker container with id $$SBOX_UUID" ; \
-	  docker stop $$name >/dev/null ; \
-	  docker rm -f $$name >/dev/null ; \
-	done
-	$(V) rm -rf .sandbox_uuid
-
 ## Support commands
 ## Use with caution!!!!
 
 $(eval $(call PARSE_ARGUMENTS,share_screen_with))
-USERTOSHARE?=$(EXTRA_ARGS)
 ifneq ($(findstring share_screen_with,$(MAKECMDGOALS)),)
+  USERTOSHARE?=$(EXTRA_ARGS)
   ifeq ($(USERTOSHARE),)
    $(error ====== USERTOSHARE variable is empty, please specify an user =====)
   endif
@@ -646,8 +972,8 @@ share_screen_with:
 	$(V) $(SUDO) chmod g+w /var/run/screen
 
 $(eval $(call PARSE_ARGUMENTS,attach_screen_with))
-USERTOSHARE?=$(EXTRA_ARGS)
 ifneq ($(findstring attach_screen_with,$(MAKECMDGOALS)),)
+  USERTOSHARE?=$(EXTRA_ARGS)
   ifeq ($(USERTOSHARE),)
     $(error ====== USERTOSHARE variable is empty, please specify an user =====)
   endif

@@ -2,13 +2,15 @@ SUMMARY = "OpenSwitch Temperature Daemon"
 LICENSE = "Apache-2.0"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/Apache-2.0;md5=89aea4e17d99a7cacdbeed46a0096b10"
 
-DEPENDS = "ops-config-yaml ops-ovsdb ops-cli"
+DEPENDS = "ops-hw-config ops-ovsdb ops-cli ops-supportability"
 
-SRC_URI = "git://git.openswitch.net/openswitch/ops-tempd;protocol=http \
+BRANCH ?= "${OPS_REPO_BRANCH}"
+
+SRC_URI = "${OPS_REPO_BASE_URL}/ops-tempd;protocol=${OPS_REPO_PROTOCOL};branch=${BRANCH} \
            file://ops-tempd.service \
 "
 
-SRCREV = "ab49827ee980ea81481b7f5c3c753320f9f998f0"
+SRCREV = "b63592dfaaca819b0f879f6765563fc96d2e1629"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.

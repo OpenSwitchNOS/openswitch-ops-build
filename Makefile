@@ -191,7 +191,7 @@ _switch-platform:
      fi ; \
 	 $(ECHO) -n Switching to platform $(PLATFORM)... ; \
 	 ln -sf bblayers.conf-$(DISTRO)-$(PLATFORM) build/conf/bblayers.conf ; \
-	 if [ -f .devenv ] ; then \
+	 if [ -d $(BUILD_ROOT)/build/workspace ] ; then \
 		if ! grep -q "$(BUILD_ROOT)/build/workspace" build/conf/bblayers.conf ; then \
 			sed --follow-symlinks -i 's|\(.*$(BUILD_ROOT)/yocto/.*/meta-platform-$(DISTRO)-$(PLATFORM) \\\)|\1\n  $(BUILD_ROOT)/build/workspace \\|' build/conf/bblayers.conf ; \
 		fi ;\
@@ -211,7 +211,7 @@ clean:: header
 
 distclean::
 	$(V)$(ECHO) "$(PURPLE)Distcleaning...$(GRAY)"
-	$(V)rm -Rf .platform .devenv images src build nfsroot* tools/bin/{corkscrew,python}
+	$(V)rm -Rf .platform .devenv .testenv images src build nfsroot* tools/bin/{corkscrew,python}
 	$(V)find -type l -lname 'images/*' -print0 | xargs -r0 rm -f
 	$(V)$(ECHO) "Distcleaning completed. You need to reconfigure to build again\n"
 

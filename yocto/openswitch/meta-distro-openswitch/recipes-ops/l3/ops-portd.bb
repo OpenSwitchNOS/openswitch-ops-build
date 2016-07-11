@@ -2,12 +2,15 @@ SUMMARY = "OpenSwitch Port Manager Daemon"
 LICENSE = "Apache-2.0"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/Apache-2.0;md5=89aea4e17d99a7cacdbeed46a0096b10"
 
-DEPENDS = "ops-utils ops-ovsdb"
+DEPENDS = "ops-utils ops-ovsdb ops-supportability"
 
-SRC_URI = "git://git.openswitch.net/openswitch/ops-portd;protocol=http\
-           file://ops-portd.service"
+BRANCH ?= "${OPS_REPO_BRANCH}"
 
-SRCREV = "f93ec5f11dab773b8039436afe66cfbec446b3cb"
+SRC_URI = "${OPS_REPO_BASE_URL}/ops-portd;protocol=${OPS_REPO_PROTOCOL};branch=${BRANCH} \
+           file://ops-portd.service \
+           "
+
+SRCREV = "1ca16df755d03d9ac7387c16b0125334a8464c5a"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.

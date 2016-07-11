@@ -6,11 +6,13 @@ DEPENDS = "ops-ovsdb"
 
 RDEPENDS_${PN} = "python-argparse python-json python-ops-ovsdb python-distribute python-pyyaml"
 
-SRC_URI = "git://git.openswitch.net/openswitch/ops-bufmond;protocol=https \
+BRANCH ?= "${OPS_REPO_BRANCH}"
+
+SRC_URI = "${OPS_REPO_BASE_URL}/ops-bufmond;protocol=${OPS_REPO_PROTOCOL};branch=${BRANCH} \
     file://bufmond.service \
 "
 
-SRCREV = "82ff830544a9d1ed97a7fcb3b6b57cbefa9df3ed"
+SRCREV = "b613b71d57449e44dd6f2abc4981df00c768aca0"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.

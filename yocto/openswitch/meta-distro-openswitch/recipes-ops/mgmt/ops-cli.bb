@@ -5,10 +5,12 @@ LIC_FILES_CHKSUM = "file://COPYING;md5=81bcece21748c91ba9992349a91ec11d\
 
 DEPENDS = "ops-utils ops-ovsdb"
 
-SRC_URI = "git://git.openswitch.net/openswitch/ops-cli;protocol=http \
+BRANCH ?= "${OPS_REPO_BRANCH}"
+
+SRC_URI = "${OPS_REPO_BASE_URL}/ops-cli;protocol=${OPS_REPO_PROTOCOL};branch=${BRANCH} \
 "
 
-SRCREV = "28d100098c46c3c61f6a1947ce35208fb772e72b"
+SRCREV = "77c7f1c801198542c7a0bf942f12ad76893816b2"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.
@@ -16,8 +18,13 @@ PV = "git${SRCPV}"
 
 S = "${WORKDIR}/git"
 
-EXTRA_OECONF = "--enable-user=root --enable-group=root \
- --enable-ovsdb --enable-vtysh\
-"
+FILES_${PN} += "/usr/share/opsplugins"
+do_install_append() {
+    # Code to copy ECMP custom validator to /usr/share/opsplugins.
+    install -d ${D}/usr/share/opsplugins
+    for plugin in $(find ${S}/opsplugins -name "*.py"); do \
+        install -m 0644 ${plugin} ${D}/usr/share/opsplugins
+    done
+}
 
-inherit openswitch autotools pkgconfig
+inherit openswitch pkgconfig cmake

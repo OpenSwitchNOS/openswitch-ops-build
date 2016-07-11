@@ -2,13 +2,15 @@ SUMMARY = "OpenSwitch LACP Daemon"
 LICENSE = "Apache-2.0"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/Apache-2.0;md5=89aea4e17d99a7cacdbeed46a0096b10"
 
-DEPENDS = "ops-ovsdb ops-utils ops-cli"
+DEPENDS = "ops-ovsdb ops-utils ops-cli ops-supportability"
 
-SRC_URI = "git://git.openswitch.net/openswitch/ops-lacpd;protocol=http\
+BRANCH ?= "${OPS_REPO_BRANCH}"
+
+SRC_URI = "${OPS_REPO_BASE_URL}/ops-lacpd;protocol=${OPS_REPO_PROTOCOL};branch=${BRANCH} \
            file://ops-lacpd.service \
 "
 
-SRCREV = "8cd0239493fa0b715d9f5ab0e825bfbd84c87440"
+SRCREV = "d761f69cc4df1697bcfd8aae144762a40e8a0b48"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.

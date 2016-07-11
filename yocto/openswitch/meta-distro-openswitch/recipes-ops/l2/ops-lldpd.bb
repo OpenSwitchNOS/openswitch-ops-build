@@ -1,15 +1,16 @@
-
 SUMMARY = "OpenSwitch LLDP Daemon"
 LICENSE = "ISC"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/Apache-2.0;md5=89aea4e17d99a7cacdbeed46a0096b10"
 
-DEPENDS = "net-snmp ops-utils ops-config-yaml ops-ovsdb libevent openssl ops-supportability"
+DEPENDS = "ops-utils ops-hw-config ops-ovsdb libevent openssl ops-supportability ops-cli ops-snmpd"
 
-SRC_URI = "git://git.openswitch.net/openswitch/ops-lldpd;protocol=http \
+BRANCH ?= "${OPS_REPO_BRANCH}"
+
+SRC_URI = "${OPS_REPO_BASE_URL}/ops-lldpd;protocol=${OPS_REPO_PROTOCOL};branch=${BRANCH} \
           file://ops-lldpd.service \
 "
 
-SRCREV = "ddcd41137d71e2615633ed7adbee10a3fa4297d1"
+SRCREV = "e3301f4b77a65803b9c2215ab6a77ba6591547e8"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.
@@ -41,4 +42,4 @@ do_install_append() {
 SYSTEMD_PACKAGES = "${PN}"
 SYSTEMD_SERVICE_${PN} = "ops-lldpd.service"
 
-FILES_${PN} += "/usr/share/zsh usr/lib/sysusers.d /usr/lib/snmp/plugins"
+FILES_${PN} += "/usr/share/zsh usr/lib/sysusers.d /usr/lib/snmp/plugins /usr/lib/cli/plugins"
