@@ -10,7 +10,7 @@ SRC_URI = "${OPS_REPO_BASE_URL}/ops-cfgd;protocol=${OPS_REPO_PROTOCOL};branch=${
            file://cfgd.service \
 "
 
-SRCREV = "9e1aba140e43b1c87da43d4e3742eda269e854cc"
+SRCREV = "a83a2fece78b15d54f83dd3114dc8c1ca62c316b"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.
