@@ -2,7 +2,7 @@ SUMMARY = "OpenSwitch Fan Daemon"
 LICENSE = "Apache-2.0"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/Apache-2.0;md5=89aea4e17d99a7cacdbeed46a0096b10"
 
-DEPENDS = "ops-hw-config ops-ovsdb ops-cli ops-supportability"
+DEPENDS = "ops-hw-config ops-ovsdb ops-cli ops-supportability lm-sensors"
 
 BRANCH ?= "${OPS_REPO_BRANCH}"
 
@@ -23,7 +23,14 @@ do_install_append() {
      install -m 0644 ${WORKDIR}/ops-fand.service ${D}${systemd_unitdir}/system/
 }
 
-FILES_${PN} += "/usr/lib/cli/plugins/"
+# We have to choose only one platform type until ops-sysd does't support multiple platforms
+PLATFORM_TYPE .= "${@bb.utils.contains('MACHINE_FEATURES','ops-fand-sysfs','libsysfs-plugin','',d)}"
+PLATFORM_TYPE .= "${@bb.utils.contains('MACHINE_FEATURES','ops-fand-yaml-i2c','libyaml-i2c-plugin','',d)}"
+
+EXTRA_OECMAKE += "-DLIBDIR=${libdir}"
+EXTRA_OECMAKE += "-DPLATFORM_TYPE_STR=${PLATFORM_TYPE}"
+
+FILES_${PN} += "${libdir}/cli/plugins/ ${libdir}/platform/plugins"
 SYSTEMD_PACKAGES = "${PN}"
 SYSTEMD_SERVICE_${PN} = "ops-fand.service"
 
