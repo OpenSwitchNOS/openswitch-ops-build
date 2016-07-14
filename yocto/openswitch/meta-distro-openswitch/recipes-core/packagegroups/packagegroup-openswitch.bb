@@ -69,6 +69,7 @@ RDEPENDS_packagegroup-ops-base = "\
     ops-supportability \
     strongswan \
     firejail \
+    tacacs-plus-client \
     ops-ipapps \
     ops-stpd \
     ops-sysmond \
