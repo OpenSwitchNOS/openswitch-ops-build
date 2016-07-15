@@ -36,6 +36,10 @@ mount_point=/mnt/ops
 config_mount_point=/mnt/ops/tmp
 INSTALLING_FROM_OPS=false
 
+# For UEFI-ONIE
+uefi_root=/boot/efi
+onie_uefi_grub=EFI/onie/grubx64.efi
+
 # Install NOS on the same block device as ONIE
 : ${NOS_DISK:=$(blkid | awk '/LABEL="ONIE-BOOT"/ {print substr ($1,0,8)}')}
 ACTIVE_PARTITION_NUMBER=-1
@@ -49,6 +53,61 @@ OPS_CLEAN_INSTALL=${OPS_CLEAN_INSTALL:-false}
 get_partition_number()
 {
     blkid | grep "LABEL=\"$1\"" | sed 's/^.*\([0-9]\+\)\: LABEL.*/\1/'
+}
+
+install_uefi_grub()
+{
+    uefi_uuid=$(grub-probe --target=fs_uuid "${uefi_root}/$onie_uefi_grub")  > /dev/null 2>&1 || {
+        echo "${red}ERROR${normal}: grub-probe --target=fs_uuid ${uefi_root}/$onie_uefi_grub failed"
+        exit 1
+    }
+    # Menu entry to chainload ONIE
+    cat <<EOF >> ${mount_point}/boot/grub/grub.cfg
+menuentry ONIE {
+        set root=' (hd0,gpt1)'
+        search --no-floppy --fs-uuid --set=root ${uefi_uuid}
+        echo 'Loading ONIE ...'
+        chainloader /EFI/onie/grubx64.efi
+}
+EOF
+
+    grub-install \
+        --no-nvram \
+        --bootloader-id="grub" \
+        --efi-directory="/boot/efi" \
+        --boot-directory=${mount_point}/boot \
+        --recheck \
+        ${NOS_DISK} > /dev/null 2>&1 || {
+        echo -e "${red}ERROR${normal}: Failed to install the $label GRUB!"
+        exit 1
+    }
+
+    efibootmgr --quiet --create \
+        --label "grub" \
+        --disk ${NOS_DISK} \
+        --part 1 \
+        --loader "EFI/grub/grubx64.efi" || {
+        echo -e "${red}ERROR${normal}: efibootmgr Failed to create new boot variable on the $label!"
+        exit 1
+    }
+}
+
+install_grub()
+{
+    # Menu entry to chainload ONIE
+    cat <<EOF >> ${mount_point}/boot/grub/grub.cfg
+menuentry ONIE {
+        search --no-floppy --label --set=root ONIE-BOOT
+        echo 'Loading ONIE ...'
+        chainloader +1
+}
+EOF
+
+    grub-install --force --boot-directory ${mount_point}/boot --recheck ${NOS_DISK} > /dev/null 2>&1 || {
+        echo -e "${red}ERROR${normal}: Failed to install the $label GRUB!"
+        exit 1
+    }
+    chattr +i ${mount_point}/boot/grub/i386-pc/core.img
 }
 
 setup_nos_partitions()
@@ -278,11 +337,15 @@ populate_rootfs()
            -e "s/OPENSWITCH_CONFIG_CONSOLE/${CONFIG_CONSOLE}/g" \
            -e "s/OPENSWITCH_COMMANDLINE_APPEND/${COMMANDLINE_APPEND}/g" \
        ${mount_point}/boot/grub/grub.cfg
-    ${mount_point}/usr/sbin/grub-install --force --boot-directory ${mount_point}/boot --recheck ${NOS_DISK} || {
-        echo -e "${red}ERROR${normal}: Failed to install the $label GRUB!"
+
+    if [ "$install_firmware" = "uefi" ] ; then
+       install_uefi_grub
+    elif [ "$install_firmware" = "bios" ] ; then
+       install_grub
+    else
+        echo -e "${red}ERROR${normal}: Unsupported firmware type! Aborting"
         exit 1
-    }
-    chattr +i ${mount_point}/boot/grub/i386-pc/core.img
+    fi
 
     # Update the grub environment
     if ! $INSTALLING_FROM_OPS ; then
@@ -339,6 +402,19 @@ else
 
     INSTALLING_FROM_OPS=true
     config_mount_point=/var/local
+fi
+
+# For the diffierent type of firmware (bios/uefi), we need to perform differently grub-install method.
+# For UEFI system, we should define FIRMWARE_TYPE=uefi in onie.config file. And for bios system, don't
+# need to do anything.
+install_firmware=bios
+# Here perform a few sanity chcek
+if [ "$FIRMWARE_TYPE" = "uefi" ] ; then
+    [ -d "/sys/firmware/efi/efivars" ] || {
+          echo -e "${red}ERROR${normal}: This machine does not support UEFI. Aborting"
+          exit 1
+    }
+    install_firmware="uefi"
 fi
 
 banner() {
