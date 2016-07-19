@@ -10,7 +10,7 @@ SRC_URI = "${OPS_REPO_BASE_URL}/ops-lacpd;protocol=${OPS_REPO_PROTOCOL};branch=$
            file://ops-lacpd.service \
 "
 
-SRCREV = "d761f69cc4df1697bcfd8aae144762a40e8a0b48"
+SRCREV = "bd5589f541dd03d2167475dbe323b0c06d777f19"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.
