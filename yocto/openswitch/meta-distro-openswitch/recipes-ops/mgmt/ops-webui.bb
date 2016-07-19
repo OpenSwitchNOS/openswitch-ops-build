@@ -7,7 +7,7 @@ BRANCH ?= "${OPS_REPO_BRANCH}"
 SRC_URI = "${OPS_REPO_BASE_URL}/ops-webui;protocol=${OPS_REPO_PROTOCOL};branch=${BRANCH} \
 "
 
-SRCREV = "68a9426225bba1ea6f85e503635a9802a7050fa0"
+SRCREV = "58cc629f55ff2cc0dd1f495bf1b0695312b22f4b"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.
