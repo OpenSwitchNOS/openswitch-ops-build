@@ -41,7 +41,7 @@ SRC_URI = "git://github.com/openvswitch/ovs.git;protocol=https;branch=branch-2.5
            file://0033-Reduce-number-of-operations-for-IDL-on-demand-fetchi.patch \
           "
 
-SRCREV = "976b441345df85dd7adb973f8ae208f588d764a0"
+SRCREV = "4338c1d35faee97e2a0f4f83736286d3fdfc2c9a"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.

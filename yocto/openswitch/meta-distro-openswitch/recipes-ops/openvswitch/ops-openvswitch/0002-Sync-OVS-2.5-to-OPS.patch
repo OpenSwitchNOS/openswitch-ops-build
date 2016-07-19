@@ -1,15 +1,15 @@
-From 6e529353e4f6073f23fc56edd2dfdf268dbd7327 Mon Sep 17 00:00:00 2001
+From d562645e3e56bb7bdb29bf896da4d102a50c4705 Mon Sep 17 00:00:00 2001
 From: "Marcelo E. Magallon" <marcelo.magallon@hpe.com>
 Date: Mon, 23 May 2016 13:19:39 -0600
 Subject: [PATCH] Sync OVS 2.5 to OPS
 
-Starting commit is 976b441345df85dd7adb973f8ae208f588d764a0
+Starting commit is 4338c1d35faee97e2a0f4f83736286d3fdfc2c9a
 
 Signed-off-by: Marcelo E. Magallon <marcelo.magallon@hpe.com>
 Signed-off-by: Javier Albornoz <javier.albornoz@hpe.com>
 ---
  .gitignore                                        |    6 +-
- Makefile.am                                       |  121 +-
+ Makefile.am                                       |  106 +-
  appveyor.yml                                      |    2 +-
  configure.ac                                      |   20 +-
  datapath-windows/ovsext/Flow.c                    |    2 +-
@@ -54,9 +54,9 @@ Signed-off-by: Javier Albornoz <javier.albornoz@hpe.com>
  ofproto/bond.h                                    |    8 +
  ofproto/ofproto-dpif-sflow.h                      |    2 +-
  ofproto/ofproto-dpif.c                            |   13 +
- ofproto/ofproto-provider.h                        |   47 +
- ofproto/ofproto.c                                 |  199 +-
- ofproto/ofproto.h                                 |  140 +
+ ofproto/ofproto-provider.h                        |   51 +
+ ofproto/ofproto.c                                 |  218 +-
+ ofproto/ofproto.h                                 |  144 +
  ops/DESIGN.md                                     |  106 +
  ops/README.md                                     |   24 +
  ops/docs/AUTHORS                                  |   44 +
@@ -81,10 +81,11 @@ Signed-off-by: Javier Albornoz <javier.albornoz@hpe.com>
  utilities/ovs-sim.1.xml                           |    4 +-
  utilities/ovs-sim.in                              |    2 +-
  utilities/ovs-vsctl.c                             | 1254 +++++-
+ vswitchd/bridge.c                                 |    2 +-
  vswitchd/vswitch.ovsschema                        |  610 ---
  vswitchd/vswitch.xml                              | 4724 ---------------------
  vtep/automake.mk                                  |    2 +-
- 76 files changed, 3108 insertions(+), 5840 deletions(-)
+ 77 files changed, 3137 insertions(+), 5825 deletions(-)
  create mode 100644 lib/libovscommon.pc
  create mode 100644 lib/libovscommon.pc.in
  create mode 100644 lib/libovscommon.sym.in
@@ -124,7 +125,7 @@ index 71bb21b..2e883b4 100644
 +/build
 +/libltdl/
 diff --git a/Makefile.am b/Makefile.am
-index 95087a5..60ac9c4 100644
+index ed43c2f..bc5cd24 100644
 --- a/Makefile.am
 +++ b/Makefile.am
 @@ -7,7 +7,11 @@
@@ -154,7 +155,7 @@ index 95087a5..60ac9c4 100644
  AM_CFLAGS += $(WARNING_FLAGS)
  AM_CFLAGS += $(OVS_CFLAGS)
  
-@@ -141,6 +147,7 @@ SUFFIXES =
+@@ -142,6 +148,7 @@ SUFFIXES =
  check_DATA =
  check_SCRIPTS =
  pkgconfig_DATA =
@@ -162,7 +163,7 @@ index 95087a5..60ac9c4 100644
  
  scriptsdir = $(pkgdatadir)/scripts
  completiondir = $(sysconfdir)/bash_completion.d
-@@ -209,21 +216,21 @@ CLEAN_LOCAL += clean-pycov
+@@ -210,21 +217,21 @@ CLEAN_LOCAL += clean-pycov
  # Makefile in datapath/linux, needed to get the list of files to
  # distribute, requires GNU make extensions.
  if GNU_MAKE
@@ -199,7 +200,7 @@ index 95087a5..60ac9c4 100644
  CLEANFILES += all-distfiles all-gitfiles missing-distfiles
  # The following is based on commands for the Automake "distdir" target.
  distfiles: Makefile
-@@ -239,17 +246,17 @@ endif
+@@ -240,17 +247,17 @@ endif
  .PHONY: dist-hook-git
  
  # Check that every .c file includes <config.h>.
@@ -228,7 +229,7 @@ index 95087a5..60ac9c4 100644
  .PHONY: config-h-check
  
  # Check for printf() type modifiers that MSVC doesn't support.
-@@ -309,19 +316,19 @@ check-endian:
+@@ -310,19 +317,19 @@ check-endian:
  	 fi
  .PHONY: check-endian
  
@@ -261,27 +262,7 @@ index 95087a5..60ac9c4 100644
  EXTRA_DIST += build-aux/thread-safety-blacklist
  .PHONY: thread-safety-check
  
-@@ -350,19 +357,6 @@ $(srcdir)/manpages.mk: $(MAN_ROOTS) build-aux/sodepends.pl
- 	fi
- CLEANFILES += manpage-dep-check
- 
--if VSTUDIO_DDK
--ALL_LOCAL += ovsext_make
--ovsext_make: datapath-windows/ovsext.sln
--	MSBuild.exe datapath-windows/ovsext.sln /target:Build /property:Configuration="Win8$(VSTUDIO_CONFIG)"
--	MSBuild.exe datapath-windows/ovsext.sln /target:Build /property:Configuration="Win8.1$(VSTUDIO_CONFIG)"
--
--CLEAN_LOCAL += ovsext_clean
--ovsext_clean: datapath-windows/ovsext.sln
--	MSBuild.exe datapath-windows/ovsext.sln /target:Clean /property:Configuration="Win8$(VSTUDIO_CONFIG)"
--	MSBuild.exe datapath-windows/ovsext.sln /target:Clean /property:Configuration="Win8.1$(VSTUDIO_CONFIG)"
--.PHONY: ovsext_make
--endif
--
- dist-hook: $(DIST_HOOKS)
- all-local: $(ALL_LOCAL)
- clean-local: $(CLEAN_LOCAL)
-@@ -379,23 +373,20 @@ dist-docs:
+@@ -380,24 +387,25 @@ dist-docs:
  	VERSION=$(VERSION) $(srcdir)/build-aux/dist-docs $(srcdir) $(docs)
  .PHONY: dist-docs
  
@@ -309,10 +290,12 @@ index 95087a5..60ac9c4 100644
  include python/automake.mk
 -include tutorial/automake.mk
  include vtep/automake.mk
--include datapath-windows/automake.mk
--include datapath-windows/include/automake.mk
--include windows/automake.mk
+ include datapath-windows/automake.mk
+ include datapath-windows/include/automake.mk
+ include windows/automake.mk
 -include ovn/automake.mk
++#OPS# include ovn/automake.mk
+ include selinux/automake.mk
 diff --git a/appveyor.yml b/appveyor.yml
 index d3d87b3..25b72bb 100644
 --- a/appveyor.yml
@@ -326,7 +309,7 @@ index d3d87b3..25b72bb 100644
  clone_folder: C:\openvswitch
  init:
 diff --git a/configure.ac b/configure.ac
-index 1ac3b5f..6d2a235 100644
+index 171b8b1..98c8ed2 100644
 --- a/configure.ac
 +++ b/configure.ac
 @@ -78,6 +78,14 @@ AC_SUBST([LT_REVISION])
@@ -1370,7 +1353,7 @@ index e9e3b7b..99f46cf 100644
 +#endif
  #endif /* command-line.h */
 diff --git a/lib/daemon-unix.c b/lib/daemon-unix.c
-index 182f76b..829c3af 100644
+index 28f76da..a263d52 100644
 --- a/lib/daemon-unix.c
 +++ b/lib/daemon-unix.c
 @@ -1,5 +1,6 @@
@@ -1560,7 +1543,7 @@ index 0000000..fdfc5bb
 +        *;
 +};
 diff --git a/lib/netdev-bsd.c b/lib/netdev-bsd.c
-index edf04bf..1dfb1b3 100644
+index 6cdaed4..f4e1ab9 100644
 --- a/lib/netdev-bsd.c
 +++ b/lib/netdev-bsd.c
 @@ -1,6 +1,7 @@
@@ -1571,7 +1554,7 @@ index edf04bf..1dfb1b3 100644
   *
   * Licensed under the Apache License, Version 2.0 (the "License");
   * you may not use this file except in compliance with the License.
-@@ -1557,6 +1558,10 @@ netdev_bsd_update_flags(struct netdev *netdev_, enum netdev_flags off,
+@@ -1556,6 +1557,10 @@ netdev_bsd_update_flags(struct netdev *netdev_, enum netdev_flags off,
      netdev_bsd_dealloc,                              \
      NULL, /* get_config */                           \
      NULL, /* set_config */                           \
@@ -1583,7 +1566,7 @@ index edf04bf..1dfb1b3 100644
      NULL, /* build header */                         \
      NULL, /* push header */                          \
 diff --git a/lib/netdev-dummy.c b/lib/netdev-dummy.c
-index 5cd50a1..bf1efc8 100644
+index d64874b..94343c3 100644
 --- a/lib/netdev-dummy.c
 +++ b/lib/netdev-dummy.c
 @@ -1,5 +1,6 @@
@@ -1593,7 +1576,7 @@ index 5cd50a1..bf1efc8 100644
   *
   * Licensed under the Apache License, Version 2.0 (the "License");
   * you may not use this file except in compliance with the License.
-@@ -1119,6 +1120,10 @@ static const struct netdev_class dummy_class = {
+@@ -1118,6 +1119,10 @@ static const struct netdev_class dummy_class = {
      netdev_dummy_dealloc,
      netdev_dummy_get_config,
      netdev_dummy_set_config,
@@ -1605,7 +1588,7 @@ index 5cd50a1..bf1efc8 100644
      NULL,                       /* build header */
      NULL,                       /* push header */
 diff --git a/lib/netdev-linux.c b/lib/netdev-linux.c
-index 393b4cc..dba9c92e 100644
+index 8e5fa90..1a63474 100644
 --- a/lib/netdev-linux.c
 +++ b/lib/netdev-linux.c
 @@ -1,5 +1,6 @@
@@ -1624,7 +1607,7 @@ index 393b4cc..dba9c92e 100644
  COVERAGE_DEFINE(netdev_set_policing);
  COVERAGE_DEFINE(netdev_arp_lookup);
  COVERAGE_DEFINE(netdev_get_ifindex);
-@@ -2842,6 +2843,10 @@ netdev_linux_update_flags(struct netdev *netdev_, enum netdev_flags off,
+@@ -2841,6 +2842,10 @@ netdev_linux_update_flags(struct netdev *netdev_, enum netdev_flags off,
      netdev_linux_dealloc,                                       \
      NULL,                       /* get_config */                \
      NULL,                       /* set_config */                \
@@ -1635,7 +1618,7 @@ index 393b4cc..dba9c92e 100644
      NULL,                       /* get_tunnel_config */         \
      NULL,                       /* build header */              \
      NULL,                       /* push header */               \
-@@ -5666,3 +5671,4 @@ af_packet_sock(void)
+@@ -5659,3 +5664,4 @@ af_packet_sock(void)
  
      return sock;
  }
@@ -1691,17 +1674,17 @@ index a33bb3b..e441216 100644
       * not a tunnel, returns null.
       *
 diff --git a/lib/netdev-vport.c b/lib/netdev-vport.c
-index 88f5022..e408220 100644
+index b5a3219..bf590e2 100644
 --- a/lib/netdev-vport.c
 +++ b/lib/netdev-vport.c
 @@ -1,5 +1,6 @@
  /*
-  * Copyright (c) 2010, 2011, 2012, 2013, 2014 Nicira, Inc.
+  * Copyright (c) 2010, 2011, 2012, 2013, 2014, 2016 Nicira, Inc.
 + * Copyright (C) 2015, 2016 Hewlett-Packard Development Company, L.P.
   *
   * Licensed under the Apache License, Version 2.0 (the "License");
   * you may not use this file except in compliance with the License.
-@@ -1467,6 +1468,18 @@ netdev_vport_range(struct unixctl_conn *conn, int argc,
+@@ -1475,6 +1476,18 @@ netdev_vport_range(struct unixctl_conn *conn, int argc,
      unixctl_command_reply(conn, "OK");
  }
  
@@ -1720,7 +1703,7 @@ index 88f5022..e408220 100644
  
  #define VPORT_FUNCTIONS(GET_CONFIG, SET_CONFIG,             \
                          GET_TUNNEL_CONFIG, GET_STATUS,      \
-@@ -1482,6 +1495,8 @@ netdev_vport_range(struct unixctl_conn *conn, int argc,
+@@ -1490,6 +1503,8 @@ netdev_vport_range(struct unixctl_conn *conn, int argc,
      netdev_vport_dealloc,                                   \
      GET_CONFIG,                                             \
      SET_CONFIG,                                             \
@@ -1730,7 +1713,7 @@ index 88f5022..e408220 100644
      BUILD_HEADER,                                           \
      PUSH_HEADER,                                            \
 diff --git a/lib/netdev.c b/lib/netdev.c
-index e3b70b1..7bfe618 100644
+index 66cdcc7..7ab5507 100644
 --- a/lib/netdev.c
 +++ b/lib/netdev.c
 @@ -1,5 +1,6 @@
@@ -1915,7 +1898,7 @@ index e3b70b1..7bfe618 100644
      } else if ((off || on) && sfp) {
          enum netdev_flags new_flags = (old_flags & ~off) | on;
 diff --git a/lib/netdev.h b/lib/netdev.h
-index 622e2ae..824dad6 100644
+index b00b462..75ada39 100644
 --- a/lib/netdev.h
 +++ b/lib/netdev.h
 @@ -1,5 +1,6 @@
@@ -1937,7 +1920,7 @@ index 622e2ae..824dad6 100644
      netdev_get_tunnel_config(const struct netdev *);
  int netdev_get_numa_id(const struct netdev *);
 diff --git a/lib/odp-util.c b/lib/odp-util.c
-index 645a8f9..d398b26 100644
+index 02c66f6..ffec971 100644
 --- a/lib/odp-util.c
 +++ b/lib/odp-util.c
 @@ -510,7 +510,7 @@ format_odp_tnl_push_header(struct ds *ds, struct ovs_action_push_tnl *data)
@@ -2575,7 +2558,7 @@ index 0cfaae6..079ebb2 100644
  AC_DEFUN([OVS_CHECK_GROFF],
    [AC_CACHE_CHECK(
 diff --git a/manpages.mk b/manpages.mk
-index 6141242..73ab582 100644
+index bf96e9f..23a6f0e 100644
 --- a/manpages.mk
 +++ b/manpages.mk
 @@ -1,17 +1,5 @@
@@ -2596,7 +2579,7 @@ index 6141242..73ab582 100644
  ovsdb/ovsdb-client.1: \
  	ovsdb/ovsdb-client.1.in \
  	lib/common-syn.man \
-@@ -291,29 +279,3 @@ ofproto/ofproto-tnl-unixctl.man:
+@@ -285,29 +273,3 @@ ofproto/ofproto-tnl-unixctl.man:
  ofproto/ofproto-unixctl.man:
  ovsdb/remote-active.man:
  ovsdb/remote-passive.man:
@@ -2750,7 +2733,7 @@ index 014e6cc..74f6769 100644
         to match the expectations of the sFlow library. Also
         the ordering is reversed, so that the entry at offset 0
 diff --git a/ofproto/ofproto-dpif.c b/ofproto/ofproto-dpif.c
-index f429114..9fb4cb9 100644
+index 83dcc9c..c69f126 100644
 --- a/ofproto/ofproto-dpif.c
 +++ b/ofproto/ofproto-dpif.c
 @@ -1,5 +1,6 @@
@@ -2760,7 +2743,7 @@ index f429114..9fb4cb9 100644
   *
   * Licensed under the Apache License, Version 2.0 (the "License");
   * you may not use this file except in compliance with the License.
-@@ -5791,6 +5792,10 @@ const struct ofproto_class ofproto_dpif_class = {
+@@ -5792,6 +5793,10 @@ const struct ofproto_class ofproto_dpif_class = {
      set_queues,
      bundle_set,
      bundle_remove,
@@ -2771,7 +2754,7 @@ index f429114..9fb4cb9 100644
      mirror_set__,
      mirror_get_stats__,
      set_flood_vlans,
-@@ -5811,4 +5816,12 @@ const struct ofproto_class ofproto_dpif_class = {
+@@ -5812,4 +5817,12 @@ const struct ofproto_class ofproto_dpif_class = {
      group_modify,               /* group_modify */
      group_get_stats,            /* group_get_stats */
      get_datapath_version,       /* get_datapath_version */
@@ -2785,12 +2768,12 @@ index f429114..9fb4cb9 100644
 +#endif
  };
 diff --git a/ofproto/ofproto-provider.h b/ofproto/ofproto-provider.h
-index 2a6bd91..e1d2775 100644
+index 138f693..1b1a7f3 100644
 --- a/ofproto/ofproto-provider.h
 +++ b/ofproto/ofproto-provider.h
 @@ -1,5 +1,6 @@
  /*
-  * Copyright (c) 2009, 2010, 2011, 2012, 2013, 2014, 2015 Nicira, Inc.
+  * Copyright (c) 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016 Nicira, Inc.
 + * Copyright (C) 2015, 2016 Hewlett-Packard Development Company, L.P.
   *
   * Licensed under the Apache License, Version 2.0 (the "License");
@@ -2806,7 +2789,19 @@ index 2a6bd91..e1d2775 100644
  };
  
  void ofproto_init_tables(struct ofproto *, int n_tables);
-@@ -1597,6 +1602,20 @@ struct ofproto_class {
+@@ -928,7 +933,11 @@ struct ofproto_class {
+      */
+     struct ofport *(*port_alloc)(void);
+     int (*port_construct)(struct ofport *ofport);
++#if defined(OVS_NEW_DESTRUCT_API)
+     void (*port_destruct)(struct ofport *ofport, bool del);
++#else
++    void (*port_destruct)(struct ofport *ofport);
++#endif
+     void (*port_dealloc)(struct ofport *ofport);
+ 
+     /* Called after 'ofport->netdev' is replaced by a new netdev object.  If
+@@ -1621,6 +1630,20 @@ struct ofproto_class {
       * one port, deconfigures the bundle's bonding configuration. */
      void (*bundle_remove)(struct ofport *ofport);
  
@@ -2827,7 +2822,7 @@ index 2a6bd91..e1d2775 100644
      /* If 's' is nonnull, this function registers a mirror associated with
       * client data pointer 'aux' in 'ofproto'.  A mirror is the same concept as
       * a Mirror in OVSDB.  If 'aux' is already registered then this function
-@@ -1764,6 +1783,34 @@ struct ofproto_class {
+@@ -1788,6 +1811,34 @@ struct ofproto_class {
       * This function should be NULL if an implementation does not support it.
       */
      const char *(*get_datapath_version)(const struct ofproto *);
@@ -2863,7 +2858,7 @@ index 2a6bd91..e1d2775 100644
  
  extern const struct ofproto_class ofproto_dpif_class;
 diff --git a/ofproto/ofproto.c b/ofproto/ofproto.c
-index a5ce04e..7c69ffb 100644
+index c6b802b..3915669 100644
 --- a/ofproto/ofproto.c
 +++ b/ofproto/ofproto.c
 @@ -1,6 +1,6 @@
@@ -2884,7 +2879,7 @@ index a5ce04e..7c69ffb 100644
  
  VLOG_DEFINE_THIS_MODULE(ofproto);
  
-@@ -365,7 +368,9 @@ ofproto_init(const struct shash *iface_hints)
+@@ -366,7 +369,9 @@ ofproto_init(const struct shash *iface_hints)
      struct shash_node *node;
      size_t i;
  
@@ -2894,7 +2889,7 @@ index a5ce04e..7c69ffb 100644
  
      /* Make a local copy, since we don't own 'iface_hints' elements. */
      SHASH_FOR_EACH(node, iface_hints) {
-@@ -608,6 +613,10 @@ ofproto_create(const char *datapath_name, const char *datapath_type,
+@@ -609,6 +614,10 @@ ofproto_create(const char *datapath_name, const char *datapath_type,
      /* Set the initial tables version. */
      ofproto_bump_tables_version(ofproto);
  
@@ -2905,7 +2900,7 @@ index a5ce04e..7c69ffb 100644
      *ofprotop = ofproto;
      return 0;
  }
-@@ -1316,6 +1325,41 @@ ofproto_bundle_unregister(struct ofproto *ofproto, void *aux)
+@@ -1317,6 +1326,41 @@ ofproto_bundle_unregister(struct ofproto *ofproto, void *aux)
      return ofproto_bundle_register(ofproto, aux, NULL);
  }
  
@@ -2947,7 +2942,23 @@ index a5ce04e..7c69ffb 100644
  
  /* Registers a mirror associated with client data pointer 'aux' in 'ofproto'.
   * If 'aux' is already registered then this function updates its configuration
-@@ -1589,6 +1633,10 @@ ofproto_destroy(struct ofproto *p)
+@@ -1579,9 +1623,15 @@ ofproto_destroy_defer__(struct ofproto *ofproto)
+     ovsrcu_postpone(ofproto_destroy__, ofproto);
+ }
+ 
++#if defined(OVS_NEW_DESTRUCT_API)
+ void
+ ofproto_destroy(struct ofproto *p, bool del)
+     OVS_EXCLUDED(ofproto_mutex)
++#else
++static void
++ofproto_destroy_new(struct ofproto *p, bool del)
++    OVS_EXCLUDED(ofproto_mutex)
++#endif
+ {
+     struct ofport *ofport, *next_ofport;
+     struct ofport_usage *usage, *next_usage;
+@@ -1590,6 +1640,10 @@ ofproto_destroy(struct ofproto *p, bool del)
          return;
      }
  
@@ -2958,7 +2969,35 @@ index a5ce04e..7c69ffb 100644
      if (p->meters) {
          meter_delete(p, 1, p->meter_features.max_meters);
          p->meter_features.max_meters = 0;
-@@ -7802,6 +7850,48 @@ ofproto_unixctl_list(struct unixctl_conn *conn, int argc OVS_UNUSED,
+@@ -1618,6 +1672,15 @@ ofproto_destroy(struct ofproto *p, bool del)
+     ovsrcu_postpone(ofproto_destroy_defer__, p);
+ }
+ 
++#if !defined(OVS_NEW_DESTRUCT_API)
++void
++ofproto_destroy(struct ofproto *p)
++    OVS_EXCLUDED(ofproto_mutex)
++{
++   ofproto_destroy_new(p, true);
++}
++#endif
++
+ /* Destroys the datapath with the respective 'name' and 'type'.  With the Linux
+  * kernel datapath, for example, this destroys the datapath in the kernel, and
+  * with the netdev-based datapath, it tears down the data structures that
+@@ -2495,7 +2558,11 @@ ofport_destroy(struct ofport *port, bool del)
+ {
+     if (port) {
+         dealloc_ofp_port(port->ofproto, port->ofp_port);
++#if defined(OVS_NEW_DESTRUCT_API)
+         port->ofproto->ofproto_class->port_destruct(port, del);
++#else
++        port->ofproto->ofproto_class->port_destruct(port);
++#endif
+         ofport_destroy__(port);
+      }
+ }
+@@ -7811,6 +7878,48 @@ ofproto_unixctl_list(struct unixctl_conn *conn, int argc OVS_UNUSED,
      ds_destroy(&results);
  }
  
@@ -3007,7 +3046,7 @@ index a5ce04e..7c69ffb 100644
  static void
  ofproto_unixctl_init(void)
  {
-@@ -7812,7 +7902,12 @@ ofproto_unixctl_init(void)
+@@ -7821,7 +7930,12 @@ ofproto_unixctl_init(void)
      registered = true;
  
      unixctl_command_register("ofproto/list", "", 0, 0,
@@ -3020,7 +3059,7 @@ index a5ce04e..7c69ffb 100644
  }
  
  /* Linux VLAN device support (e.g. "eth0.10" for VLAN 10.)
-@@ -7903,3 +7998,105 @@ ofproto_port_set_realdev(struct ofproto *ofproto, ofp_port_t vlandev_ofp_port,
+@@ -7912,3 +8026,105 @@ ofproto_port_set_realdev(struct ofproto *ofproto, ofp_port_t vlandev_ofp_port,
      }
      return error;
  }
@@ -3127,12 +3166,12 @@ index a5ce04e..7c69ffb 100644
 +}
 +#endif
 diff --git a/ofproto/ofproto.h b/ofproto/ofproto.h
-index 7504027..a356470 100644
+index ebeb590..93ed4ca 100644
 --- a/ofproto/ofproto.h
 +++ b/ofproto/ofproto.h
 @@ -1,5 +1,6 @@
  /*
-  * Copyright (c) 2009, 2010, 2011, 2012, 2013, 2014, 2015 Nicira, Inc.
+  * Copyright (c) 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016 Nicira, Inc.
 + * Copyright (C) 2015, 2016 Hewlett-Packard Development Company, L.P.
   *
   * Licensed under the Apache License, Version 2.0 (the "License");
@@ -3212,7 +3251,19 @@ index 7504027..a356470 100644
  void ofproto_enumerate_types(struct sset *types);
  const char *ofproto_normalize_type(const char *);
  
-@@ -384,6 +453,29 @@ enum port_vlan_mode {
+@@ -239,7 +308,11 @@ void ofproto_type_wait(const char *datapath_type);
+ 
+ int ofproto_create(const char *datapath, const char *datapath_type,
+                    struct ofproto **ofprotop);
++#if defined(OVS_NEW_DESTRUCT_API)
+ void ofproto_destroy(struct ofproto *, bool del);
++#else
++void ofproto_destroy(struct ofproto *);
++#endif
+ int ofproto_delete(const char *name, const char *type);
+ 
+ int ofproto_run(struct ofproto *);
+@@ -384,6 +457,29 @@ enum port_vlan_mode {
      PORT_VLAN_NATIVE_UNTAGGED
  };
  
@@ -3242,7 +3293,7 @@ index 7504027..a356470 100644
  /* Configuration of bundles. */
  struct ofproto_bundle_settings {
      char *name;                 /* For use in log messages. */
-@@ -408,12 +500,60 @@ struct ofproto_bundle_settings {
+@@ -408,12 +504,60 @@ struct ofproto_bundle_settings {
       * VLAN devices are not used.  When broken device drivers are no longer in
       * widespread use, we will delete these interfaces. */
      ofp_port_t realdev_ofp_port;/* OpenFlow port number of real device. */
@@ -4018,10 +4069,10 @@ index c858471..1d06261 100644
 +        if self.key is not None:
 +            return self.key.cEnumType(prefix)
 diff --git a/tests/ofproto-dpif.at b/tests/ofproto-dpif.at
-index 60734db..2f3ebe8 100644
+index 4362f77..716f685 100644
 --- a/tests/ofproto-dpif.at
 +++ b/tests/ofproto-dpif.at
-@@ -5128,7 +5128,7 @@ ovs-appctl time/stop
+@@ -5206,7 +5206,7 @@ ovs-appctl time/stop
  
  OVS_VSWITCHD_DISABLE_TUNNEL_PUSH_POP
  AT_CHECK([ovs-vsctl add-port br0 gre0 -- set Interface gre0 type=gre \
@@ -4031,10 +4082,10 @@ index 60734db..2f3ebe8 100644
  
  AT_CHECK([ovs-ofctl add-flow br0 action=3])
 diff --git a/tests/ofproto.at b/tests/ofproto.at
-index 52e1ab4..816c236 100644
+index 8bfaf3a..bb533f7 100644
 --- a/tests/ofproto.at
 +++ b/tests/ofproto.at
-@@ -4271,7 +4271,7 @@ vconn|DBG|unix: negotiated OpenFlow version 0x01 (we support version 0x06 and ea
+@@ -4275,7 +4275,7 @@ vconn|DBG|unix: negotiated OpenFlow version 0x01 (we support version 0x06 and ea
  vconn|DBG|unix: received: NXT_SET_FLOW_FORMAT: format=nxm
  vconn|DBG|unix: received: OFPT_BARRIER_REQUEST:
  vconn|DBG|unix: sent (Success): OFPT_BARRIER_REPLY:
@@ -4235,10 +4286,10 @@ index ff6163c..4cf9692 100644
  
  static struct jsonrpc *
 diff --git a/utilities/ovs-ofctl.8.in b/utilities/ovs-ofctl.8.in
-index 608f715..3d06077 100644
+index 031ed0a..f795f0c 100644
 --- a/utilities/ovs-ofctl.8.in
 +++ b/utilities/ovs-ofctl.8.in
-@@ -1909,7 +1909,7 @@ slaves represented as \fIslave_type\fR.  Currently the only supported
+@@ -1916,7 +1916,7 @@ slaves represented as \fIslave_type\fR.  Currently the only supported
  \fIslave_type\fR is \fBofport\fR.  Thus, each \fIs1\fR through \fIsN\fR should
  be an OpenFlow port number. Outputs to the selected slave.
  .IP
@@ -4270,7 +4321,7 @@ index 9a4ffdd..4433c31 100644
        Here's a primitive OVN ``scale test'' (adjust the scale by
        changing <var>n</var> in the first line :
 diff --git a/utilities/ovs-sim.in b/utilities/ovs-sim.in
-index 1702f0e..fce6273 100755
+index cebbd41..019fe79 100755
 --- a/utilities/ovs-sim.in
 +++ b/utilities/ovs-sim.in
 @@ -106,7 +106,7 @@ as() {
@@ -6143,6 +6194,19 @@ index 36290db..42925a5 100644
      /* Switch commands. */
      {"emer-reset", 0, 0, "", pre_cmd_emer_reset, cmd_emer_reset, NULL, "", RW},
  
+diff --git a/vswitchd/bridge.c b/vswitchd/bridge.c
+index 4ff77c1..8a70a5d 100644
+--- a/vswitchd/bridge.c
++++ b/vswitchd/bridge.c
+@@ -3217,7 +3217,7 @@ bridge_destroy(struct bridge *br, bool del)
+         }
+ 
+         hmap_remove(&all_bridges, &br->node);
+-        ofproto_destroy(br->ofproto, del);
++        ofproto_destroy_2(br->ofproto, del);
+         hmap_destroy(&br->ifaces);
+         hmap_destroy(&br->ports);
+         hmap_destroy(&br->iface_by_name);
 diff --git a/vswitchd/vswitch.ovsschema b/vswitchd/vswitch.ovsschema
 deleted file mode 100644
 index 35f145f..0000000
@@ -6761,7 +6825,7 @@ index 35f145f..0000000
 -                  "min": 0, "max": "unlimited"}}}}}}
 diff --git a/vswitchd/vswitch.xml b/vswitchd/vswitch.xml
 deleted file mode 100644
-index ce0dbc1..0000000
+index 26c1a39..0000000
 --- a/vswitchd/vswitch.xml
 +++ /dev/null
 @@ -1,4724 +0,0 @@
@@ -9185,7 +9249,7 @@ index ce0dbc1..0000000
 -
 -      <column name="ingress_policing_burst">
 -        <p>Maximum burst size for data received on this interface, in kb.  The
--        default burst size if set to <code>0</code> is 1000 kb.  This value
+-        default burst size if set to <code>0</code> is 8000 kbit.  This value
 -        has no effect if <ref column="ingress_policing_rate"/>
 -        is <code>0</code>.</p>
 -        <p>
@@ -9193,7 +9257,7 @@ index ce0dbc1..0000000
 -          which is important for protocols like TCP that react severely to
 -          dropped packets.  The burst size should be at least the size of the
 -          interface's MTU.  Specifying a value that is numerically at least as
--          large as 10% of <ref column="ingress_policing_rate"/> helps TCP come
+-          large as 80% of <ref column="ingress_policing_rate"/> helps TCP come
 -          closer to achieving the full rate.
 -        </p>
 -      </column>
@@ -11503,5 +11567,5 @@ index de028b6..b8c6f5a 100644
  
  # ovs-vtep
 -- 
-1.9.1
+2.1.4
 
