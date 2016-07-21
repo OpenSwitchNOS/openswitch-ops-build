@@ -81,6 +81,7 @@ RDEPENDS_packagegroup-ops-base = "\
     ops-l2macd \
     ops-rbac \
     nginx \
+    ops-certificate \
 "
 
 RDEPENDS_packagegroup-ops-base_append_arm = "\
