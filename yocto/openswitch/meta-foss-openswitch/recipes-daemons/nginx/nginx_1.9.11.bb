@@ -9,6 +9,7 @@ DEPENDS = "openssl zlib libpcre"
 SRC_URI = "http://nginx.org/download/nginx-1.9.11.tar.gz \
            file://nginx-cross.patch \
            file://nginx.conf \
+           file://nginx-errors.conf \
            file://nginx-static.conf \
            file://nginx.service \
 "

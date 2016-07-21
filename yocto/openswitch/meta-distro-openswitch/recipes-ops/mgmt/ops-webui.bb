@@ -37,11 +37,13 @@ do_compile() {
         ./tools/scripts/extract-node-tars
     fi
     oe_runnpm run buildprod
+    make -C errors/
 }
 
 do_install() {
-    install -d ${D}/srv/www/static
+    install -d ${D}/srv/www/static/errors
     cp -R build/* ${D}/srv/www/static
+    cp errors/build/* ${D}/srv/www/static/errors/
 }
 
 do_unittest() {
