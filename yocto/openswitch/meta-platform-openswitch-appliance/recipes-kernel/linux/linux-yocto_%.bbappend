@@ -11,4 +11,5 @@ SRC_URI += "file://ops-fragment.cfg \
 	file://openvswitch.cfg \
         file://ops-audit.cfg \
         file://vmware-guest.cfg \
+        file://docker_requirements.cfg \
 "
