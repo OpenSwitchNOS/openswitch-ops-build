@@ -11,7 +11,7 @@ SRC_URI = "git://git.openswitch.net/openswitch/ops-switchd-opennsl-plugin;protoc
 
 FILES_${PN} = "${libdir}/openvswitch/plugins"
 
-SRCREV = "99179b263257f6bdc03107e4964250837f310bcd"
+SRCREV = "dfafca12a8306b1c3763646b7df6a9a2267c9992"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.
