@@ -6,7 +6,7 @@ After=ovsdb-server.service ops-init.service
 
 [Service]
 Type=simple
-ExecStart=/sbin/ip netns exec nonet /usr/bin/ops-fand -vSYSLOG:INFO
+ExecStart=/sbin/ip netns exec nonet /usr/bin/ops-fand
 Restart=on-abort
 
 [Install]

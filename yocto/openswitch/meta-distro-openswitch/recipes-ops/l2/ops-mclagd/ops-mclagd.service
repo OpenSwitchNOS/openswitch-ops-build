@@ -6,5 +6,5 @@ After=ovsdb-server.service ops-init.service
 
 [Service]
 Type=simple
-ExecStart=/sbin/ip netns exec swns /usr/bin/ops-mclagd -vSYSLOG:INFO
+ExecStart=/sbin/ip netns exec swns /usr/bin/ops-mclagd
 Restart=on-abort

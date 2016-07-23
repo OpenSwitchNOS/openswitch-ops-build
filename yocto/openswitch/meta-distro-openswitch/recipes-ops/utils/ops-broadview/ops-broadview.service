@@ -5,7 +5,7 @@ After=ovsdb-server.service ops-init.service
 
 [Service]
 Type=simple
-ExecStart= /usr/sbin/ops-broadview -vSYSLOG:INFO
+ExecStart= /usr/sbin/ops-broadview
 Restart=on-abort
 
 [Install]

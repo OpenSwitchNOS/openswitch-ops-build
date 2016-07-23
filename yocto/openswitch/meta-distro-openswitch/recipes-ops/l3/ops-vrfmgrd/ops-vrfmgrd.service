@@ -6,7 +6,7 @@ After=ovsdb-server.service ops-init.service
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/ops-vrfmgrd -vSYSLOG:INFO
+ExecStart=/usr/bin/ops-vrfmgrd
 Restart=on-abort
 
 [Install]
