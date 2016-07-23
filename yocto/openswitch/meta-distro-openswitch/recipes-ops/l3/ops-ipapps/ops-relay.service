@@ -6,8 +6,7 @@ After=ovsdb-server.service ops-init.service
 
 [Service]
 Type=simple
-ExecStartPre=/bin/rm -f /var/run/openvswitch/ops-relay.pid
-ExecStart=/sbin/ip netns exec swns /usr/bin/ops-relay --pidfile -vSYSLOG:INFO
+ExecStart=/sbin/ip netns exec swns /usr/bin/ops-relay -vSYSLOG:INFO
 Restart=on-abort
 
 [Install]

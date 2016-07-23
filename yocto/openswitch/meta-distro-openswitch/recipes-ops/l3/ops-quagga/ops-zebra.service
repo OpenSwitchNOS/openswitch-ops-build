@@ -6,8 +6,7 @@ After=ovsdb-server.service ops-init.service
 
 [Service]
 Type=simple
-ExecStartPre=/bin/rm -f /var/run/openvswitch/ops-zebra.pid
-ExecStart=/sbin/ip netns exec swns /usr/sbin/ops-zebra --pidfile -vSYSLOG:INFO
+ExecStart=/sbin/ip netns exec swns /usr/sbin/ops-zebra -vSYSLOG:INFO
 Restart=on-abort
 
 [Install]

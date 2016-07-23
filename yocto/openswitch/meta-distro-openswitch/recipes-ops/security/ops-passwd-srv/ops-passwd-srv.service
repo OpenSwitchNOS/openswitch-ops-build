@@ -6,8 +6,7 @@ After=ovsdb-server.service ops-init.service
 
 [Service]
 Type=simple
-ExecStartPre=/bin/rm -f /var/run/openvswitch/ops-passwd-srv.pid
-ExecStart=/usr/bin/ops-passwd-srv --pidfile -vSYSLOG:INFO
+ExecStart=/usr/bin/ops-passwd-srv -vSYSLOG:INFO
 Restart=on-abort
 
 [Install]

@@ -6,8 +6,7 @@ After=ovsdb-server.service ops-init.service
 
 [Service]
 Type=simple
-ExecStartPre=/bin/rm -f /var/run/openvswitch/ops-l2macd.pid
-ExecStart=/usr/bin/ops-l2macd --pidfile -vSYSLOG:INFO
+ExecStart=/usr/bin/ops-l2macd -vSYSLOG:INFO
 Restart=on-abort
 
 [Install]

@@ -8,8 +8,7 @@ After=ovsdb-server.service ops-init.service
 Type=simple
 CPUSchedulingPolicy=rr
 CPUSchedulingPriority=3
-ExecStartPre=/bin/rm -f /var/run/openvswitch/ops-ipsecd.pid
-ExecStart=/sbin/ip netns exec swns /usr/bin/ops-ipsecd --pidfile -vSYSLOG:INFO
+ExecStart=/sbin/ip netns exec swns /usr/bin/ops-ipsecd -vSYSLOG:INFO
 Restart=on-abort
 
 [Install]
