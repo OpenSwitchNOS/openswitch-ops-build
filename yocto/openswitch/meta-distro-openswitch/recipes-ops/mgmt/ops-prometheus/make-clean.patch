@@ -1,0 +1,11 @@
+--- a/Makefile	2016-02-20 16:11:51.884914850 +0100
++++ b/Makefile	2016-02-20 16:16:40.500907056 +0100
+@@ -53,6 +53,8 @@
+ 	@$(GO) get -u github.com/jteeuwen/go-bindata/...
+ 	@go-bindata $(bindata_flags) -pkg ui -o web/ui/bindata.go -ignore '(.*\.map|bootstrap\.js|bootstrap-theme\.css|bootstrap\.css)'  web/ui/templates/... web/ui/static/...
+ 
++clean:
++	@git clean -xf
+ 
+ .PHONY: all style format build test vet docker assets tarballs
+ 

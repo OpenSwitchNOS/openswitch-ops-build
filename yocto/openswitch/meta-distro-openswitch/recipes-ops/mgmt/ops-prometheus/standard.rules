@@ -1,0 +1,15 @@
+
+#########
+# Alerts
+#########
+
+# Alert when we have a systemd service that is in the "failed" state
+ALERT ServiceFailed
+  IF label_replace(
+    node_systemd_unit_state{state="failed",name=~".*\\.service"} > 0,
+    "service", "$1", "name", "(.*).service")
+  FOR 2m
+
+##################
+# Precomputations
+##################
