@@ -55,7 +55,7 @@
         <vmw:Config ovf:required="false" vmw:key="ehciEnabled" vmw:value="true"/>
       </Item>
       <Item>
-        <rasd:Address>1</rasd:Address>
+        <rasd:Address>0</rasd:Address>
         <rasd:Description>IDE Controller</rasd:Description>
         <rasd:ElementName>ideController0</rasd:ElementName>
         <rasd:InstanceID>4</rasd:InstanceID>
