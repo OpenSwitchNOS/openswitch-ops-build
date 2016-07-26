@@ -11,7 +11,7 @@ def map_go_arch(a, d):
 
 def go_extldflags(d):
     _, cc_args = d.getVar('CC').split(' ', 1)
-    return cc_args + d.getVar('CFLAGS')
+    return cc_args + d.getVar('CFLAGS', True)
 
 
 export GOOS = "linux"
@@ -22,6 +22,9 @@ export GOPKG_FINAL = "${GOROOT_FINAL}/pkg/${GOOS}_${GOARCH}"
 export GOSRC_FINAL = "${GOROOT_FINAL}/src"
 export CGO_CFLAGS = "${TARGET_CFLAGS}"
 export CGO_DFLAGS = "${TARGET_LDFLAGS}"
+# The go code may fetch further code during the build
+export http_proxy
+export https_proxy
 
 # TODO(bluecmd): This is a hack to work around that Go doesn't have any
 # good ways of passing arguments down to an external linker and doesn't
