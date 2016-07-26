@@ -35,6 +35,8 @@ do_install() {
         ${D}/etc/nginx/conf.d/backend-node-exporter.conf
 }
 
+CLEANBROKEN = "1"
+
 SYSTEMD_PACKAGES = "${PN}"
 SYSTEMD_SERVICE_${PN} = "node-exporter.service"
 
