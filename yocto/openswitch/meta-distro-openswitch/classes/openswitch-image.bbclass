@@ -8,7 +8,8 @@ EXTRA_USERS_PARAMS = "\
          usermod -g ops_admin admin;\
          usermod -g ops_netop netop;\
          usermod -G ovsdb-client netop;\
-         usermod -s /bin/bash admin;\
+         usermod -G ovsdb-client admin;\
+         usermod -s /usr/bin/vtysh admin;\
          usermod -s /usr/bin/vtysh netop;\
          "
 IMAGE_FEATURES += "ssh-server-openssh"
