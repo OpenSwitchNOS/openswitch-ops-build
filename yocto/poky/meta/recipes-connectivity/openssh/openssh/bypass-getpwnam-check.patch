@@ -1,0 +1,26 @@
+Index: openssh-6.8p1/auth.c
+===================================================================
+--- openssh-6.8p1.orig/auth.c
++++ openssh-6.8p1/auth.c
+@@ -619,8 +619,21 @@
+ 	aix_setauthdb(user);
+ #endif
+ 
++	/* TODO: remove the debugs */
++	logit("Tacacs_Dev %s: %d, user = %s", __FUNCTION__, __LINE__, user);
++
+ 	pw = getpwnam(user);
+ 
++	if (pw == NULL) {
++		logit("Tacacs_Dev %s: %d, user = %s", __FUNCTION__, __LINE__, user);
++
++		/* TODO: change admin to tacacs_user */
++		pw = getpwnam("admin");
++		if (pw != NULL) {
++			strcpy(pw->pw_name, user);
++		}
++	}
++
+ #if defined(_AIX) && defined(HAVE_SETAUTHDB)
+ 	aix_restoreauthdb();
+ #endif
