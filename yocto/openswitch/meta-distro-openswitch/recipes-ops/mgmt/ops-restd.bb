@@ -34,7 +34,7 @@ do_install_append () {
       cd ${S}/opslib
       # We do not have a native ovsdb-python package, so we use the one
       # from the target by hacking the PYTHONPATH
-      PYTHONPATH=${STAGING_DIR_TARGET}/${PYTHON_SITEPACKAGES_DIR}:${PYTHONPATH} ${PYTHON} apidocgen.py ${STAGING_DIR_TARGET}/${prefix}/share/openvswitch/vswitch.extschema ${STAGING_DIR_TARGET}/${prefix}/share/openvswitch/vswitch.xml > ${D}/srv/www/api/ops-restapi.json
+      PYTHONPATH=${STAGING_DIR_TARGET}/${PYTHON_SITEPACKAGES_DIR}:${PYTHONPATH} ${PYTHON} apidocgen.py ${STAGING_DIR_TARGET}/${prefix}/share/openvswitch/openswitch.extschema.json > ${D}/srv/www/api/ops-restapi.json
 
       install -d ${D}/usr/share/opsplugins
       for plugin in $(find ${S}/opsplugins -name "*.py"); do \
