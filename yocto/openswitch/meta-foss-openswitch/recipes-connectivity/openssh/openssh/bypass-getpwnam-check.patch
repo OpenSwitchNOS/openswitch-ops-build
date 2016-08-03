@@ -1,0 +1,49 @@
+Index: openssh-6.8p1/loginrec.c
+===================================================================
+--- openssh-6.8p1.orig/loginrec.c
++++ openssh-6.8p1/loginrec.c
+@@ -380,8 +380,16 @@
+ 		strlcpy(li->username, username, sizeof(li->username));
+ 		pw = getpwnam(li->username);
+ 		if (pw == NULL) {
+-			fatal("%s: Cannot find user \"%s\"", __func__,
+-			    li->username);
++			/*fatal("%s: Cannot find user \"%s\"", __func__,
++			    li->username);*/
++
++			logit("Tacacs_dev %s: %d, user = %s", __FUNCTION__, __LINE__, li->username);
++
++			/* TODO: change admin to tacacs_user */
++			pw = getpwnam("admin");
++			if (pw != NULL) {
++				strcpy(pw->pw_name, li->username);
++			}
+ 		}
+ 		li->uid = pw->pw_uid;
+ 	}
+Index: openssh-6.8p1/auth.c
+===================================================================
+--- openssh-6.8p1.orig/auth.c
++++ openssh-6.8p1/auth.c
+@@ -619,8 +619,21 @@
+ 	aix_setauthdb(user);
+ #endif
+ 
++	/* TODO: remove the debugs */
++	logit("Ganesh %s: %d, user = %s", __FUNCTION__, __LINE__, user);
++
+ 	pw = getpwnam(user);
+ 
++	if (pw == NULL) {
++		logit("Tacacs_dev %s: %d, user = %s", __FUNCTION__, __LINE__, user);
++
++		/* TODO: change admin to tacacs_user */
++		pw = getpwnam("admin");
++		if (pw != NULL) {
++			strcpy(pw->pw_name, user);
++		}
++	}
++
+ #if defined(_AIX) && defined(HAVE_SETAUTHDB)
+ 	aix_restoreauthdb();
+ #endif
