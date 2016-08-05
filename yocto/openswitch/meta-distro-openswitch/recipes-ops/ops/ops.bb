@@ -9,10 +9,12 @@ SRC_URI = "${OPS_REPO_BASE_URL}/ops;protocol=${OPS_REPO_PROTOCOL};branch=${BRANC
 SRCREV = "7f62e6d25d0c1b7aa950186a2d31874885078aae"
 
 DEPENDS = " \
-           python-jsonref-native \
-           python-jsonschema-native \
-           python-pycksum-native \
-          "
+    python-jsonref-native \
+    python-jsonschema-native \
+    python-plantuml-native \
+    python-pycksum-native \
+    python-sphinx-native \
+"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.
@@ -21,11 +23,11 @@ PV = "git${SRCPV}"
 S = "${WORKDIR}/git"
 
 FILES_${PN} += " \
-                /usr/share/openvswitch/ \
-                /usr/share/openvswitch/*.extschema \
-                /usr/share/openvswitch/*.ovsschema \
-                /usr/share/openvswitch/*.xml \
-               "
+    /usr/share/openvswitch/ \
+    /usr/share/openvswitch/*.extschema \
+    /usr/share/openvswitch/*.ovsschema \
+    /usr/share/openvswitch/*.xml \
+"
 
 OPS_SCHEMA_PATH="${S}/schema"
 
