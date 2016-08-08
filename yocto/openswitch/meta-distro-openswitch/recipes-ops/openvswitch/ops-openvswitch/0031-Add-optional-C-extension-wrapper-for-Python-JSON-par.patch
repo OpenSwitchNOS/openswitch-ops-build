@@ -1,24 +1,21 @@
-From 51a6db496ca1fd3c5d16bd1b69d47afaaea2092c Mon Sep 17 00:00:00 2001
+From 056fc1ed3db2659929f45f1313507733bf0c4846 Mon Sep 17 00:00:00 2001
 From: Diego Dompe <dompe@hpe.com>
-Date: Sat, 25 Jun 2016 06:49:36 -0600
-Subject: [PATCH 18/18] Add optional C extension wrapper for Python JSON
- parsing
+Date: Wed, 13 Jul 2016 13:39:40 -0600
+Subject: [PATCH] Add optional C extension wrapper for Python JSON parsing
 
 Backport from https://github.com/openvswitch/ovs/commit/e71d42188e08afdb8de04ebb860c895445b623a3
 fix memory leak issue by calling json_destroy
 
 Change-Id: Id64d5f874e2197e406d95fa894edcf339f20d634
 Signed-off-by: Diego Dompe <dompe@hpe.com>
-
-%% original patch: 0018-Add-optional-c-extension-wrapper-for-python-json-parsing.patch
-
+Signed-off-by: Esteban Rodriguez Betancourt <estebarb@hpe.com>
 Signed-off-by: Madhulika Madishetty <madhulika.madishetty@hpe.com>
 ---
  python/automake.mk |   3 +
- python/ovs/_json.c | 269 +++++++++++++++++++++++++++++++++++++++++++++++++++++
+ python/ovs/_json.c | 268 +++++++++++++++++++++++++++++++++++++++++++++++++++++
  python/ovs/json.py |  11 +++
  python/setup.py    |  57 +++++++++++-
- 4 files changed, 338 insertions(+), 2 deletions(-)
+ 4 files changed, 337 insertions(+), 2 deletions(-)
  create mode 100644 python/ovs/_json.c
 
 diff --git a/python/automake.mk b/python/automake.mk
@@ -37,10 +34,10 @@ index 42b428a..69b42ef 100644
  PYCOV_CLEAN_FILES += $(PYFILES:.py=.py,cover)
 diff --git a/python/ovs/_json.c b/python/ovs/_json.c
 new file mode 100644
-index 0000000..0772a94
+index 0000000..af2e712
 --- /dev/null
 +++ b/python/ovs/_json.c
-@@ -0,0 +1,269 @@
+@@ -0,0 +1,268 @@
 +#include "Python.h"
 +#include <ovs/json.h>
 +#include "structmember.h"
@@ -421,3 +418,6 @@ index 889d215..4307266 100644
 +    del(setup_args['cmdclass'])
 +    del(setup_args['ext_modules'])
 +    setuptools.setup(**setup_args)
+-- 
+2.7.4
+
