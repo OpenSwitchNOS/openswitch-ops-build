@@ -1,0 +1,26 @@
+From 79bea971dee565ba3ed02f73f2a53f94a159a56d Mon Sep 17 00:00:00 2001
+From: Madhulika Madishetty <madhulika.madishetty@hpe.com>
+Date: Wed, 3 Aug 2016 14:58:16 -0700
+Subject: [PATCH] Fix memory leak issue in _json.c
+
+Change-Id: I72401188fb85fcc96b0265951ae94e4741882a72
+Signed-off-by: Madhulika Madishetty <madhulika.madishetty@hpe.com>
+---
+ python/ovs/_json.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/python/ovs/_json.c b/python/ovs/_json.c
+index af2e712..0772a94 100644
+--- a/python/ovs/_json.c
++++ b/python/ovs/_json.c
+@@ -170,6 +170,7 @@ Parser_finish(json_ParserObject * self)
+     json = json_parser_finish(self->_parser);
+     self->_parser = NULL;
+     obj = json_to_python(json);
++    json_destroy(json);
+     return obj;
+ }
+ 
+-- 
+2.7.4
+
