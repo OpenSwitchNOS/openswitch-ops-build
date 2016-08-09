@@ -3,7 +3,7 @@ LICENSE = "Apache-2.0"
 
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/Apache-2.0;md5=89aea4e17d99a7cacdbeed46a0096b10"
 
-DEPENDS = "ops-ovsdb ops-cli ops-supportability"
+DEPENDS = "ops-cli"
 
 RDEPENDS_${PN} = "python-argparse python-json python-ops-ovsdb python-distribute python-pam pam-plugin-radius-auth pam-plugin-radius-chap-auth"
 
@@ -41,19 +41,23 @@ do_install() {
      # Cmake compile changes to the B directory
      cmake_do_install
      install -d ${D}${systemd_unitdir}/system
+     install -d ${D}/lib
      install -m 0644 ${WORKDIR}/aaautils.service ${D}${systemd_unitdir}/system/
      install -d ${D}${sysconfdir}/raddb
      install -m 0644 ${WORKDIR}/server ${D}${sysconfdir}/raddb/server
      install -d ${D}${sysconfdir}/sudoers.d
      install -m 0644 ${WORKDIR}/useradd ${D}${sysconfdir}/sudoers.d/useradd
 
+     for plugin in $(find ${S}/pam_libraries/tacacs/libtac -name "*.so"); do \
+        install -m 777 ${plugin} ${D}/lib
+     done
+
      # Uninstall old libraries
      rm -f ${D}/usr/include/rbac.h
      rm -f ${D}/usr/lib/librbac.so*
      rm -f ${D}/usr/lib/python2.7/site-packages/rbac.py*
 }
-
-FILES_${PN} += "/usr/lib/cli/plugins/"
+FILES_${PN} += "/usr/lib/cli/plugins/ /lib"
 FILES_${PN}   += "${sysconfdir}/raddb/ ${sysconfdir}/sudoers.d/"
 SYSTEMD_PACKAGES = "${PN}"
 SYSTEMD_SERVICE_${PN} = "aaautils.service"
