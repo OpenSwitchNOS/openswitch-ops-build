@@ -30,6 +30,8 @@ pyyaml==3.11
 # Platform engines
 ##########################
 
+# topology
+-e git+https://github.com/HPENetworking/topology.git@master#egg=topology
 # Docker
 # topology_docker==1.5.0
 -e git+https://github.com/saenzpa/topology_docker.git@master#egg=topology_docker
