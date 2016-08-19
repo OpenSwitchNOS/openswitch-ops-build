@@ -1,0 +1,95 @@
+From a58c3ea02edc161a452adf75f6db3a6ee005188d Mon Sep 17 00:00:00 2001
+From: Petro Karashchenko <petro.karashchenko@caviumnetworks.com>
+Date: Wed, 27 Jul 2016 23:50:13 +0300
+Subject: [PATCH] Support of 25GB_FD and 50GB_FD netdev features
+
+Change-Id: Ife7dd4c00b56b65cbd368b732e1e7e9c6418f7e3
+Signed-off-by: Petro Karashchenko <petro.karashchenko@caviumnetworks.com>
+---
+ lib/netdev-linux.c | 4 ++++
+ lib/netdev.c       | 8 ++++++--
+ lib/netdev.h       | 2 ++
+ lib/ofp-print.c    | 2 ++
+ 4 files changed, 14 insertions(+), 2 deletions(-)
+
+diff --git a/lib/netdev-linux.c b/lib/netdev-linux.c
+index dba9c92e..7150afa 100644
+--- a/lib/netdev-linux.c
++++ b/lib/netdev-linux.c
+@@ -1915,8 +1915,12 @@ netdev_linux_read_features(struct netdev_linux *netdev)
+         netdev->current = ecmd.duplex ? NETDEV_F_1GB_FD : NETDEV_F_1GB_HD;
+     } else if (speed == SPEED_10000) {
+         netdev->current = NETDEV_F_10GB_FD;
++    } else if (speed == 25000) {
++        netdev->current = NETDEV_F_25GB_FD;
+     } else if (speed == 40000) {
+         netdev->current = NETDEV_F_40GB_FD;
++    } else if (speed == 50000) {
++        netdev->current = NETDEV_F_50GB_FD;
+     } else if (speed == 100000) {
+         netdev->current = NETDEV_F_100GB_FD;
+     } else if (speed == 1000000) {
+diff --git a/lib/netdev.c b/lib/netdev.c
+index 7bfe618..b287f8b 100644
+--- a/lib/netdev.c
++++ b/lib/netdev.c
+@@ -1044,7 +1044,9 @@ netdev_features_to_bps(enum netdev_features features,
+     enum {
+         F_1000000MB = NETDEV_F_1TB_FD,
+         F_100000MB = NETDEV_F_100GB_FD,
++        F_50000MB = NETDEV_F_50GB_FD,
+         F_40000MB = NETDEV_F_40GB_FD,
++        F_25000MB = NETDEV_F_25GB_FD,
+         F_10000MB = NETDEV_F_10GB_FD,
+         F_1000MB = NETDEV_F_1GB_HD | NETDEV_F_1GB_FD,
+         F_100MB = NETDEV_F_100MB_HD | NETDEV_F_100MB_FD,
+@@ -1053,7 +1055,9 @@ netdev_features_to_bps(enum netdev_features features,
+ 
+     return (  features & F_1000000MB ? UINT64_C(1000000000000)
+             : features & F_100000MB  ? UINT64_C(100000000000)
++            : features & F_50000MB   ? UINT64_C(50000000000)
+             : features & F_40000MB   ? UINT64_C(40000000000)
++            : features & F_25000MB   ? UINT64_C(25000000000)
+             : features & F_10000MB   ? UINT64_C(10000000000)
+             : features & F_1000MB    ? UINT64_C(1000000000)
+             : features & F_100MB     ? UINT64_C(100000000)
+@@ -1067,8 +1071,8 @@ bool
+ netdev_features_is_full_duplex(enum netdev_features features)
+ {
+     return (features & (NETDEV_F_10MB_FD | NETDEV_F_100MB_FD | NETDEV_F_1GB_FD
+-                        | NETDEV_F_10GB_FD | NETDEV_F_40GB_FD
+-                        | NETDEV_F_100GB_FD | NETDEV_F_1TB_FD)) != 0;
++                        | NETDEV_F_10GB_FD | NETDEV_F_25GB_FD | NETDEV_F_40GB_FD
++                        | NETDEV_F_50GB_FD | NETDEV_F_100GB_FD | NETDEV_F_1TB_FD)) != 0;
+ }
+ 
+ /* Set the features advertised by 'netdev' to 'advertise'.  Returns 0 if
+diff --git a/lib/netdev.h b/lib/netdev.h
+index 6136e62..8f97e6a 100644
+--- a/lib/netdev.h
++++ b/lib/netdev.h
+@@ -264,6 +264,8 @@ enum netdev_features {
+     NETDEV_F_AUTONEG =    1 << 13, /* Auto-negotiation. */
+     NETDEV_F_PAUSE =      1 << 14, /* Pause. */
+     NETDEV_F_PAUSE_ASYM = 1 << 15, /* Asymmetric pause. */
++    NETDEV_F_25GB_FD =    1 << 16, /* 25 Gb full-duplex rate support. */
++    NETDEV_F_50GB_FD =    1 << 17, /* 50 Gb full-duplex rate support. */
+ };
+ 
+ int netdev_get_features(const struct netdev *,
+diff --git a/lib/ofp-print.c b/lib/ofp-print.c
+index 02bcd7a..4aeaad4 100644
+--- a/lib/ofp-print.c
++++ b/lib/ofp-print.c
+@@ -258,6 +258,8 @@ netdev_feature_to_name(uint32_t bit)
+     case NETDEV_F_AUTONEG:    return "AUTO_NEG";
+     case NETDEV_F_PAUSE:      return "AUTO_PAUSE";
+     case NETDEV_F_PAUSE_ASYM: return "AUTO_PAUSE_ASYM";
++    case NETDEV_F_25GB_FD:    return "25GB-FD";
++    case NETDEV_F_50GB_FD:    return "50GB-FD";
+     }
+ 
+     return NULL;
+-- 
+1.9.1
+
