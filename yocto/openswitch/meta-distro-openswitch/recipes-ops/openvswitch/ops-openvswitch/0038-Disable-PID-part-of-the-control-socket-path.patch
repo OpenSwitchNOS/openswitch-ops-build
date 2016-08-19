@@ -1,0 +1,156 @@
+From 353d4365af960dbbf04c5b1efb3c8084a5838e33 Mon Sep 17 00:00:00 2001
+From: Christian Svensson <blue@cmd.nu>
+Date: Thu, 18 Aug 2016 21:56:53 +0200
+Subject: [PATCH] Disable PID part of the control socket path
+
+See http://openvswitch.org/pipermail/dev/2016-August/077396.html for
+arguments.
+
+Change-Id: I885c045d3794ec647f4f3f85aa00ee2cb428fd0e
+Signed-off-by: Christian Svensson <blue@cmd.nu>
+---
+ lib/unixctl.c                  |  5 -----
+ ovsdb/ovsdb-client.c           | 11 ++++++++++-
+ python/ovs/unixctl/__init__.py |  8 +-------
+ python/ovs/unixctl/server.py   |  3 +--
+ utilities/ovs-appctl.c         | 15 +--------------
+ 5 files changed, 13 insertions(+), 29 deletions(-)
+
+diff --git a/lib/unixctl.c b/lib/unixctl.c
+index b47f35a..270d633 100644
+--- a/lib/unixctl.c
++++ b/lib/unixctl.c
+@@ -229,12 +229,7 @@ unixctl_server_create(const char *path, struct unixctl_server **serverp)
+         punix_path = xasprintf("punix:%s", abs_path);
+         free(abs_path);
+     } else {
+-#ifndef _WIN32
+-        punix_path = xasprintf("punix:%s/%s.%ld.ctl", ovs_rundir(),
+-                               program_name, (long int) getpid());
+-#else
+         punix_path = xasprintf("punix:%s/%s.ctl", ovs_rundir(), program_name);
+-#endif
+     }
+ 
+     error = pstream_open(punix_path, &listener, 0);
+diff --git a/ovsdb/ovsdb-client.c b/ovsdb/ovsdb-client.c
+index 0a6ca6b..e519c80 100644
+--- a/ovsdb/ovsdb-client.c
++++ b/ovsdb/ovsdb-client.c
+@@ -70,6 +70,8 @@ struct ovsdb_client_command {
+ /* --timestamp: Print a timestamp before each update on "monitor" command? */
+ static bool timestamp;
+ 
++static char *unixctl_path = NULL;
++
+ /* Format for table output. */
+ static struct table_style table_style = TABLE_STYLE_DEFAULT;
+ 
+@@ -171,6 +173,7 @@ parse_options(int argc, char *argv[])
+ {
+     enum {
+         OPT_BOOTSTRAP_CA_CERT = UCHAR_MAX + 1,
++        OPT_UNIXCTL,
+         OPT_TIMESTAMP,
+         VLOG_OPTION_ENUMS,
+         DAEMON_OPTION_ENUMS,
+@@ -180,6 +183,7 @@ parse_options(int argc, char *argv[])
+         {"help", no_argument, NULL, 'h'},
+         {"version", no_argument, NULL, 'V'},
+         {"timestamp", no_argument, NULL, OPT_TIMESTAMP},
++        {"unixctl", required_argument, NULL, OPT_UNIXCTL},
+         VLOG_LONG_OPTIONS,
+         DAEMON_LONG_OPTIONS,
+ #ifdef HAVE_OPENSSL
+@@ -220,6 +224,10 @@ parse_options(int argc, char *argv[])
+             timestamp = true;
+             break;
+ 
++        case OPT_UNIXCTL:
++            unixctl_path = optarg;
++            break;
++
+         case '?':
+             exit(EXIT_FAILURE);
+ 
+@@ -277,6 +285,7 @@ usage(void)
+     daemon_usage();
+     vlog_usage();
+     printf("\nOther options:\n"
++           "  --unixctl=SOCKET            override default control socket\n"
+            "  -h, --help                  display this help message\n"
+            "  -V, --version               display version information\n");
+     exit(EXIT_SUCCESS);
+@@ -805,7 +814,7 @@ do_monitor(struct jsonrpc *rpc, const char *database,
+     if (get_detach()) {
+         int error;
+ 
+-        error = unixctl_server_create(NULL, &unixctl);
++        error = unixctl_server_create(unixctl_path, &unixctl);
+         if (error) {
+             ovs_fatal(error, "failed to create unixctl server");
+         }
+diff --git a/python/ovs/unixctl/__init__.py b/python/ovs/unixctl/__init__.py
+index 715f2db..68a1b4f 100644
+--- a/python/ovs/unixctl/__init__.py
++++ b/python/ovs/unixctl/__init__.py
+@@ -72,12 +72,6 @@ def socket_name_from_target(target):
+ 
+     if target.startswith("/"):
+         return 0, target
+-
+-    pidfile_name = "%s/%s.pid" % (ovs.dirs.RUNDIR, target)
+-    pid = ovs.daemon.read_pidfile(pidfile_name)
+-    if pid < 0:
+-        return -pid, "cannot read pidfile \"%s\"" % pidfile_name
+-
+-    return 0, "%s/%s.%d.ctl" % (ovs.dirs.RUNDIR, target, pid)
++    return 0, "%s/%s.ctl" % (ovs.dirs.RUNDIR, target)
+ 
+ command_register("help", "", 0, 0, _unixctl_help, None)
+diff --git a/python/ovs/unixctl/server.py b/python/ovs/unixctl/server.py
+index 18e1cf2..e9632ee 100644
+--- a/python/ovs/unixctl/server.py
++++ b/python/ovs/unixctl/server.py
+@@ -185,8 +185,7 @@ class UnixctlServer(object):
+         if path is not None:
+             path = "punix:%s" % ovs.util.abs_file_name(ovs.dirs.RUNDIR, path)
+         else:
+-            path = "punix:%s/%s.%d.ctl" % (ovs.dirs.RUNDIR,
+-                                           ovs.util.PROGRAM_NAME, os.getpid())
++            path = "punix:%s/%s.ctl" % (ovs.dirs.RUNDIR, ovs.util.PROGRAM_NAME)
+ 
+         if version is None:
+             version = ovs.version.VERSION
+diff --git a/utilities/ovs-appctl.c b/utilities/ovs-appctl.c
+index 4cf9692..d15b194 100644
+--- a/utilities/ovs-appctl.c
++++ b/utilities/ovs-appctl.c
+@@ -206,23 +206,10 @@ connect_to_target(const char *target)
+ 
+ #ifndef _WIN32
+     if (target[0] != '/') {
+-        char *pidfile_name;
+-        pid_t pid;
+-
+-        pidfile_name = xasprintf("%s/%s.pid", ovs_rundir(), target);
+-        pid = read_pidfile(pidfile_name);
+-        if (pid < 0) {
+-            ovs_fatal(-pid, "cannot read pidfile \"%s\"", pidfile_name);
+-        }
+-        free(pidfile_name);
+-        socket_name = xasprintf("%s/%s.%ld.ctl",
+-                                ovs_rundir(), target, (long int) pid);
+ #else
+-    /* On windows, if the 'target' contains ':', we make an assumption that
+-     * it is an absolute path. */
+     if (!strchr(target, ':')) {
+-        socket_name = xasprintf("%s/%s.ctl", ovs_rundir(), target);
+ #endif
++        socket_name = xasprintf("%s/%s.ctl", ovs_rundir(), target);
+     } else {
+         socket_name = xstrdup(target);
+     }
+-- 
+2.1.4
+
