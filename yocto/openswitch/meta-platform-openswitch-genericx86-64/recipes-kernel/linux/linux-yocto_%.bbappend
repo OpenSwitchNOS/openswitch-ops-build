@@ -8,7 +8,8 @@ COMPATIBLE_MACHINE_genericx86-64 = "genericx86-64"
 FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
 
 SRC_URI += "file://ops-fragment.cfg \
-	file://openvswitch.cfg \
+        file://openvswitch.cfg \
         file://strongswan-fragment.cfg \
         file://ops-audit.cfg \
+        file://kvm.cfg \
 "
