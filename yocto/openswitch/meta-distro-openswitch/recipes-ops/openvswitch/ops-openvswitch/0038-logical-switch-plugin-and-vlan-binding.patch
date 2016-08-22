@@ -1,0 +1,144 @@
+From 955a732c816015d02a23f8e5ded356cd97661cb1 Mon Sep 17 00:00:00 2001
+From: midhan <nitish.midha@hpe.com>
+Date: Thu, 18 Aug 2016 18:01:43 -0700
+Subject: [PATCH] logical-switch-plugin and vlan binding
+
+Signed-off-by: midhan <nitish.midha@hpe.com>
+---
+ lib/automake.mk      |  3 +++
+ lib/logical-switch.c | 33 +++++++++++++++++++++++++++++++++
+ lib/logical-switch.h | 45 +++++++++++++++++++++++++++++++++++++++++++++
+ ofproto/ofproto.h    |  4 ++++
+ 4 files changed, 85 insertions(+)
+ create mode 100644 lib/logical-switch.c
+ create mode 100644 lib/logical-switch.h
+
+diff --git a/lib/automake.mk b/lib/automake.mk
+index 9f8e218..fe6fbcc 100644
+--- a/lib/automake.mk
++++ b/lib/automake.mk
+@@ -61,6 +61,7 @@ ovslibinclude_HEADERS = \
+ 	lib/learning-switch.h \
+ 	lib/list.h \
+ 	lib/lockfile.h \
++	lib/logical-switch.h \
+ 	lib/mac-learning.h \
+ 	lib/match.h \
+ 	lib/mcast-snooping.h \
+@@ -247,6 +248,8 @@ lib_libovscommon_la_SOURCES = \
+         lib/list.h \
+         lib/lockfile.c \
+         lib/lockfile.h \
++        lib/logical-switch.c \
++        lib/logical-switch.h \
+         lib/memory.c \
+         lib/memory.h \
+         lib/ofp-util.def \
+diff --git a/lib/logical-switch.c b/lib/logical-switch.c
+new file mode 100644
+index 0000000..6222a1b
+--- /dev/null
++++ b/lib/logical-switch.c
+@@ -0,0 +1,33 @@
++/*
++ * (c) Copyright 2016 Hewlett Packard Enterprise Development LP
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License"); you may
++ * not use this file except in compliance with the License. You may obtain
++ * a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
++ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
++ * License for the specific language governing permissions and limitations
++ * under the License.
++ */
++
++/* calculate hash string for Logical Switch table */
++
++#include <config.h>
++#include "logical-switch.h"
++#include <inttypes.h>
++#include <stdio.h>
++
++void
++logical_switch_hash(char* dest, unsigned int hash_len, const char *br_name,
++                    const unsigned int tunnel_key)
++{
++    if((NULL != dest) && (NULL != br_name)) {
++        /* Note for future implementation:
++         * The hash should really be bridge.name+tunnel_type+tunnel_key */
++        snprintf(dest, hash_len, "%s.%d", br_name, tunnel_key);
++    }
++}
+diff --git a/lib/logical-switch.h b/lib/logical-switch.h
+new file mode 100644
+index 0000000..8f8ae91
+--- /dev/null
++++ b/lib/logical-switch.h
+@@ -0,0 +1,45 @@
++/*
++ * (c) Copyright 2016 Hewlett Packard Enterprise Development LP
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License"); you may
++ * not use this file except in compliance with the License. You may obtain
++ * a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
++ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
++ * License for the specific language governing permissions and limitations
++ * under the License.
++ */
++#ifndef LOGICAL_SWITCH_H
++#define LOGICAL_SWITCH_H 1
++
++#ifdef  __cplusplus
++extern "C" {
++#endif
++
++#define LSWITCH_HASH_STR_SIZE                  MAX_INPUT
++
++/*
++ * logical_switch_hash
++ *
++ * calculate hash string for Logical Switch table
++ *
++ * @param dest       pointer to string to return hash string for Logical Switch table.
++ * @param hash_len   hash string length
++ * @param br_name    bridge name
++ * @param tunnel_key tunnel key.
++ *
++ * @return none
++ */
++void
++logical_switch_hash(char* dest, const unsigned int hash_len, const char *br_name,
++                    const unsigned int tunnel_key);
++
++#ifdef  __cplusplus
++}
++#endif
++
++#endif /* LOGICAL_SWITCH_H */
+diff --git a/ofproto/ofproto.h b/ofproto/ofproto.h
+index 87bde1d..bac3ba8 100644
+--- a/ofproto/ofproto.h
++++ b/ofproto/ofproto.h
+@@ -537,6 +537,10 @@ struct ofproto_bundle_settings {
+     size_t n_ip6_address_secondary;
+     char **ip6_address_secondary; /* List of secondary IPv6 address */
+     bool enable;                  /* Port enable */
++    int binding_cnt;              /* vlan to tunnel_key binding entries */
++    int *binding_vlans;           /* array of vlans each mapped to a tunnel key */
++    int *binding_tunnel_keys;     /* array of tunnel keys each mapped to a vlan */
++
+ #endif
+ };
+ 
+-- 
+2.9.2
+

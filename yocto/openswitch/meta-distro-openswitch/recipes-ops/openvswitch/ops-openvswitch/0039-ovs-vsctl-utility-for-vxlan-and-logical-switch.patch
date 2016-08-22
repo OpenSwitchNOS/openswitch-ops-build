@@ -1,0 +1,363 @@
+From 0edd85f1954f99be007217ca4c5e5f584b3b9e39 Mon Sep 17 00:00:00 2001
+From: midhan <nitish.midha@hpe.com>
+Date: Fri, 19 Aug 2016 16:40:28 -0700
+Subject: [PATCH] ovs-vsctl utility for vxlan and logical switch
+
+Signed-off-by: midhan <nitish.midha@hpe.com>
+---
+ utilities/ovs-vsctl.c | 253 ++++++++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 245 insertions(+), 8 deletions(-)
+
+diff --git a/utilities/ovs-vsctl.c b/utilities/ovs-vsctl.c
+index 0e77837..9cb523e 100644
+--- a/utilities/ovs-vsctl.c
++++ b/utilities/ovs-vsctl.c
+@@ -51,6 +51,7 @@
+ #include "util.h"
+ #include "openvswitch/vconn.h"
+ #include "openvswitch/vlog.h"
++#include "logical-switch.h"
+ 
+ VLOG_DEFINE_THIS_MODULE(vsctl);
+ 
+@@ -446,7 +447,14 @@ VRF Port commands:\n\
+   list-vrf-ports VRF          print the names of all the ports on VRF\n\
+   add-vrf-port VRF PORT       add network device PORT to VRF\n\
+   del-vrf-port [VRF] PORT     delete PORT from VRF\n\
+-  port-to-vrf PORT            print name of vrf that contains PORT\n");
++  port-to-vrf PORT            print name of vrf that contains PORT\n\
++\n\
++Logical Switch commands:\n\
++  list-log-switches           print the names of all logical switches\n\
++  add-log-switch BRIDGE NAME DESC KEY add logical switch with NAME,\n\
++                                      DESCription, and KEY bound to BRIDGE\n\
++  del-log-switch BRIDGE KEY   delete logical switch by KEY\n\
++                              bound to BRIDGE\n");
+ #endif
+     vlog_usage();
+     printf("\
+@@ -476,13 +484,14 @@ struct vsctl_context {
+      * vsctl_context_invalidate_cache() or manually update the cache to
+      * maintain its correctness. */
+     bool cache_valid;
+-    struct shash bridges;   /* Maps from bridge name to struct vsctl_bridge. */
+-    struct shash ports;     /* Maps from port name to struct vsctl_port. */
+-    struct shash ifaces;    /* Maps from port name to struct vsctl_iface. */
++    struct shash bridges;       /* Maps from bridge name to struct vsctl_bridge. */
++    struct shash ports;         /* Maps from port name to struct vsctl_port. */
++    struct shash ifaces;        /* Maps from port name to struct vsctl_iface. */
+ #ifdef OPS
+-    struct shash vrfs;      /* Maps from vrf name to struct vsctl_vrf. */
++    struct shash vrfs;          /* Maps from vrf name to struct vsctl_vrf. */
+     struct shash orphan_ifaces; /* unused interfaces */
+-                            /* Maps from iface name to struct vsctl_iface. */
++                                /* Maps from iface name to struct vsctl_iface. */
++    struct shash log_switches;  /* Logical Switches */
+     bool subsystems_exist;
+ #endif
+ };
+@@ -493,6 +502,11 @@ struct vsctl_vrf {
+     char *name;
+     struct ovs_list ports;      /* Contains "struct vsctl_port"s. */
+ };
++
++struct vsctl_log_switch {
++    const struct ovsrec_logical_switch *log_switch_cfg;
++    char *name;
++};
+ #endif
+ 
+ 
+@@ -820,6 +834,13 @@ vsctl_context_invalidate_cache(struct ctl_context *ctx)
+         free(vrf);
+     }
+     shash_destroy(&vsctl_ctx->vrfs);
++
++    SHASH_FOR_EACH (node, &vsctl_ctx->log_switches) {
++        struct vsctl_log_switch *log_switch = node->data;
++        free(log_switch->name);
++        free(log_switch);
++    }
++    shash_destroy(&vsctl_ctx->log_switches);
+ #endif
+ 
+     shash_destroy_free_data(&vsctl_ctx->ports);
+@@ -869,6 +890,10 @@ vsctl_context_populate_cache(struct ctl_context *ctx)
+     struct sset bridges, ports;
+ #ifdef OPS
+     struct sset vrfs;
++    struct sset log_switches;
++    const struct ovsrec_logical_switch *log_switch_cfg;
++    struct vsctl_log_switch *log_switch;
++    char hash_str[LSWITCH_HASH_STR_SIZE];
+ #endif
+     size_t i;
+ 
+@@ -882,6 +907,7 @@ vsctl_context_populate_cache(struct ctl_context *ctx)
+     shash_init(&vsctl_ctx->ifaces);
+ #ifdef OPS
+     shash_init(&vsctl_ctx->vrfs);
++    shash_init(&vsctl_ctx->log_switches);
+     shash_init(&vsctl_ctx->orphan_ifaces);
+     /* OPS: Use presence of subsystems as an indicator that this
+      * is a physical switch instead of a virtual switch.  This may be
+@@ -1099,6 +1125,32 @@ vsctl_context_populate_cache(struct ctl_context *ctx)
+         }
+     }
+     sset_destroy(&vrfs);
++
++    sset_init(&log_switches);
++
++    OVSREC_LOGICAL_SWITCH_FOR_EACH(log_switch_cfg, ctx->idl) {
++        logical_switch_hash(hash_str, sizeof(hash_str),
++            log_switch_cfg->bridge->name,
++            log_switch_cfg->tunnel_key);
++        log_switch = shash_find_data(&vsctl_ctx->log_switches, hash_str);
++        if (!log_switch) {
++            struct vsctl_log_switch *new_log_switch;
++            new_log_switch = xzalloc(sizeof(*new_log_switch));
++            if(NULL != new_log_switch) {
++                new_log_switch->log_switch_cfg = log_switch_cfg;
++                new_log_switch->name = xstrdup(log_switch_cfg->name);
++                shash_add_once(&vsctl_ctx->log_switches, log_switch_cfg->name,
++                               new_log_switch);
++            }
++        } else {
++            /* Log as an error because this violates the database's
++             * uniqueness constraints, so the database server
++             * shouldn't have allowed it. */
++            VLOG_ERR("%ld: database contains duplicate tunnel key",
++                     log_switch_cfg->tunnel_key);
++        }
++    }
++    sset_destroy(&log_switches);
+ #endif
+ }
+ 
+@@ -2547,6 +2599,165 @@ cmd_del_vrf(struct ctl_context *ctx)
+     }
+ }
+ 
++static void
++check_logical_switch_conflicts(const struct shash *lwshash,
++                               const char *br_name,
++                               const int key, char *msg)
++{
++    char hash_str[LSWITCH_HASH_STR_SIZE];
++
++    if (!lwshash || !br_name) {
++        if (NULL != msg) {
++            free(msg);
++            return;
++        } else {
++        return;
++        }
++    }
++
++    logical_switch_hash(hash_str, sizeof(hash_str), br_name, key);
++
++    if (shash_find(lwshash, hash_str)) {
++        ctl_fatal("%s because a logical switch with key %d already exists",
++                  msg, key);
++    }
++
++    free(msg);
++}
++
++static void
++pre_get_log_switch_info(struct ctl_context *ctx)
++{
++    if (!ctx) {
++        return;
++    }
++    ovsdb_idl_add_column(ctx->idl, &ovsrec_open_vswitch_col_bridges);
++
++    ovsdb_idl_add_table(ctx->idl, &ovsrec_table_bridge);
++    ovsdb_idl_add_column(ctx->idl, &ovsrec_bridge_col_name);
++
++    ovsdb_idl_add_table(ctx->idl, &ovsrec_table_logical_switch);
++    ovsdb_idl_add_column(ctx->idl, &ovsrec_logical_switch_col_name);
++    ovsdb_idl_add_column(ctx->idl, &ovsrec_logical_switch_col_description);
++    ovsdb_idl_add_column(ctx->idl, &ovsrec_logical_switch_col_bridge);
++    ovsdb_idl_add_column(ctx->idl, &ovsrec_logical_switch_col_tunnel_key);
++}
++
++static void
++cmd_list_log_switch(struct ctl_context *ctx)
++{
++    struct shash_node *node;
++    struct svec log_switches;
++    struct vsctl_context *vsctl_ctx;
++
++    if (!ctx) {
++        return;
++    }
++
++    vsctl_ctx = vsctl_context_cast(ctx);
++    vsctl_context_populate_cache(ctx);
++
++    svec_init(&log_switches);
++    SHASH_FOR_EACH (node, &vsctl_ctx->log_switches) {
++        struct vsctl_log_switch *log_switch = node->data;
++        svec_add(&log_switches, log_switch->name);
++    }
++    output_sorted(&log_switches, &ctx->output);
++    svec_destroy(&log_switches);
++}
++
++static void
++cmd_add_log_switch(struct ctl_context *ctx)
++{
++    struct ovsrec_logical_switch *log_switch;
++    struct vsctl_bridge *bridge;
++    const char *bridge_name;
++    const char *log_switch_name;
++    const char *log_switch_desc;
++    int tunnel_key;
++    struct vsctl_context *vsctl_ctx;
++
++    if (!ctx) {
++        return;
++    }
++
++    vsctl_ctx = vsctl_context_cast(ctx);
++
++    bridge_name = ctx->argv[1];
++    log_switch_name = ctx->argv[2];
++    log_switch_desc = ctx->argv[3];
++    tunnel_key = atoi(ctx->argv[4]);
++
++    if (!bridge_name || !log_switch_name ||
++        !log_switch_desc || (0 == tunnel_key)){
++        ctl_fatal("usage: add-log-switch BRIDGE NAME DESC KEY");
++    }
++    if (vsctl_ctx->cache_valid == true) {
++        check_logical_switch_conflicts(&vsctl_ctx->log_switches,
++                  bridge_name, tunnel_key,
++                  xasprintf("cannot create a logical switch "));
++    }
++    vsctl_context_populate_cache(ctx);
++
++    bridge = find_bridge(ctx, bridge_name, true);
++
++    log_switch = ovsrec_logical_switch_insert(ctx->txn);
++
++    ovsrec_logical_switch_set_name(log_switch, log_switch_name);
++    ovsrec_logical_switch_set_bridge(log_switch, bridge->br_cfg);
++    ovsrec_logical_switch_set_description(log_switch, log_switch_desc);
++    ovsrec_logical_switch_set_tunnel_key(log_switch, tunnel_key);
++    ovsrec_logical_switch_set_from(log_switch, OVSREC_LOGICAL_SWITCH_FROM_HW_VTEP);
++
++    vsctl_context_invalidate_cache(ctx);
++}
++
++static void
++cmd_del_log_switch(struct ctl_context *ctx)
++{
++    struct vsctl_log_switch *log_switch;
++    struct vsctl_context *vsctl_ctx;
++    char hash_str[LSWITCH_HASH_STR_SIZE];
++    const char *bridge_name;
++    const char *log_switch_desc;
++    int tunnel_key;
++    struct vsctl_bridge *bridge;
++
++    if (!ctx) {
++        return;
++    }
++
++    vsctl_ctx = vsctl_context_cast(ctx);
++
++    bridge_name = ctx->argv[1];
++    tunnel_key = atoi(ctx->argv[2]);
++
++    if (!bridge_name || (0 == tunnel_key)) {
++        ctl_fatal("usage: del-log-switch BRIDGE KEY");
++    }
++
++    vsctl_context_populate_cache(ctx);
++
++    bridge = find_bridge(ctx, bridge_name, true);
++
++    logical_switch_hash(hash_str, sizeof(hash_str), bridge_name,
++                        tunnel_key);
++
++    log_switch = shash_find_data(&vsctl_ctx->log_switches, hash_str);
++    if (log_switch) {
++        if (log_switch->log_switch_cfg) {
++            ovsrec_logical_switch_delete(log_switch->log_switch_cfg);
++        }
++        shash_find_and_delete(&vsctl_ctx->log_switches, hash_str);
++        free(log_switch->name);
++        free(log_switch);
++    } else {
++        ctl_fatal("no logical switch on bridge %s with key %ld",
++                  bridge_name, tunnel_key);
++    }
++
++    vsctl_context_invalidate_cache(ctx);
++}
+ #endif
+ 
+ static void
+@@ -2657,7 +2868,15 @@ add_port(struct ctl_context *ctx,
+     for (i = 0; i < n_ifaces; i++) {
+ #ifdef OPS
+         /* find the existing interface in the orphan_ifaces dictionary */
+-        if (vsctl_ctx->subsystems_exist) {
++        /* FIXME
++         * is there a more appropriate way to skip around this check when
++         * we intend to add a new 'virutal' interface not yet known to the
++         * system ?
++         */
++        VLOG_INFO("VXLAN_POC Trying to add port %s", port_name);
++        struct vsctl_iface *iface = NULL;
++        iface = find_orphan_iface(vsctl_ctx, iface_names[i], false);
++        if (vsctl_ctx->subsystems_exist && iface) {
+             struct vsctl_iface *iface;
+             iface = find_orphan_iface(vsctl_ctx, iface_names[i], true);
+             ifaces[i] = (struct ovsrec_interface *)iface->iface_cfg;
+@@ -2693,7 +2912,15 @@ add_port(struct ctl_context *ctx,
+     vsctl_port = add_port_to_cache(vsctl_ctx, bridge, port);
+     for (i = 0; i < n_ifaces; i++) {
+ #ifdef OPS
+-        if (vsctl_ctx->subsystems_exist) {
++        /* FIXME
++         * is there a more appropriate way to skip around this check when
++         * we intend to add a new 'virutal' interface not yet known to the
++         * system ?
++         */
++        VLOG_INFO("VXLAN_POC Trying to move port %s to cache", port_name);
++        struct vsctl_iface *iface = NULL;
++        iface = find_orphan_iface(vsctl_ctx, iface_names[i], false);
++        if (vsctl_ctx->subsystems_exist  && iface) {
+             move_orphan_iface_to_cache(vsctl_ctx, vsctl_port, ifaces[i]);
+         } else
+ #endif
+@@ -3443,6 +3670,9 @@ static const struct ctl_table_class tables[] = {
+     {&ovsrec_table_vrf,
+      {{&ovsrec_table_vrf, &ovsrec_vrf_col_name, NULL},
+      {NULL, NULL, NULL}}},
++    {&ovsrec_table_logical_switch,
++     {{&ovsrec_table_logical_switch, &ovsrec_logical_switch_col_name, NULL},
++     {NULL, NULL, NULL}}},
+     {&ovsrec_table_ospf_router,
+      {{&ovsrec_table_ospf_router, &ovsrec_ospf_router_col_areas, NULL},
+      {NULL, NULL, NULL}}},
+@@ -3949,6 +4179,13 @@ static const struct ctl_command_syntax vsctl_commands[] = {
+      "--if-exists", RW},
+     {"port-to-vrf", 1, 1, "", pre_get_vrf_info, cmd_port_to_vrf, NULL, "", RO},
+ 
++    /* Logical Switch commands. */
++    {"list-log-switches", 0, 0, "", pre_get_log_switch_info, cmd_list_log_switch,
++            NULL, "", RO},
++    {"add-log-switch", 4, 4, "", pre_get_log_switch_info, cmd_add_log_switch,
++            NULL, "", RW},
++    {"del-log-switch", 2, 2, "", pre_get_log_switch_info, cmd_del_log_switch,
++            NULL, "", RW},
+ #endif
+     /* Port commands. */
+     {"list-ports", 1, 1, "BRIDGE", pre_get_info, cmd_list_ports, NULL, "",
+-- 
+2.9.2
+
