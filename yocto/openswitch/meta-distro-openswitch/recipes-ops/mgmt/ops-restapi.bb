@@ -6,6 +6,7 @@ BRANCH ?= "${OPS_REPO_BRANCH}"
 
 SRC_URI = "${OPS_REPO_BASE_URL}/ops-restapi;protocol=${OPS_REPO_PROTOCOL};branch=${BRANCH} \
     file://ops-restapi.nginx \
+    file://ops-schemadoc.nginx \
 "
 
 SRCREV = "e1763eced3c53f7855de8c2ae9770a091c3d9e1c"
@@ -27,4 +28,5 @@ do_install_append () {
 
     install -d ${D}/etc/nginx/conf.d
     install -m 0644 ${WORKDIR}/ops-restapi.nginx ${D}/etc/nginx/conf.d/backend-restapi.conf
+    install -m 0644 ${WORKDIR}/ops-schemadoc.nginx ${D}/etc/nginx/conf.d/backend-schemadoc.conf
 }
