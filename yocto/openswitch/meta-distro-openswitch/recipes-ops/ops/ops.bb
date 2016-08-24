@@ -4,7 +4,9 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/Apache-2.0;md5=89aea4e17d99a7ca
 
 BRANCH ?= "feature/tunnel"
 
-SRC_URI = "${OPS_REPO_BASE_URL}/ops;protocol=${OPS_REPO_PROTOCOL};branch=${BRANCH}"
+SRC_URI = "${OPS_REPO_BASE_URL}/ops;protocol=${OPS_REPO_PROTOCOL};branch=${BRANCH} \
+	file://ops-schemadoc.nginx \
+"
 
 SRCREV = "${AUTOREV}"
 
@@ -29,8 +31,14 @@ FILES_${PN} += " \
     /usr/share/openvswitch/*.ovsschema \
     /usr/share/openvswitch/*.xml \
     /usr/include/*_empty_values.h \
+    /srv/www/schemadoc \
 "
 
 OPS_SCHEMA_PATH="${S}/schema"
+
+do_install_append() {
+    install -d ${D}/etc/nginx/conf.d
+    install -m 0644 ${WORKDIR}/ops-schemadoc.nginx ${D}/etc/nginx/conf.d/backend-schemadoc.conf
+}
 
 inherit openswitch cmake pythonnative
