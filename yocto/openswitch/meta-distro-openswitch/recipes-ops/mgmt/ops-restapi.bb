@@ -27,4 +27,5 @@ do_install_append () {
 
     install -d ${D}/etc/nginx/conf.d
     install -m 0644 ${WORKDIR}/ops-restapi.nginx ${D}/etc/nginx/conf.d/backend-restapi.conf
+    install -m 0644 ${WORKDIR}/ops-schemadoc.nginx ${D}/etc/nginx/conf.d/backend-schemadoc.conf
 }
