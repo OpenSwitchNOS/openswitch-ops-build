@@ -1,15 +1,22 @@
-From 0edd85f1954f99be007217ca4c5e5f584b3b9e39 Mon Sep 17 00:00:00 2001
+From 93000fc549157091c0c1758b0671fccfb3ba0657 Mon Sep 17 00:00:00 2001
 From: midhan <nitish.midha@hpe.com>
 Date: Fri, 19 Aug 2016 16:40:28 -0700
-Subject: [PATCH] ovs-vsctl utility for vxlan and logical switch
+Subject: [PATCH 39/39] ovs-vsctl utility for vxlan and logical switch
 
 Signed-off-by: midhan <nitish.midha@hpe.com>
+
+%% original patch: 0039-ovs-vsctl-utility-for-vxlan-and-logical-switch.patch
+
+Use correct hash when creating logical switches.
+
+Change-Id: Id5db8799fbd2299d15f41f9ecac2b564bb98a3b2
+Signed-off-by: Madhulika Madishetty <madhulika.madishetty@hpe.com>
 ---
  utilities/ovs-vsctl.c | 253 ++++++++++++++++++++++++++++++++++++++++++++++++--
  1 file changed, 245 insertions(+), 8 deletions(-)
 
 diff --git a/utilities/ovs-vsctl.c b/utilities/ovs-vsctl.c
-index 0e77837..9cb523e 100644
+index 0e77837..1ca99e7 100644
 --- a/utilities/ovs-vsctl.c
 +++ b/utilities/ovs-vsctl.c
 @@ -51,6 +51,7 @@
@@ -119,7 +126,7 @@ index 0e77837..9cb523e 100644
 +            if(NULL != new_log_switch) {
 +                new_log_switch->log_switch_cfg = log_switch_cfg;
 +                new_log_switch->name = xstrdup(log_switch_cfg->name);
-+                shash_add_once(&vsctl_ctx->log_switches, log_switch_cfg->name,
++                shash_add_once(&vsctl_ctx->log_switches, hash_str,
 +                               new_log_switch);
 +            }
 +        } else {
