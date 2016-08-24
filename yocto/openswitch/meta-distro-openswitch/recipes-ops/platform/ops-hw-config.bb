@@ -4,12 +4,12 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/Apache-2.0;md5=89aea4e17d99a7ca
 
 DEPENDS = "yaml-cpp gtest i2c-tools"
 
-BRANCH ?= "${OPS_REPO_BRANCH}"
+BRANCH ?= "feature/tunnel"
 
 SRC_URI = "${OPS_REPO_BASE_URL}/ops-hw-config;protocol=${OPS_REPO_PROTOCOL};branch=${BRANCH} \
 "
 
-SRCREV = "2cc2772c165069da3df1c4d9a70408741dfa61da"
+SRCREV = "${AUTOREV}"
 
 PLATFORM_PATH?="${MACHINE}"
 
