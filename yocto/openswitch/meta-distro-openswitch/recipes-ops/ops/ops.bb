@@ -8,7 +8,7 @@ SRC_URI = "${OPS_REPO_BASE_URL}/ops;protocol=${OPS_REPO_PROTOCOL};branch=${BRANC
 	file://ops-schemadoc.nginx \
 "
 
-SRCREV = "a484f32a6b8ff8961f057fe4b13cbb86aff129a4"
+SRCREV = "c05972bac0e3dee9c9e2ceab7429e21d2a87611e"
 
 DEPENDS = " \
     python-jsonref-native \
@@ -35,6 +35,10 @@ FILES_${PN} += " \
 "
 
 OPS_SCHEMA_PATH="${S}/schema"
+
+do_install_prepend() {
+    make doc
+}
 
 do_install_append() {
     install -d ${D}/etc/nginx/conf.d
