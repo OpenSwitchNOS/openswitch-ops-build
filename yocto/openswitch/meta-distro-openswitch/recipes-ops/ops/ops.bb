@@ -36,6 +36,10 @@ FILES_${PN} += " \
 
 OPS_SCHEMA_PATH="${S}/schema"
 
+do_install_prepend() {
+    make doc
+}
+
 do_install_append() {
     install -d ${D}/etc/nginx/conf.d
     install -m 0644 ${WORKDIR}/ops-schemadoc.nginx ${D}/etc/nginx/conf.d/backend-schemadoc.conf
