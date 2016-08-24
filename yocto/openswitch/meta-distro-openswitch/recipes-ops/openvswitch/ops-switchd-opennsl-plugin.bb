@@ -7,13 +7,13 @@ DEPENDS = "ops-ovsdb virtual/opennsl ops-switchd ops-supportability ops-classifi
 PROVIDES += "virtual/ops-switchd-switch-api-plugin"
 RPROVIDES_${PN} += "virtual/ops-switchd-switch-api-plugin"
 
-BRANCH ?= "${OPS_REPO_BRANCH}"
+BRANCH ?= "feature/tunnel"
 
 SRC_URI = "${OPS_REPO_BASE_URL}/ops-switchd-opennsl-plugin;protocol=${OPS_REPO_PROTOCOL};branch=${BRANCH}"
 
 FILES_${PN} = "${libdir}/openvswitch/plugins"
 
-SRCREV = "c1a2783e9fa43cab253a39b9545f8713f0d53558"
+SRCREV = "${AUTOREV}"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.
