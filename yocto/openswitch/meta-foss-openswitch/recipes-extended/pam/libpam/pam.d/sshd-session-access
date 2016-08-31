@@ -1,0 +1,2 @@
+session    sufficient   /usr/lib/security/libpam_tacplus.so
+session    required     pam_loginuid.so
