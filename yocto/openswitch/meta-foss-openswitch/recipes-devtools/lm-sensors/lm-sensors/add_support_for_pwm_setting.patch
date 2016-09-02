@@ -1,0 +1,108 @@
+diff --git a/lib/sensors.h b/lib/sensors.h
+index ee00ee0..383f072 100644
+--- a/lib/sensors.h
++++ b/lib/sensors.h
+@@ -141,6 +141,7 @@ typedef enum sensors_feature_type {
+ 	SENSORS_FEATURE_ENERGY		= 0x04,
+ 	SENSORS_FEATURE_CURR		= 0x05,
+ 	SENSORS_FEATURE_HUMIDITY	= 0x06,
++	SENSORS_FEATURE_PWM	        = 0x07,
+ 	SENSORS_FEATURE_MAX_MAIN,
+ 	SENSORS_FEATURE_VID		= 0x10,
+ 	SENSORS_FEATURE_INTRUSION	= 0x11,
+@@ -235,6 +236,8 @@ typedef enum sensors_subfeature_type {
+ 
+ 	SENSORS_SUBFEATURE_HUMIDITY_INPUT = SENSORS_FEATURE_HUMIDITY << 8,
+ 
++        SENSORS_SUBFEATURE_PWM_OUTPUT = SENSORS_FEATURE_PWM << 8,
++
+ 	SENSORS_SUBFEATURE_VID = SENSORS_FEATURE_VID << 8,
+ 
+ 	SENSORS_SUBFEATURE_INTRUSION_ALARM = SENSORS_FEATURE_INTRUSION << 8,
+diff --git a/lib/sysfs.c b/lib/sysfs.c
+index 1a8091f..8739fe9 100644
+--- a/lib/sysfs.c
++++ b/lib/sysfs.c
+@@ -339,6 +339,12 @@ static const struct subfeature_type_match intrusion_matches[] = {
+ 	{ "beep", SENSORS_SUBFEATURE_INTRUSION_BEEP },
+ 	{ NULL, 0 }
+ };
++
++static const struct subfeature_type_match pwm_matches[] = {
++	{ "", SENSORS_SUBFEATURE_PWM_OUTPUT },
++	{ NULL, 0 }
++};
++
+ static struct feature_type_match matches[] = {
+ 	{ "temp%d%c", temp_matches },
+ 	{ "in%d%c", in_matches },
+@@ -349,6 +355,7 @@ static struct feature_type_match matches[] = {
+ 	{ "energy%d%c", energy_matches },
+ 	{ "intrusion%d%c", intrusion_matches },
+ 	{ "humidity%d%c", humidity_matches },
++	{ "pwm%d%c", pwm_matches },
+ };
+ 
+ /* Return the subfeature type and channel number based on the subfeature
+@@ -366,6 +373,11 @@ sensors_subfeature_type sensors_subfeature_get_type(const char *name, int *nr)
+ 		return SENSORS_SUBFEATURE_BEEP_ENABLE;
+ 	}
+ 
++	/* pwm output is pwm[1-*] */
++	if (sscanf(name, "pwm%d%c", nr, &c) == 1) {
++		return SENSORS_SUBFEATURE_PWM_OUTPUT;
++	}
++
+ 	for (i = 0; i < ARRAY_SIZE(matches); i++)
+ 		if ((count = sscanf(name, matches[i].name, nr, &c)))
+ 			break;
+@@ -476,6 +488,7 @@ static int sensors_read_dynamic_chip(sensors_chip_features *chip,
+ 		case SENSORS_FEATURE_ENERGY:
+ 		case SENSORS_FEATURE_CURR:
+ 		case SENSORS_FEATURE_HUMIDITY:
++		case SENSORS_FEATURE_PWM:
+ 			nr--;
+ 			break;
+ 		default:
+diff --git a/prog/sensord/chips.c b/prog/sensord/chips.c
+index 1667034..1f46b45 100644
+--- a/prog/sensord/chips.c
++++ b/prog/sensord/chips.c
+@@ -326,6 +326,27 @@ static void fillChipBeepEnable(FeatureDescriptor *beepen,
+ 	beepen->dataNumbers[1] = -1;
+ }
+ 
++static void fillChipPwm(FeatureDescriptor *pwm,
++			const sensors_chip_name *name,
++			const sensors_feature *feature)
++{
++	const sensors_subfeature *sf;
++	int pos = 0;
++
++	fan->rrd = rrdF0;
++	fan->type = DataType_other;
++
++	sf = sensors_get_subfeature(name, feature,
++				    SENSORS_SUBFEATURE_PWM_OUTPUT);
++	if (sf)
++		fan->dataNumbers[pos++] = sf->number;
++
++	/* terminate the list */
++	fan->dataNumbers[pos] = -1;
++        fan->alarmNumber = -1;
++        fan->beepNumber = -1;
++}
++
+ static FeatureDescriptor * generateChipFeatures(const sensors_chip_name *chip)
+ {
+ 	int nr, count = 1;
+@@ -362,6 +383,9 @@ static FeatureDescriptor * generateChipFeatures(const sensors_chip_name *chip)
+ 		case SENSORS_FEATURE_BEEP_ENABLE:
+ 			fillChipBeepEnable(&features[count], chip, sensor);
+ 			break;
++		case SENSORS_FEATURE_PWM:
++			fillChipPwm(&features[count], chip, sensor);
++			break;
+ 		default:
+ 			continue;
+ 		}

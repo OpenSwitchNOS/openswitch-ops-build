@@ -24,6 +24,7 @@ PACKAGES += "${@bb.utils.contains("MACHINE_FEATURES", "ops-container", "packageg
 RDEPENDS_packagegroup-ops-base = "\
     os-release \
     i2c-tools \
+    lm-sensors \
     mtd-utils \
     gptfdisk \
     packagegroup-base-serial \

@@ -1,0 +1,288 @@
+diff --git a/lib/access.c b/lib/access.c
+index 8e227e2..6b5dc70 100644
+--- a/lib/access.c
++++ b/lib/access.c
+@@ -282,6 +282,25 @@ int sensors_get_value(const sensors_chip_name *name, int subfeat_nr,
+ 	return __sensors_get_value(name, subfeat_nr, 0, result);
+ }
+ 
++int sensors_get_char_value(const sensors_chip_name *name, int subfeat_nr,
++                           char *result)
++{
++	const sensors_chip_features *chip_features = NULL;
++	const sensors_subfeature *subfeature = NULL;
++
++	if (sensors_chip_name_has_wildcards(name))
++		return -SENSORS_ERR_WILDCARDS;
++	if (!(chip_features = sensors_lookup_chip(name)))
++		return -SENSORS_ERR_NO_ENTRY;
++	if (!(subfeature = sensors_lookup_subfeature_nr(chip_features,
++													subfeat_nr)))
++		return -SENSORS_ERR_NO_ENTRY;
++	if (!(subfeature->flags & SENSORS_MODE_R))
++		return -SENSORS_ERR_ACCESS_R;
++
++	return sensors_read_char_sysfs_attr(name, subfeature, result);
++}
++
+ /* Set the value of a subfeature of a certain chip. Note that chip should not
+    contain wildcard values! This function will return 0 on success, and <0
+    on failure. */
+@@ -332,6 +351,28 @@ int sensors_set_value(const sensors_chip_name *name, int subfeat_nr,
+ 	return sensors_write_sysfs_attr(name, subfeature, to_write);
+ }
+ 
++/* Set the value of a subfeature of a certain chip. Note that chip should not
++   contain wildcard values! This function will return 0 on success, and <0
++   on failure. */
++int sensors_set_char_value(const sensors_chip_name *name, int subfeat_nr,
++                           const char *value)
++{
++	const sensors_chip_features *chip_features = NULL;
++	const sensors_subfeature *subfeature = NULL;
++
++	if (sensors_chip_name_has_wildcards(name))
++		return -SENSORS_ERR_WILDCARDS;
++	if (!(chip_features = sensors_lookup_chip(name)))
++		return -SENSORS_ERR_NO_ENTRY;
++	if (!(subfeature = sensors_lookup_subfeature_nr(chip_features,
++							subfeat_nr)))
++		return -SENSORS_ERR_NO_ENTRY;
++	if (!(subfeature->flags & SENSORS_MODE_W))
++		return -SENSORS_ERR_ACCESS_W;
++
++	return sensors_write_char_sysfs_attr(name, subfeature, value);
++}
++
+ const sensors_chip_name *sensors_get_detected_chips(const sensors_chip_name
+ 						    *match, int *nr)
+ {
+diff --git a/lib/libsensors.map b/lib/libsensors.map
+index 5e2dac0..110289b 100644
+--- a/lib/libsensors.map
++++ b/lib/libsensors.map
+@@ -11,9 +11,11 @@ global:
+   sensors_get_label;
+   sensors_get_subfeature;
+   sensors_get_value;
++  sensors_get_char_value;
+   sensors_init;
+   sensors_parse_chip_name;
+   sensors_set_value;
++  sensors_set_char_value;
+   sensors_snprintf_chip_name;
+   sensors_strerror;
+   sensors_parse_error;
+diff --git a/lib/sensors.h b/lib/sensors.h
+index 383f072..5150ef3 100644
+--- a/lib/sensors.h
++++ b/lib/sensors.h
+@@ -110,12 +110,20 @@ char *sensors_get_label(const sensors_chip_name *name,
+ int sensors_get_value(const sensors_chip_name *name, int subfeat_nr,
+ 		      double *value);
+ 
++
++int sensors_get_char_value(const sensors_chip_name *name, int subfeat_nr,
++                           char *value);
++
+ /* Set the value of a subfeature of a certain chip. Note that chip should not
+    contain wildcard values! This function will return 0 on success, and <0
+    on failure. */
+ int sensors_set_value(const sensors_chip_name *name, int subfeat_nr,
+ 		      double value);
+ 
++int sensors_set_char_value(const sensors_chip_name *name, int subfeat_nr,
++                           const char *value);
++
++
+ /* Execute all set statements for this particular chip. The chip may contain
+    wildcards!  This function will return 0 on success, and <0 on failure. */
+ int sensors_do_chip_sets(const sensors_chip_name *name);
+@@ -142,6 +150,7 @@ typedef enum sensors_feature_type {
+ 	SENSORS_FEATURE_CURR		= 0x05,
+ 	SENSORS_FEATURE_HUMIDITY	= 0x06,
+ 	SENSORS_FEATURE_PWM	        = 0x07,
++	SENSORS_FEATURE_LED	        = 0x08,
+ 	SENSORS_FEATURE_MAX_MAIN,
+ 	SENSORS_FEATURE_VID		= 0x10,
+ 	SENSORS_FEATURE_INTRUSION	= 0x11,
+@@ -236,7 +245,11 @@ typedef enum sensors_subfeature_type {
+ 
+ 	SENSORS_SUBFEATURE_HUMIDITY_INPUT = SENSORS_FEATURE_HUMIDITY << 8,
+ 
+-        SENSORS_SUBFEATURE_PWM_OUTPUT = SENSORS_FEATURE_PWM << 8,
++	SENSORS_SUBFEATURE_PWM_OUTPUT = SENSORS_FEATURE_PWM << 8,
++
++	SENSORS_SUBFEATURE_LED_OUTPUT = SENSORS_FEATURE_LED << 8,
++    SENSORS_SUBFEATURE_LED_NAME,
++    SENSORS_SUBFEATURE_LED_CAPABILITY,
+ 
+ 	SENSORS_SUBFEATURE_VID = SENSORS_FEATURE_VID << 8,
+ 
+diff --git a/lib/sysfs.c b/lib/sysfs.c
+index 8739fe9..2d6798b 100644
+--- a/lib/sysfs.c
++++ b/lib/sysfs.c
+@@ -345,6 +345,13 @@ static const struct subfeature_type_match pwm_matches[] = {
+ 	{ NULL, 0 }
+ };
+ 
++static const struct subfeature_type_match led_matches[] = {
++	{ "", SENSORS_SUBFEATURE_LED_OUTPUT },
++	{ "name", SENSORS_SUBFEATURE_LED_NAME },
++	{ "capability", SENSORS_SUBFEATURE_LED_CAPABILITY },
++	{ NULL, 0 }
++};
++
+ static struct feature_type_match matches[] = {
+ 	{ "temp%d%c", temp_matches },
+ 	{ "in%d%c", in_matches },
+@@ -356,6 +363,7 @@ static struct feature_type_match matches[] = {
+ 	{ "intrusion%d%c", intrusion_matches },
+ 	{ "humidity%d%c", humidity_matches },
+ 	{ "pwm%d%c", pwm_matches },
++	{ "led%d%c", led_matches },
+ };
+ 
+ /* Return the subfeature type and channel number based on the subfeature
+@@ -378,6 +386,11 @@ sensors_subfeature_type sensors_subfeature_get_type(const char *name, int *nr)
+ 		return SENSORS_SUBFEATURE_PWM_OUTPUT;
+ 	}
+ 
++	/* led output is led[1-*] */
++	if (sscanf(name, "led%d%c", nr, &c) == 1) {
++		return SENSORS_SUBFEATURE_LED_OUTPUT;
++	}
++
+ 	for (i = 0; i < ARRAY_SIZE(matches); i++)
+ 		if ((count = sscanf(name, matches[i].name, nr, &c)))
+ 			break;
+@@ -489,6 +502,7 @@ static int sensors_read_dynamic_chip(sensors_chip_features *chip,
+ 		case SENSORS_FEATURE_CURR:
+ 		case SENSORS_FEATURE_HUMIDITY:
+ 		case SENSORS_FEATURE_PWM:
++		case SENSORS_FEATURE_LED:
+ 			nr--;
+ 			break;
+ 		default:
+@@ -919,3 +933,57 @@ int sensors_write_sysfs_attr(const sensors_chip_name *name,
+ 
+ 	return 0;
+ }
++
++int sensors_read_char_sysfs_attr(const sensors_chip_name *name,
++                                 const sensors_subfeature *subfeature,
++                                 char *result)
++{
++	char path[PATH_MAX] = {};
++    char *p = NULL;
++	FILE *f = NULL;
++
++	snprintf(path, sizeof(path), "%s/%s", name->path, subfeature->name);
++	if (!(f = fopen(path, "r")))
++		return -SENSORS_ERR_ACCESS_R;
++	p = fgets(result, NAME_MAX, f);
++	fclose(f);
++	if (!p)
++		return -SENSORS_ERR_IO;
++
++	/* Last byte is a '\n'; chop that off */
++	result[strnlen(result, NAME_MAX) - 1] = '\0';
++
++	return 0;
++}
++
++int sensors_write_char_sysfs_attr(const sensors_chip_name *name,
++                                  const sensors_subfeature *subfeature,
++                                  const char *value)
++{
++	char path[PATH_MAX] = {};
++	FILE *f = NULL;
++
++	snprintf(path, sizeof(path), "%s/%s", name->path, subfeature->name);
++	if ((f = fopen(path, "w"))) {
++		int res, err = 0;
++
++		res = fprintf(f, "%s", value);
++		if (res == -EIO)
++			err = -SENSORS_ERR_IO;
++		else if (res < 0)
++			err = -SENSORS_ERR_ACCESS_W;
++		res = fclose(f);
++		if (err)
++			return err;
++
++		if (res == EOF) {
++			if (errno == EIO)
++				return -SENSORS_ERR_IO;
++			else
++				return -SENSORS_ERR_ACCESS_W;
++		}
++	} else
++		return -SENSORS_ERR_KERNEL;
++
++	return 0;
++}
+diff --git a/lib/sysfs.h b/lib/sysfs.h
+index 38584af..58cf1b6 100644
+--- a/lib/sysfs.h
++++ b/lib/sysfs.h
+@@ -40,4 +40,12 @@ int sensors_write_sysfs_attr(const sensors_chip_name *name,
+ 			     const sensors_subfeature *subfeature,
+ 			     double value);
+ 
++
++int sensors_write_char_sysfs_attr(const sensors_chip_name *name,
++                                  const sensors_subfeature *subfeature,
++                                  const char *value);
++int sensors_read_char_sysfs_attr(const sensors_chip_name *name,
++                                 const sensors_subfeature *subfeature,
++                                 char *result);
++
+ #endif /* !SENSORS_LIB_SYSFS_H */
+diff --git a/prog/sensord/chips.c b/prog/sensord/chips.c
+index 1f46b45..818a01d 100644
+--- a/prog/sensord/chips.c
++++ b/prog/sensord/chips.c
+@@ -343,8 +343,29 @@ static void fillChipPwm(FeatureDescriptor *pwm,
+ 
+ 	/* terminate the list */
+ 	fan->dataNumbers[pos] = -1;
+-        fan->alarmNumber = -1;
+-        fan->beepNumber = -1;
++    fan->alarmNumber = -1;
++    fan->beepNumber = -1;
++}
++
++static void fillChipLed(FeatureDescriptor *led,
++						const sensors_chip_name *name,
++						const sensors_feature *feature)
++{
++	const sensors_subfeature *sf = NULL;
++	int pos = 0;
++
++	led->rrd = rrdF0;
++	led->type = DataType_other;
++
++	sf = sensors_get_subfeature(name, feature,
++								SENSORS_SUBFEATURE_LED_OUTPUT);
++	if (sf)
++		led->dataNumbers[pos++] = sf->number;
++
++	/* terminate the list */
++	led->dataNumbers[pos] = -1;
++	led->alarmNumber = -1;
++	led->beepNumber = -1;
+ }
+ 
+ static FeatureDescriptor * generateChipFeatures(const sensors_chip_name *chip)
+@@ -386,6 +407,9 @@ static FeatureDescriptor * generateChipFeatures(const sensors_chip_name *chip)
+ 		case SENSORS_FEATURE_PWM:
+ 			fillChipPwm(&features[count], chip, sensor);
+ 			break;
++		case SENSORS_FEATURE_LED:
++			fillChipLed(&features[count], chip, sensor);
++			break;
+ 		default:
+ 			continue;
+ 		}

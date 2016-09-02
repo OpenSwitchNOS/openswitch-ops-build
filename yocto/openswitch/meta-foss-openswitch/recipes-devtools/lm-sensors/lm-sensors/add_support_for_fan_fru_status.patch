@@ -1,0 +1,24 @@
+diff --git a/lib/sensors.h b/lib/sensors.h
+index 3e595d5..54161f7 100644
+--- a/lib/sensors.h
++++ b/lib/sensors.h
+@@ -181,6 +181,7 @@ typedef enum sensors_subfeature_type {
+ 	SENSORS_SUBFEATURE_FAN_INPUT = SENSORS_FEATURE_FAN << 8,
+ 	SENSORS_SUBFEATURE_FAN_MIN,
+ 	SENSORS_SUBFEATURE_FAN_MAX,
++	SENSORS_SUBFEATURE_FAN_STATUS,
+ 	SENSORS_SUBFEATURE_FAN_ALARM = (SENSORS_FEATURE_FAN << 8) | 0x80,
+ 	SENSORS_SUBFEATURE_FAN_FAULT,
+ 	SENSORS_SUBFEATURE_FAN_DIV,
+diff --git a/lib/sysfs.c b/lib/sysfs.c
+index 2e79121..7a254cc 100644
+--- a/lib/sysfs.c
++++ b/lib/sysfs.c
+@@ -272,6 +272,7 @@ static const struct subfeature_type_match fan_matches[] = {
+ 	{ "input", SENSORS_SUBFEATURE_FAN_INPUT },
+ 	{ "min", SENSORS_SUBFEATURE_FAN_MIN },
+ 	{ "max", SENSORS_SUBFEATURE_FAN_MAX },
++	{ "status", SENSORS_SUBFEATURE_FAN_STATUS },
+ 	{ "div", SENSORS_SUBFEATURE_FAN_DIV },
+ 	{ "pulses", SENSORS_SUBFEATURE_FAN_PULSES },
+ 	{ "alarm", SENSORS_SUBFEATURE_FAN_ALARM },

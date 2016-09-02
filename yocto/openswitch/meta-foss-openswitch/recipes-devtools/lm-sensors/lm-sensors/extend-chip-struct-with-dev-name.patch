@@ -1,0 +1,47 @@
+diff --git a/lib/data.c b/lib/data.c
+index 1b70f82..b2d65a2 100644
+--- a/lib/data.c
++++ b/lib/data.c
+@@ -57,6 +57,7 @@ int sensors_proc_bus_max = 0;
+ void sensors_free_chip_name(sensors_chip_name *chip)
+ {
+ 	free(chip->prefix);
++	free(chip->dev_name);
+ }
+ 
+ /*
+diff --git a/lib/sensors.h b/lib/sensors.h
+index 383f072..1db4332 100644
+--- a/lib/sensors.h
++++ b/lib/sensors.h
+@@ -64,6 +64,7 @@ typedef struct sensors_chip_name {
+ 	sensors_bus_id bus;
+ 	int addr;
+ 	char *path;
++        char *dev_name;
+ } sensors_chip_name;
+ 
+ /* Load the configuration file and the detected chips list. If this
+diff --git a/lib/sysfs.c b/lib/sysfs.c
+index 8739fe9..7e6cb53 100644
+--- a/lib/sysfs.c
++++ b/lib/sysfs.c
+@@ -635,6 +635,7 @@ static int sensors_read_one_sysfs_chip(const char *dev_path,
+ 	int sub_len;
+ 	sensors_chip_features entry;
+ 
++        entry.chip.dev_name = NULL;
+ 	/* ignore any device without name attribute */
+ 	if (!(entry.chip.prefix = sysfs_read_attr(hwmon_path, "name")))
+ 		return 0;
+@@ -740,6 +741,10 @@ done:
+ 		err = 0;
+ 		goto exit_free;
+ 	}
++        /* virtual chip has no device link */
++        if (dev_name) {
++        entry.chip.dev_name = strndup(dev_name, strlen(dev_name));
++        }
+ 	sensors_add_proc_chips(&entry);
+ 
+ 	return 1;
