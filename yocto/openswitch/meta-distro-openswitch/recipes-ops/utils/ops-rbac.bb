@@ -9,7 +9,7 @@ FILES_ops-librbac-dev = "/usr/lib/pkgconfig/rbac.pc /usr/lib/librbac.so*"
 
 DEPENDS = "ops-cli"
 
-BRANCH ?= "feature/tacacs_plus"
+BRANCH ?= "feature/radius"
 
 SRC_URI = "${OPS_REPO_BASE_URL}/ops-rbac;protocol=${OPS_REPO_PROTOCOL};branch=${BRANCH}"
 
