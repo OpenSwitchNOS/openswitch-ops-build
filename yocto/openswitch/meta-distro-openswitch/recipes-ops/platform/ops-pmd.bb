@@ -3,6 +3,7 @@ LICENSE = "Apache-2.0"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/Apache-2.0;md5=89aea4e17d99a7cacdbeed46a0096b10"
 
 DEPENDS = "ops-hw-config ops-ovsdb ops-supportability"
+DEPENDS += "${@bb.utils.contains('MACHINE_FEATURES','ops-pmd-mlnx','mlnx-applibs','',d)}"
 
 BRANCH ?= "${OPS_REPO_BRANCH}"
 
@@ -23,6 +24,13 @@ do_install_append() {
      install -m 0644 ${WORKDIR}/ops-pmd.service ${D}${systemd_unitdir}/system/
 }
 
+PLATFORM_TYPE .= "${@bb.utils.contains('MACHINE_FEATURES','ops-pmd-mlnx','libpmd-mlnx-plugin','',d)}"
+PLATFORM_TYPE .= "${@bb.utils.contains('MACHINE_FEATURES','ops-pmd-i2c','libpmd-i2c-plugin','',d)}"
+
+EXTRA_OECMAKE += "-DLIBDIR=${libdir}"
+EXTRA_OECMAKE += "-DPLATFORM_TYPE_STR=${PLATFORM_TYPE}"
+
+FILES_${PN} += "${libdir}/platform/plugins"
 SYSTEMD_PACKAGES = "${PN}"
 SYSTEMD_SERVICE_${PN} = "ops-pmd.service"
 
