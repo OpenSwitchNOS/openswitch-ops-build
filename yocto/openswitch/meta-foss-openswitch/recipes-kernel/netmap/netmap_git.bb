@@ -1,4 +1,4 @@
-DESCRIPTION = "netmap and VALE - very fast packet I/O from userspace (FreeBSD/Linux)"
+DESCRIPTION = "netmap - very fast packet I/O from userspace (FreeBSD/Linux)"
 SECTION = "BSP"
 LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/BSD-3-Clause;md5=550794465ba0ec5312d6919e203a55f9"
@@ -6,35 +6,20 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/BSD-3-Clause;md5=550794465ba0ec
 PR = "r0"
 PV = "git"
 
-SRCREV="8123c744470aa4562635dd139d3895ed68d45dd7"
+SRCREV="30da094081157b2318d94783940435bdba062b71"
 
 SRC_URI = " \
     git://github.com/luigirizzo/netmap.git;protocol=https \
     file://add-modules-install-target.patch \
-    file://remove-warnings.patch \
 "
 
-S = "${WORKDIR}/git"
+S = "${WORKDIR}/git/LINUX"
+B = "${S}"
 
-MAKE_TARGETS="NODRIVERS=1 KSRC=${STAGING_KERNEL_DIR}"
-
-do_compile_prepend() {
-	cd LINUX
-	make apps
-}
-
-do_install_prepend() {
-	cd examples
-	install -d ${D}/usr/bin
-	install -m 755 bridge ${D}/usr/bin
-	install -m 755 pkt-gen ${D}/usr/bin
-	install -m 755 test_select ${D}/usr/bin
-	install -m 755 testmmap ${D}/usr/bin
-	install -m 755 vale-ctl ${D}/usr/bin
-	cd ../LINUX
+do_configure() {
+	./configure \
+            --kernel-dir=${STAGING_KERNEL_BUILDDIR} \
+            --no-drivers --disable-vale 
 }
 
 inherit module
-
-FILES_${PN} = "/usr/bin/*"
-RDEPENDS_${PN} = "kernel-module-netmap-lin"
