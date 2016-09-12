@@ -58,7 +58,6 @@ set( CMAKE_CXX_LINK_FLAGS "${BUILD_CC_ARCH} ${BUILD_CXXFLAGS} ${BUILD_LDFLAGS}" 
 # up libraries and tools from the native build machine
 set( CMAKE_FIND_ROOT_PATH ${STAGING_DIR_HOST} ${STAGING_DIR_NATIVE} ${CROSS_DIR} ${OECMAKE_PERLNATIVE_DIR} ${OECMAKE_EXTRA_ROOT_PATH} ${EXTERNAL_TOOLCHAIN})
 set( CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY )
-set( CMAKE_FIND_ROOT_PATH_MODE_PROGRAM ONLY )
 set( CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY )
 set( CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY )
 
@@ -94,8 +93,6 @@ do_compile_prepend_class-target() {
 }
 
 do_compile() {
-    oe_runmake llvm-tblgen
-    oe_runmake clang-tblgen
     oe_runmake
 }
 
