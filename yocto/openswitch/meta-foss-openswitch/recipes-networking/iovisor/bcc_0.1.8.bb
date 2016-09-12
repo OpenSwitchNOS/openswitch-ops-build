@@ -28,7 +28,7 @@ do_install() {
 
 RDEPENDS_${PN} = "python-core"
 
-PACKAGES += "${PN}-examples ${PN}-tools"
+PACKAGES_prepend = "${PN}-examples ${PN}-tools "
 
 FILES_${PN}-doc += "/usr/share/bcc/man"
 RDEPENDS_${PN}-examples = "python-core bcc"
