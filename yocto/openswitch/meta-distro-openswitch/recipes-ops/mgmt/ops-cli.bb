@@ -5,12 +5,12 @@ LIC_FILES_CHKSUM = "file://COPYING;md5=81bcece21748c91ba9992349a91ec11d\
 
 DEPENDS = "ops-utils ops-ovsdb"
 
-BRANCH ?= "${OPS_REPO_BRANCH}"
+BRANCH ?= "feature/tunnel"
 
 SRC_URI = "${OPS_REPO_BASE_URL}/ops-cli;protocol=${OPS_REPO_PROTOCOL};branch=${BRANCH} \
 "
 
-SRCREV = "571504f215e64e5d8b95b2492ccdd0f1daeff533"
+SRCREV = "${AUTOREV}"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.
