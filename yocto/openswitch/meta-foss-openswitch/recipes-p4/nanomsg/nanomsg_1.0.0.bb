@@ -11,13 +11,13 @@ LICENSE = "MIT"
 
 LIC_FILES_CHKSUM = "file://COPYING;md5=587b3fd7fd291e418ff4d2b8f3904755"
 
-SRC_URI = "https://github.com/${BPN}/${BPN}/releases/download/${PV}/${BPN}-${PV}.tar.gz \
+SRC_URI = "https://github.com/${BPN}/${BPN}/archive/${PV}.tar.gz \
 "
 
-SRC_URI[md5sum] = "bfccbcd8c5ea8ccad4ef7ade558eebea"
-SRC_URI[sha256sum] = "75ce0c68a50cc68070d899035d5bb1e2bd75a5e01cbdd86ba8af62a84df3a947"
+SRC_URI[md5sum] = "6f56ef28c93cee644e8c4aaaef7cfb55"
+SRC_URI[sha256sum] = "24afdeb71b2e362e8a003a7ecc906e1b84fd9f56ce15ec567481d1bb33132cc7"
 
-inherit autotools
+inherit cmake
 
 DEPENDS = " \
 	libtool-cross \
