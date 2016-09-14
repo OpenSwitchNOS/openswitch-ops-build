@@ -21,7 +21,7 @@ DEPENDS_class-native = "judy-native libedit-native nanomsg-native \
 
 # C libraries are automatically calculated by Yocto
 RDEPENDS_${PN} = "\
-	python-thrift python-pyyaml python-tenjin \
+	python-thrift python-pyyaml python-tenjin python-nnpy \
 "
 
 do_install_append() {
