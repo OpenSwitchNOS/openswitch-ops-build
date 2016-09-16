@@ -10,10 +10,25 @@ SRC_URI = "${OPS_REPO_BASE_URL}/ops-utils;protocol=${OPS_REPO_PROTOCOL};branch=$
 
 SRCREV = "${AUTOREV}"
 
+S = "${WORKDIR}/git"
+
+inherit openswitch cmake setuptools
+
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.
 PV = "git${SRCPV}"
 
 S = "${WORKDIR}/git"
+do_compile() {
+     cd ${S}
+     distutils_do_compile
+     # Cmake compile changes to the B directory
+     cmake_do_compile
+}
 
-inherit openswitch cmake
+do_install() {
+     cd ${S}
+     distutils_do_install
+     # Cmake compile changes to the B directory
+     cmake_do_install
+}
