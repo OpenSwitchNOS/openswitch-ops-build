@@ -19,7 +19,7 @@ SYSLINUX_PROMPT ?= "0"
 SYSLINUX_TIMEOUT ?= "0"
 
 DEPENDS = "tar-native qemu-native"
-IMAGE_FSTYPES = "vmdk tar.gz"
+IMAGE_FSTYPES = "vmdk tar.gz qcow2"
 
 CORE_NUMBER ??= "2"
 RAM_SIZE ??= "768"
@@ -70,6 +70,7 @@ create_bundle_files () {
 
 	tar cvf ${DEPLOY_DIR_IMAGE}/${IMAGE_NAME}.ova ${DISTRO_NAME}.ovf ${DISTRO_NAME}.vmdk
 	ln -sf ${IMAGE_NAME}.ova ${DEPLOY_DIR_IMAGE}/${BPN}-${MACHINE}.ova
+	ln -sf ${IMAGE_NAME}.qcow2 ${DEPLOY_DIR_IMAGE}/${BPN}-${MACHINE}.qcow2
 	cp ${DISTRO_NAME}.ovf box.ovf
 	tar cvzf ${DEPLOY_DIR_IMAGE}/${IMAGE_NAME}.box box.ovf ${DISTRO_NAME}.vmdk Vagrantfile metadata.json
 	ln -sf ${IMAGE_NAME}.box ${DEPLOY_DIR_IMAGE}/${BPN}-${MACHINE}.box

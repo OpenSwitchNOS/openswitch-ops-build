@@ -137,6 +137,9 @@ inherit ${IMAGE_TYPE_live}
 IMAGE_TYPE_vmdk = '${@bb.utils.contains("IMAGE_FSTYPES", "vmdk", "image-vmdk", "", d)}'
 inherit ${IMAGE_TYPE_vmdk}
 
+IMAGE_TYPE_qcow2 = '${@bb.utils.contains("IMAGE_FSTYPES", "qcow2", "image-qcow2", "", d)}'
+inherit ${IMAGE_TYPE_qcow2}
+
 python () {
     deps = " " + imagetypes_getdepends(d)
     d.appendVarFlag('do_rootfs', 'depends', deps)
