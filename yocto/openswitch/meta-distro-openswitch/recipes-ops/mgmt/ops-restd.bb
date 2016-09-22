@@ -4,7 +4,7 @@ LIC_FILES_CHKSUM = "file://setup.py;beginline=1;endline=15;md5=718b8f9952f79dfe2
 
 DEPENDS = "python-inflect-native python-tornado-native ops-openvswitch ops-ovsdb ops-supportability"
 
-RDEPENDS_${PN} = "python-argparse python-json python-ops-ovsdb python-distribute python-tornado python-html python-pkgutil python-subprocess python-numbers python-inflect python-xml ops-restapi python-unixadmin python-jsonschema python-jsonpatch ops-aaa-utils ops-passwd-srv python-pycrypto Markdown"
+RDEPENDS_${PN} = "python-argparse python-json python-ops-ovsdb python-distribute python-tornado python-html python-pkgutil python-subprocess python-numbers python-inflect python-xml ops-restapi python-unixadmin python-jsonschema python-jsonpatch ops-aaa-utils ops-passwd-srv python-pycrypto"
 
 BRANCH ?= "${OPS_REPO_BRANCH}"
 
@@ -13,7 +13,7 @@ SRC_URI = "${OPS_REPO_BASE_URL}/ops-restd;protocol=${OPS_REPO_PROTOCOL};branch=$
            file://restd.nginx \
 "
 
-SRCREV = "9c7f20237801c741635aaf9479779a9bc60175df"
+SRCREV = "baf2f631d53966b7084c7c99e88639d857a041c5"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.

@@ -5,12 +5,12 @@ LIC_FILES_CHKSUM = "file://COPYING;md5=81bcece21748c91ba9992349a91ec11d\
 
 DEPENDS = "ops-utils ops-ovsdb"
 
-BRANCH ?= "feature/tacacs_plus"
+BRANCH ?= "${OPS_REPO_BRANCH}"
 
 SRC_URI = "${OPS_REPO_BASE_URL}/ops-cli;protocol=${OPS_REPO_PROTOCOL};branch=${BRANCH} \
 "
 
-SRCREV = "${AUTOREV}"
+SRCREV = "399bebd2f89ed13e095d975f4cd6c72da8f608f1"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.

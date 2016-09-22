@@ -7,15 +7,15 @@ DEPENDS = "ops-ovsdb ops-cli ops-supportability"
 
 RDEPENDS_${PN} = "python-argparse python-json python-ops-ovsdb python-distribute python-pam pam-plugin-radius-auth pam-plugin-radius-chap-auth"
 
-BRANCH ?= "feature/tacacs_plus"
+BRANCH ?= "${OPS_REPO_BRANCH}"
 
 SRC_URI = "${OPS_REPO_BASE_URL}/ops-aaa-utils;protocol=${OPS_REPO_PROTOCOL};branch=${BRANCH} \
            file://aaautils.service \
            file://server \
            file://useradd \
          "
-SRCREV = "${AUTOREV}"
 
+SRCREV = "b74961693c9d5491272f99ed36f9be648c237a38"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.
