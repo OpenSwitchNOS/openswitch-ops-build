@@ -1,3 +1,0 @@
-location /schemadoc {
-  alias /srv/www/schemadoc;
-}

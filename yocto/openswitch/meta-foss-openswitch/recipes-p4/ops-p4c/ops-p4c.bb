@@ -7,7 +7,7 @@ OPS_P4C_REPO = "github.com/p4lang/p4c-bm.git"
 
 SRC_URI = "git://${OPS_P4C_REPO};protocol=https;branch=ops \
            "
-SRCREV = "a82c029c91f37950e8d51572d093dfda2c178711"
+SRCREV = "f44bc6ddb9e49275abd2ddcdcffa81818911ef98"
 PV = "git${SRCPV}"
 S = "${WORKDIR}/git"
 
