@@ -2,13 +2,13 @@ SUMMARY = "OpenSwitch"
 LICENSE = "Apache-2.0"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/Apache-2.0;md5=89aea4e17d99a7cacdbeed46a0096b10"
 
-BRANCH ?= "${OPS_REPO_BRANCH}"
+BRANCH ?= "feature/tacacs_plus"
 
 SRC_URI = "${OPS_REPO_BASE_URL}/ops;protocol=${OPS_REPO_PROTOCOL};branch=${BRANCH} \
 	file://ops-schemadoc.nginx \
 "
 
-SRCREV = "7a3200567caaaa8671f2c94b5779aabd06020450"
+SRCREV = "${AUTOREV}"
 
 DEPENDS = " \
     python-jsonref-native \
