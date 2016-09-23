@@ -3,7 +3,7 @@ LICENSE = "Apache-2.0"
 
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/Apache-2.0;md5=89aea4e17d99a7cacdbeed46a0096b10"
 
-DEPENDS = "ops-switchd ops-ovsdb"
+DEPENDS = "ops-switchd ops-ovsdb ops-cli"
 
 BRANCH ?= "feature/tunnel"
 
@@ -15,8 +15,10 @@ SRCREV = "${AUTOREV}"
 # in order to avoid stale shared states.
 PV = "git${SRCPV}"
 
+
 S = "${WORKDIR}/git"
 
 SYSTEMD_PACKAGES = "${PN}"
 
+FILES_${PN} += "/usr/lib/cli"
 inherit openswitch cmake systemd
