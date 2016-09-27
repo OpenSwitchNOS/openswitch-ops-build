@@ -10,13 +10,13 @@ SRC_URI = "${OPS_REPO_BASE_URL}/ops-ipapps;protocol=${OPS_REPO_PROTOCOL};branch=
            file://ops-relay.service \
            "
 
-SRCREV = "74defd3c0790a399d748806b6bd2a9fe9ba5debf"
+SRCREV = "${AUTOREV}"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.
 PV = "git${SRCPV}"
 
-S = "${AUTOREV}"
+S = "${WORKDIR}/git"
 
 do_install_append() {
      install -d ${D}${systemd_unitdir}/system
