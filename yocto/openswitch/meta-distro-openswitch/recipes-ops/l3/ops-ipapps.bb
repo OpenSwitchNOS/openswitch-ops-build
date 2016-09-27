@@ -4,7 +4,7 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/Apache-2.0;md5=89aea4e17d99a7ca
 
 DEPENDS = "ops-utils ops-ovsdb ops-cli"
 
-BRANCH ?= "${OPS_REPO_BRANCH}"
+BRANCH ?= "feature/radius"
 
 SRC_URI = "${OPS_REPO_BASE_URL}/ops-ipapps;protocol=${OPS_REPO_PROTOCOL};branch=${BRANCH} \
            file://ops-relay.service \
@@ -16,7 +16,7 @@ SRCREV = "74defd3c0790a399d748806b6bd2a9fe9ba5debf"
 # in order to avoid stale shared states.
 PV = "git${SRCPV}"
 
-S = "${WORKDIR}/git"
+S = "${AUTOREV}"
 
 do_install_append() {
      install -d ${D}${systemd_unitdir}/system
