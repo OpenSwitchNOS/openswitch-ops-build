@@ -6,13 +6,13 @@ DEPENDS = "ops-ovsdb libyaml systemd ops-cli"
 
 RDEPENDS_${PN} = "python-pyinotify python-xattr python-argparse python-json python-ops-ovsdb python-distribute python-pyyaml python-systemd"
 
-BRANCH ?= "${OPS_REPO_BRANCH}"
+BRANCH ?= "feature/radius"
 
 SRC_URI = "${OPS_REPO_BASE_URL}/ops-supportability;protocol=${OPS_REPO_PROTOCOL};branch=${BRANCH} \
            file://ops-supportability.service \
 "
 
-SRCREV = "8af57bff835199ce1a1f019cb35daf4dcc69cb7c"
+SRCREV = "${AUTOREV}"
 
 # When using AUTOREV, we need to force the package version to the revision of git
 # in order to avoid stale shared states.
