@@ -19,6 +19,7 @@ PV = "git${SRCPV}"
 S = "${WORKDIR}/git"
 
 SYSTEMD_PACKAGES = "${PN}"
-
+FILES_${PN} = "${libdir}/openvswitch/plugins"
 FILES_${PN} += "/usr/lib/cli"
+FILES_${PN} += "/usr/bin/ops-tunnel"
 inherit openswitch cmake systemd
