@@ -34,20 +34,7 @@ RDEPENDS_${PN} = " \
 
 inherit openswitch autotools-brokensep pythonnative pkgconfig
 
-# temporary workaround while the correct code enters the repository
-do_install() {
-    if test -e "${S}/Makefile" ; then
-        autotools_do_install
-    else
-        # install something until real files are built
-        mkdir -p ${D}/usr/share/ovs_p4_plugin
-        cp ${S}/test.txt ${D}/usr/share/ovs_p4_plugin/switch_bmv2.json
-
-    fi
-}
-
 FILES_${PN} += "${libdir}/openvswitch/plugins"
 FILES_${PN} += "/usr/share/ovs_p4_plugin/switch_bmv2.json"
-
 
 EXTRA_OECONF = "--enable-bmv2 --disable-static CPPFLAGS='${CPPFLAGS} -DHOST_BYTE_ORDER_CALLER'"
